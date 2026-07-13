@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} | TUNU Publishers{% endblock %}
+
+{% block head %}
+<meta name="description" content="{{ (book.blurb or (book.title ~ ' by ' ~ (book.authors or 'TUNU Publishers')))[:160] }}">
+<meta property="og:title" content="{{ book.title }} | TUNU Publishers">
+<meta property="og:description" content="{{ (book.blurb or '')[:160] }}">
+<meta property="og:image" content="{{ book.image_url }}">
+<meta property="og:type" content="product">
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": {{ book.title | tojson }},
+    "image": {{ book.image_url | tojson }},
+    "description": {{ (book.blurb or '')[:300] | tojson }},
+    "brand": { "@type": "Brand", "name": "TUNU Publishers" },
+    "offers": {
+        "@type": "Offer",
+        "priceCurrency": "KES",
+        "price": {{ book.newPrice or 0 }},
+        "availability": "https://schema.org/InStock",
+        "url": "https://www.tunupublishers.com/book/{{ book.slug }}"
+    }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- BREADCRUMB -->
+<div class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center gap-2 text-[11px] font-semibold text-gray-500 overflow-x-auto whitespace-nowrap">
+        <a href="/" class="hover:text-magenta transition-colors shrink-0">Home</a>
+        <i class="fas fa-chevron-right text-[8px] text-gray-300 shrink-0"></i>
+        <a href="/books" class="hover:text-magenta transition-colors shrink-0">Books</a>
+        {% if book.grade or book.audience %}
+        <i class="fas fa-chevron-right text-[8px] text-gray-300 shrink-0"></i>
+        <span class="shrink-0">{{ book.grade or book.audience }}</span>
+        {% endif %}
+        <i class="fas fa-chevron-right text-[8px] text-gray-300 shrink-0"></i>
+        <span class="text-gray-800 truncate">{{ book.title }}</span>
+    </div>
+</div>
+
+<!-- PRODUCT MAIN -->
+<section class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+
+        <!-- IMAGE -->
+        <div class="md:sticky md:top-24 self-start">
+            <div class="relative bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden aspect-[3/4] flex items-center justify-center">
+                <img src="{{ book.image_url }}" alt="{{ book.title }}" id="product-image" class="w-full h-full object-contain p-6 md:p-10" onerror="this.src='https://placehold.co/500x650/8B008B/ffffff?text=Book'">
+                {% if book.discounted and book.oldPrice and book.oldPrice > book.newPrice %}
+                <span class="absolute top-4 left-4 bg-orangered text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md">
+                    -{{ (((book.oldPrice - book.newPrice) / book.oldPrice) * 100) | round | int }}% OFF
+                </span>
+                {% endif %}
+                <button onclick="showAlert('info', 'Your Wishlist is currently empty.')" class="absolute top-4 right-4 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center text-gray-500 hover:text-magenta shadow-md transition-colors" title="Add to Wishlist">
+                    <i class="far fa-heart text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- DETAILS -->
+        <div class="flex flex-col">
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+                {% if book.grade %}<span class="bg-magenta/10 text-magenta text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">{{ book.grade }}</span>{% endif %}
+                {% if book.audience %}<span class="bg-lightWarm text-gray-600 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-gray-200">{{ book.audience }}</span>{% endif %}
+            </div>
+
+            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800 leading-tight mb-2">{{ book.title }}</h1>
+            <p class="text-xs text-gray-500 font-semibold mb-4">by <span class="text-gray-700">{{ book.authors or 'TUNU Publishers' }}</span></p>
+
+            <div class="flex items-center gap-4 mb-5 text-xs text-gray-500 font-semibold flex-wrap">
+                <div class="flex items-center gap-1">
+                    {% set full_stars = [book.stars, 5] | min %}
+                    {% for i in range(5) %}
+                        {% if i < full_stars %}
+                        <i class="fas fa-star text-orangered text-xs"></i>
+                        {% else %}
+                        <i class="far fa-star text-gray-300 text-xs"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <span class="flex items-center gap-1"><i class="fas fa-eye text-gray-400"></i> {{ book.views | number }} views</span>
+                <span class="flex items-center gap-1"><i class="fas fa-fire text-gray-400"></i> {{ book.sold | number }} sold</span>
+            </div>
+
+            <div class="flex items-end gap-3 mb-6 pb-6 border-b border-gray-100">
+                {% if book.discounted and book.oldPrice and book.oldPrice > book.newPrice %}
+                <span class="text-sm text-gray-400 line-through">{{ book.oldPrice | currency }}</span>
+                {% endif %}
+                <span class="text-3xl font-extrabold text-magenta">{{ book.newPrice | currency }}</span>
+            </div>
+
+            <!-- QUANTITY + ADD TO CART -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+                <div class="flex items-center border border-gray-300 rounded-full overflow-hidden w-full sm:w-auto justify-between sm:justify-start shrink-0">
+                    <button onclick="changeQty(-1)" class="w-11 h-11 flex items-center justify-center text-gray-600 hover:text-magenta transition-colors shrink-0" aria-label="Decrease quantity">
+                        <i class="fas fa-minus text-xs"></i>
+                    </button>
+                    <input type="number" id="product-qty" value="1" min="1" class="w-12 text-center text-sm font-bold outline-none border-x border-gray-200 py-2">
+                    <button onclick="changeQty(1)" class="w-11 h-11 flex items-center justify-center text-gray-600 hover:text-magenta transition-colors shrink-0" aria-label="Increase quantity">
+                        <i class="fas fa-plus text-xs"></i>
+                    </button>
+                </div>
+
+                <button onclick="addBookToCart('{{ book.id }}', '{{ book.audience }}')" class="flex-1 bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider px-6 py-3.5 rounded-full transition-colors shadow-md flex items-center justify-center gap-2">
+                    <i class="fas fa-cart-plus"></i> Add to Cart
+                </button>
+            </div>
+
+            <div class="flex items-center gap-3 mb-8">
+                <a href="https://wa.me/254722682129?text={{ ('Hi, I am interested in ' ~ book.title ~ ' by ' ~ book.authors ) | urlencode }}" target="_blank" class="flex items-center gap-2 text-xs font-bold text-gray-600 hover:text-[#25d366] transition-colors">
+                    <i class="fab fa-whatsapp text-base"></i> Ask on WhatsApp
+                </a>
+                <span class="text-gray-300">|</span>
+                <button onclick="shareProduct()" class="flex items-center gap-2 text-xs font-bold text-gray-600 hover:text-magenta transition-colors">
+                    <i class="fas fa-share-alt"></i> Share
+                </button>
+            </div>
+
+            <!-- TRUST STRIP -->
+            <div class="grid grid-cols-2 gap-3 mb-8">
+                <div class="flex items-center gap-2 bg-lightWarm border border-gray-100 rounded-xl px-3 py-2.5">
+                    <i class="fas fa-truck text-magenta"></i>
+                    <span class="text-[11px] font-semibold text-gray-600">Nationwide Delivery</span>
+                </div>
+                <div class="flex items-center gap-2 bg-lightWarm border border-gray-100 rounded-xl px-3 py-2.5">
+                    <i class="fas fa-shield-alt text-magenta"></i>
+                    <span class="text-[11px] font-semibold text-gray-600">Secure M-Pesa Pay</span>
+                </div>
+            </div>
+
+            <!-- DESCRIPTION -->
+            <div>
+                <h3 class="font-bold text-sm text-gray-800 uppercase tracking-wider mb-3 border-l-2 border-orangered pl-2">Description</h3>
+                {% if book.blurb %}
+                <p class="text-xs md:text-sm text-gray-600 leading-relaxed whitespace-pre-line">{{ book.blurb }}</p>
+                {% else %}
+                <p class="text-xs md:text-sm text-gray-400 italic">No description available for this title yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- RELATED BOOKS -->
+<section class="bg-white border-t border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
+        <div class="flex items-center justify-between mb-6 md:mb-8 gap-3">
+            <div>
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800">You May Also Like</h2>
+                <p class="text-xs text-gray-500 mt-1">More titles from our catalog</p>
+            </div>
+            <a href="/books" class="text-xs font-bold text-magenta hover:text-dark-magenta uppercase tracking-wider flex items-center gap-1 shrink-0">
+                View All <i class="fas fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+
+        {% if related %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {% for rbook in related %}
+            <div class="group relative bg-lightWarm rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+                <a href="/book/{{ rbook.slug }}" class="block relative bg-white aspect-[3/4] overflow-hidden">
+                    <img src="{{ rbook.image_url }}" alt="{{ rbook.title }}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/300x400/8B008B/ffffff?text=Book'">
+                </a>
+                <div class="p-3 flex flex-col flex-grow">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{{ rbook.grade or rbook.audience or 'General' }}</p>
+                    <a href="/book/{{ rbook.id }}" class="font-bold text-xs text-gray-800 leading-snug line-clamp-2 mb-1 hover:text-magenta transition-colors min-h-[2rem]">{{ rbook.title }}</a>
+                    <div class="mt-auto flex items-center justify-between gap-2">
+                        <span class="text-sm font-extrabold text-magenta truncate">{{ rbook.newPrice | currency }}</span>
+                        <button onclick="addToCart('{{ rbook.id }}', '{{ rbook.audience }}')" class="bg-magenta hover:bg-dark-magenta text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0" title="Add to Cart">
+                            <i class="fas fa-cart-plus text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12 text-gray-400 text-xs font-semibold border border-dashed border-gray-200 rounded-xl">
+            <i class="fas fa-book text-3xl text-magenta/20 mb-3 block"></i>
+            No related titles found.
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.booksData = [
+        {
+            id: {{ book.id | tojson }},
+            title: {{ book.title | tojson }},
+            image_url: {{ book.image_url | tojson }},
+            image: {{ book.image_url | tojson }},
+            newPrice: {{ book.newPrice or 0 }},
+            oldPrice: {{ book.oldPrice or 0 }},
+            category: {{ (book.audience or 'General') | tojson }}
+        },
+        {% for rbook in related %}
+        {
+            id: {{ rbook.id | tojson }},
+            title: {{ rbook.title | tojson }},
+            image_url: {{ rbook.image_url | tojson }},
+            image: {{ rbook.image_url | tojson }},
+            newPrice: {{ rbook.newPrice or 0 }},
+            oldPrice: {{ rbook.oldPrice or 0 }},
+            category: {{ (rbook.audience or 'General') | tojson }}
+        },
+        {% endfor %}
+    ];
+
+    function changeQty(delta) {
+        const input = document.getElementById('product-qty');
+        if (!input) return;
+        let val = parseInt(input.value || '1', 10) + delta;
+        if (val < 1) val = 1;
+        input.value = val;
+    }
+
+    function addBookToCart(id, category) {
+        const qtyInput = document.getElementById('product-qty');
+        const qty = Math.max(parseInt(qtyInput ? qtyInput.value : '1', 10) || 1, 1);
+        const db = window.booksData || [];
+        const targetBook = db.find(b => b.id === id);
+
+        if (!targetBook) {
+            showAlert('error', 'Book reference not found. Please refresh.');
+            return;
+        }
+
+        const existingMatch = cart.find(item => item.id === id);
+        if (existingMatch) {
+            existingMatch.quantity = parseInt(existingMatch.quantity || 1, 10) + qty;
+        } else {
+            cart.push({
+                id: targetBook.id,
+                title: targetBook.title,
+                image: targetBook.image_url || targetBook.image,
+                newPrice: targetBook.newPrice,
+                category: category || targetBook.category || 'General',
+                quantity: qty
+            });
+        }
+
+        saveCart();
+        updateCartUI();
+        showCartAlert(true);
+
+        if (window.innerWidth > 768) {
+            openCart();
+        }
+    }
+
+    function shareProduct() {
+        const shareData = {
+            title: {{ book.title | tojson }},
+            text: 'Check out this book on TUNU Publishers',
+            url: window.location.href
+        };
+        if (navigator.share) {
+            navigator.share(shareData).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showAlert('success', 'Link copied to clipboard.');
+            }).catch(() => {
+                showAlert('error', 'Unable to copy link.');
+            });
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>401 - Unauthorized Access</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandPurple: '#800080',
+                        brandPurpleDark: '#550055',
+                        brandOrange: '#FF4F01',
+                        brandOrangeDark: '#D43F00',
+                    },
+                    borderRadius: {
+                        'none': '0px',
+                        'sm': '2px',
+                        'md': '2px',
+                        'lg': '2px',
+                        'xl': '2px',
+                        '2xl': '2px',
+                        'full': '9999px'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            border-radius: 2px !important;
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] font-sans text-[#1E293B] min-h-screen flex flex-col justify-between antialiased">
+
+    <header class="bg-brandPurple text-white border-b border-brandPurpleDark/20 py-3">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
+            <div class="flex items-center gap-2">
+                <span class="bg-white text-brandPurple font-black px-2 py-0.5 text-sm tracking-wider">TUNU</span>
+                <span class="font-bold text-[10px] tracking-widest text-purple-100 uppercase">Gateway security</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 max-w-md w-full shadow-sm p-6 space-y-6">
+            <div class="flex items-center gap-4 border-b border-slate-100 pb-4">
+                <div class="h-12 w-12 bg-red-50 border border-red-200 text-red-600 flex items-center justify-center text-xl shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <p class="font-mono text-xs font-bold text-red-600 uppercase tracking-widest">Error Code: 401</p>
+                    <h1 class="text-sm font-black text-slate-800 uppercase tracking-wider">Access Unauthorized</h1>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-500 leading-relaxed">
+                Your current session parameters lack valid authentication tokens required to access this resource. This node is restricted to logged-in personnel with authorized system privileges.
+            </p>
+
+            <div class="bg-slate-50 border border-slate-100 p-3 font-mono text-[10px] text-slate-600 space-y-1">
+                <p><span class="font-bold">REASON:</span> {{ error }} </p>
+                <p><span class="font-bold">ERROR CODE:</span> {{ code  or  'DEFAULT'}}</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <a href="/staff/login" class="bg-brandPurple hover:bg-brandPurpleDark text-white text-xs font-bold py-2 px-3 text-center transition-all border border-brandPurpleDark shadow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-lock-open text-[10px]"></i>
+                    <span>AUTHENTICATE</span>
+                </a>
+                <a href="/" class="bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold py-2 px-3 text-center transition-all border border-slate-200 shadow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-house text-[10px]"></i>
+                    <span>PORTAL HOME</span>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-slate-400 font-mono uppercase">
+            <p>&copy; 2026 Tunu Publishers. Shield Active.</p>
+            <p>Authorization failure</p>
+        </div>
+    </footer>
+
+</body>
+</html>

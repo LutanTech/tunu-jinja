@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="relative bg-gradient-to-br from-magenta to-dark-magenta overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-14 md:py-20 flex flex-col md:flex-row items-center gap-10">
+        <div class="flex-1 text-center md:text-left">
+            <span class="inline-block bg-orangered text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">Elimu ni Tunu</span>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4">
+                Books That Build <span class="text-orangered">Brighter</span> Futures
+            </h1>
+            <p class="text-white/80 text-sm md:text-base max-w-lg mx-auto md:mx-0 mb-8">
+                CBC-aligned textbooks, novels, poetry and revision materials trusted by learners and institutions across Kenya.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
+                <a href="/books" class="bg-white text-magenta hover:bg-orangered hover:text-white transition-colors font-bold text-xs uppercase tracking-wider px-8 py-3.5 rounded-full shadow-lg w-full sm:w-auto text-center">
+                    Shop Now
+                </a>
+                <a href="/track-order" class="border border-white/40 text-white hover:bg-white/10 transition-colors font-bold text-xs uppercase tracking-wider px-8 py-3.5 rounded-full w-full sm:w-auto text-center">
+                    Track Order
+                </a>
+            </div>
+            {% if book_count %}
+            <p class="text-white/60 text-xs mt-6 font-semibold">
+                <i class="fas fa-check-circle text-orangered"></i> {{ book_count | number }}+ books in our growing catalog
+            </p>
+            {% endif %}
+        </div>
+        <div class="flex-1 relative w-full max-w-sm md:max-w-md">
+            <img src="/static/assets/hero.png" alt="Featured Books" class="w-full h-auto drop-shadow-2xl">
+        </div>
+    </div>
+</section>
+
+<!-- CATEGORY STRIP -->
+<section class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-5 flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden" style="scrollbar-width:none;-ms-overflow-style:none;">
+        <a href="/books" class="shrink-0 flex items-center gap-2 bg-lightWarm hover:bg-magenta hover:text-white text-gray-700 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-full border border-gray-100 transition-colors">
+            <i class="fas fa-th-large"></i> All Books
+        </a>
+        <a href="/books?cat=primary" class="shrink-0 flex items-center gap-2 bg-lightWarm hover:bg-magenta hover:text-white text-gray-700 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-full border border-gray-100 transition-colors">
+            <i class="fas fa-child"></i> Primary
+        </a>
+        <a href="/books?cat=junior" class="shrink-0 flex items-center gap-2 bg-lightWarm hover:bg-magenta hover:text-white text-gray-700 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-full border border-gray-100 transition-colors">
+            <i class="fas fa-user-graduate"></i> Junior Secondary
+        </a>
+        <a href="/books?cat=revision" class="shrink-0 flex items-center gap-2 bg-lightWarm hover:bg-magenta hover:text-white text-gray-700 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-full border border-gray-100 transition-colors">
+            <i class="fas fa-book-open"></i> Revision
+        </a>
+        <a href="/books?cat=novels" class="shrink-0 flex items-center gap-2 bg-lightWarm hover:bg-magenta hover:text-white text-gray-700 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-full border border-gray-100 transition-colors">
+            <i class="fas fa-feather-alt"></i> Novels
+        </a>
+        <a href="/books?cat=poetry" class="shrink-0 flex items-center gap-2 bg-lightWarm hover:bg-magenta hover:text-white text-gray-700 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-full border border-gray-100 transition-colors">
+            <i class="fas fa-pen-nib"></i> Poetry
+        </a>
+    </div>
+</section>
+
+<!-- NEWEST ARRIVALS -->
+<section class="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
+    <div class="flex items-center justify-between mb-6 md:mb-8 gap-3">
+        <div>
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800">New Arrivals</h2>
+            <p class="text-xs text-gray-500 mt-1">Freshly added to our catalog</p>
+        </div>
+        <a href="/books" class="text-xs font-bold text-magenta hover:text-dark-magenta uppercase tracking-wider flex items-center gap-1 shrink-0">
+            View All <i class="fas fa-arrow-right text-[10px]"></i>
+        </a>
+    </div>
+
+    {% if newest %}
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        {% for book in newest %}
+        <div class="group relative bg-white rounded-sm border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+            <a href="/book/{{ book.slug }}" class="block relative bg-lightWarm aspect-[3/4] overflow-hidden">
+                <img src="{{ book.image_url }}" alt="{{ book.title }}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300" onerror="this.src='{{ url_for('static', filename='icons/tunu_logo.png')}}'">
+                {% if book.discounted and book.oldPrice and book.oldPrice > book.newPrice %}
+                <span class="absolute top-2 left-2 bg-orangered text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                    -{{ (((book.oldPrice - book.newPrice) / book.oldPrice) * 100) | round | int }}%
+                </span>
+                {% endif %}
+                <button onclick="event.preventDefault(); showAlert('info', 'Your Wishlist is currently empty.')" class="absolute top-6 right-6 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-gray-500 hover:text-magenta shadow-sm transition-colors">
+                    <i class="far fa-heart text-xs"></i>
+                </button>
+                <button class="absolute top-16 right-6 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-green-500 hover:text-magenta shadow-sm transition-colors">
+                    <i class="far fa-eye text-xs"></i>
+                </button>
+            </a>
+            <div class="p-3 flex flex-col flex-grow">
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{{ book.grade or book.audience or 'General' }}</p>
+                <a href="/book/{{ book.slug }}" class="font-bold text-xs text-gray-800 leading-snug line-clamp-2 mb-1 hover:text-magenta transition-colors min-h-[2rem]">{{ book.title }}</a>
+                <p title="{{ book.authors }}" class="text-[10px] text-gray-400 mb-2 line-clamp-1">By {{ book.authors or 'TUNU Publishers' }}</p>
+                <div class="mt-auto flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                        {% if book.discounted and book.oldPrice and book.oldPrice > book.newPrice %}
+                        <span class="text-[10px] text-gray-400 line-through block">{{ book.oldPrice | currency }}</span>
+                        {% endif %}
+                        <span class="text-sm font-extrabold text-magenta block truncate">{{ book.newPrice | currency }}</span>
+                    </div>
+                    <button onclick="addToCart('{{ book.id }}', '{{ book.audience }}')" class="bg-magenta hover:bg-dark-magenta text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0" title="Add to Cart">
+                        <i class="fas fa-cart-plus text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12 text-gray-400 text-xs font-semibold border border-dashed border-gray-200 rounded-xl">
+        <i class="fas fa-book text-3xl text-magenta/20 mb-3 block"></i>
+        New books coming soon.
+    </div>
+    {% endif %}
+</section>
+
+<!-- TRENDING NOW -->
+<section class="bg-white border-y border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
+        <div class="flex items-center justify-between mb-6 md:mb-8 gap-3">
+            <div>
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800">Trending Now</h2>
+                <p class="text-xs text-gray-500 mt-1">What readers are viewing the most</p>
+            </div>
+            <a href="/books" class="text-xs font-bold text-magenta hover:text-dark-magenta uppercase tracking-wider flex items-center gap-1 shrink-0">
+                View All <i class="fas fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+
+        {% if trending %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-5">
+            {% for book in trending %}
+            <div class="group relative bg-lightWarm rounded-sm border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+                <a href="/book/{{ book.slug }}" class="block relative bg-white aspect-[3/4] overflow-hidden">
+                    <img src="{{ book.image_url }}" alt="{{ book.title }}" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" onerror="this.src='{{ url_for('static', filename='icons/tunu_logo.png')}}'">
+                    <span class="absolute top-2 left-2 bg-dark-magenta/90 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                        <i class="fas fa-eye text-[8px]"></i> {{ book.views | number }}
+                    </span>
+                </a>
+                <div class="p-2.5 flex flex-col flex-grow">
+                    <a href="/book/{{ book.slug }}" class="font-bold text-[11px] text-gray-800 leading-snug line-clamp-2 mb-1 hover:text-magenta transition-colors min-h-[1.9rem]">{{ book.title }}</a>
+                    <div class="mt-auto flex items-center justify-between gap-2">
+                        <span class="text-xs font-extrabold text-magenta truncate">{{ book.newPrice | currency }}</span>
+                        <button onclick="addToCart('{{ book.id }}', '{{ book.audience }}')" class="bg-magenta hover:bg-dark-magenta text-white w-7 h-7 rounded-full flex items-center justify-center transition-colors shrink-0" title="Add to Cart">
+                            <i class="fas fa-cart-plus text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}          
+        <div class="text-center py-12 text-gray-400 text-xs font-semibold border border-dashed border-gray-200 rounded-xl">
+            <i class="fas fa-fire text-3xl text-magenta/20 mb-3 block"></i>
+            No trending titles just yet.
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- TOP RATED -->
+<section class="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
+    <div class="flex items-center justify-between mb-6 md:mb-8 gap-3">
+        <div>
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800">Top Rated</h2>
+            <p class="text-xs text-gray-500 mt-1">Loved most by our readers</p>
+        </div>
+        <a href="/books" class="text-xs font-bold text-magenta hover:text-dark-magenta uppercase tracking-wider flex items-center gap-1 shrink-0">
+            View All <i class="fas fa-arrow-right text-[10px]"></i>
+        </a>
+    </div>
+
+    {% if top_rated %}
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        {% for book in top_rated %}
+        <div class="group relative bg-white rounded-sm border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+            <a href="/book/{{ book.slug }}" class="block relative bg-lightWarm aspect-[3/4] overflow-hidden">
+                <img src="{{ book.image_url }}" alt="{{ book.title }}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300" onerror="this.src='{{ url_for('static', filename='icons/tunu_logo.png')}}'">
+            </a>
+            <div class="p-3 flex flex-col flex-grow">
+                <div class="flex items-center gap-0.5 mb-1.5">
+                    {% set full_stars = [book.stars, 5] | min %}
+                    {% for i in range(5) %}
+                        {% if i < full_stars %}
+                        <i class="fas fa-star text-orangered text-[10px]"></i>
+                        {% else %}
+                        <i class="far fa-star text-gray-300 text-[10px]"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <a href="/book/{{ book.slug }}" class="font-bold text-xs text-gray-800 leading-snug line-clamp-2 mb-1 hover:text-magenta transition-colors min-h-[2rem]">{{ book.title }}</a>
+                <p class="text-[10px] text-gray-400 mb-2 line-clamp-1">{{ book.authors or 'TUNU Publishers' }}</p>
+                <div class="mt-auto flex items-center justify-between gap-2">
+                    <span class="text-sm font-extrabold text-magenta truncate">{{ book.newPrice | currency }}</span>
+                    <button onclick="addToCart('{{ book.id }}', '{{ book.audience }}')" class="bg-magenta hover:bg-dark-magenta text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0" title="Add to Cart">
+                        <i class="fas fa-cart-plus text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12 text-gray-400 text-xs font-semibold border border-dashed border-gray-200 rounded-xl">
+        <i class="fas fa-star text-3xl text-magenta/20 mb-3 block"></i>
+        No ratings yet, be the first to review.
+    </div>
+    {% endif %}
+</section>
+
+<!-- BEST SELLING -->
+<section class="bg-white border-y border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
+        <div class="flex items-center justify-between mb-6 md:mb-8 gap-3">
+            <div>
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800">Best Selling</h2>
+                <p class="text-xs text-gray-500 mt-1">Our most purchased titles</p>
+            </div>
+            <a href="/books" class="text-xs font-bold text-magenta hover:text-dark-magenta uppercase tracking-wider flex items-center gap-1 shrink-0">
+                View All <i class="fas fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+
+        {% if best_selling %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-5">
+            {% for book in best_selling %}
+            <div class="group relative bg-lightWarm rounded-sm border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+                <a href="/book/{{ book.slug }}" class="block relative bg-white aspect-[3/4] overflow-hidden">
+                    <img src="{{ url_for('book_cover', filename= book.image_url.replace('/book-cover/', '')) }}" alt="{{ book.title }}" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300">
+                    <span class="absolute top-2 left-2 bg-orangered text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                        <i class="fas fa-fire text-[8px]"></i>  {{ book.sold or 0 }} sold
+                    </span>
+                </a>
+                <div class="p-2.5 flex flex-col flex-grow">
+                    <a href="/book/{{ book.slug }}" class="font-bold text-[11px] text-gray-800 leading-snug line-clamp-2 mb-1 hover:text-magenta transition-colors min-h-[1.9rem]">{{ book.title }}</a>
+                    <div class="mt-auto flex items-center justify-between gap-2">
+                        <span class="text-xs font-extrabold text-magenta truncate">{{ book.newPrice | currency }}</span>
+                        <button onclick="addToCart('{{ book.id }}', '{{ book.audience }}')" class="bg-magenta hover:bg-dark-magenta text-white w-7 h-7 rounded-full flex items-center justify-center transition-colors shrink-0" title="Add to Cart">
+                            <i class="fas fa-cart-plus text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12 text-gray-400 text-xs font-semibold border border-dashed border-gray-200 rounded-xl">
+            <i class="fas fa-shopping-bag text-3xl text-magenta/20 mb-3 block"></i>
+            No sales recorded yet.
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- TRUST BADGES -->
+<section class="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div class="flex flex-col items-center text-center gap-2 bg-white border border-gray-100 rounded-xl p-5">
+            <i class="fas fa-truck text-2xl text-magenta"></i>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-800">Nationwide Delivery</h4>
+            <p class="text-[11px] text-gray-500 leading-relaxed">Fast and reliable shipping across Kenya</p>
+        </div>
+        <div class="flex flex-col items-center text-center gap-2 bg-white border border-gray-100 rounded-xl p-5">
+            <i class="fas fa-shield-alt text-2xl text-magenta"></i>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-800">Secure M-Pesa Payment</h4>
+            <p class="text-[11px] text-gray-500 leading-relaxed">Pay safely with STK push checkout</p>
+        </div>
+        <div class="flex flex-col items-center text-center gap-2 bg-white border border-gray-100 rounded-xl p-5">
+            <i class="fas fa-certificate text-2xl text-magenta"></i>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-800">CBC Certified Content</h4>
+            <p class="text-[11px] text-gray-500 leading-relaxed">Curriculum-aligned learning materials</p>
+        </div>
+        <div class="flex flex-col items-center text-center gap-2 bg-white border border-gray-100 rounded-xl p-5">
+            <i class="fas fa-headset text-2xl text-magenta"></i>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-800">Dedicated Support</h4>
+            <p class="text-[11px] text-gray-500 leading-relaxed">We're here whenever you need us</p>
+        </div>
+    </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section class="bg-dark-magenta">
+    <div class="max-w-4xl mx-auto px-4 md:px-6 py-12 text-center">
+        <h3 class="text-white font-bold text-lg md:text-xl mb-2">Stay in the Loop</h3>
+        <p class="text-white/70 text-xs md:text-sm mb-6 max-w-md mx-auto">Get notified about new releases, discounts and back-to-school offers.</p>
+        <form id="newsletter-form" class="flex flex-col sm:flex-row items-center gap-3 max-w-md mx-auto">
+            <input type="email" required id="newsletter-email" placeholder="Enter your email address" class="w-full min-w-0 px-4 py-3 rounded-full text-xs outline-none">
+            <button type="submit" class="bg-orangered hover:bg-white hover:text-magenta text-white font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-full transition-colors w-full sm:w-auto shrink-0">
+                Subscribe
+            </button>
+        </form>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.booksData = [
+        {% for book in (newest + trending + top_rated + best_selling) %}
+        {
+            id: {{ book.id | tojson }},
+            title: {{ book.title | tojson }},
+            image_url: {{ book.image_url | tojson }},
+            image: {{ book.image_url | tojson }},
+            newPrice: {{ book.newPrice or 0 }},
+            oldPrice: {{ book.oldPrice or 0 }},
+            category: {{ (book.audience or 'General') | tojson }}
+        },
+        {% endfor %}
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('newsletter-form');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const emailInput = document.getElementById('newsletter-email');
+                const email = emailInput.value.trim();
+                if (!email) return;
+                try {
+                    const res = await fetch('/api/newsletter', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        showAlert('success', 'Thanks for subscribing!');
+                        emailInput.value = '';
+                    } else {
+                        showAlert('error', data.error || 'Subscription failed.');
+                    }
+                } catch (err) {
+                    showAlert('error', 'Network error. Please try again.');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

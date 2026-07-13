@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUNU Publishers | Admin Executive Panel</title>
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+    <link rel="stylesheet" href="admin.css">
+    <!-- <script src="/resources/base/utils.js"></script> -->
+    <!-- <script src="/resources/base/base.js"></script> -->
+
+</head>
+<body>
+    <style>
+        .main-content{
+            background: white;
+        }
+    </style>
+
+    <!-- Modals -->
+    <div class="modal" id="modalPost">
+        <div class="modal-header">
+            <h3 class="card-title">Create New Article</h3>
+            <i class="fas fa-times" style="cursor:pointer" onclick="closeAll()"></i>
+        </div>
+        <div class="form-group">
+            <label>Title</label>
+            <input type="text" placeholder="e.g. The Future of African Literature">
+        </div>
+        <div class="form-group">
+            <label>Category</label>
+            <select>
+                <option>Culture</option>
+                <option>Tech</option>
+                <option>Literature</option>
+                <option>News</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Content Snippet</label>
+            <textarea placeholder="Write a short summary..."></textarea>
+        </div>
+        <button class="btn-primary" style="width:100%" onclick="closeAll()">Publish Now</button>
+    </div>
+
+    <!-- Staff Editing Modal Updated for DB Schema -->
+    <div class="modal" id="modalStaff">
+        <div class="modal-header">
+            <h3 class="card-title">Staff Management</h3>
+            <i class="fas fa-times" style="cursor:pointer" onclick="closeAll()"></i>
+        </div>
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="staffName" placeholder="Staff Name">
+        </div>
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="staffEmail" placeholder="email@tunu.com">
+        </div>
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" id="staffPhone" placeholder="+254...">
+        </div>
+        <div class="form-group">
+            <label>Location</label>
+            <input type="text" id="staffLocation" value="Nairobi">
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="staffIsAdmin">
+            <label for="staffIsAdmin" style="margin:0">Grant Administrator Privileges</label>
+        </div>
+        <div style="font-size: 0.7rem; color: #777; margin-bottom: 20px; padding: 10px; background: #f9f9f9; border-radius: 2px;">
+            <i class="fas fa-info-circle"></i> New accounts are issued a temporary password and must change it on first login.
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-primary" style="flex:1" onclick="saveStaff()">Save Staff Account</button>
+            <button class="btn-secondary" style="color:red" onclick="closeAll()">Discard</button>
+        </div>
+    </div>
+
+    <div class="modal" id="modalUser">
+        <div class="modal-header">
+            <h3 class="card-title">Register New Reader</h3>
+            <i class="fas fa-times" style="pointer-events:all; cursor:pointer" onclick="closeAll()"></i>
+        </div>
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" placeholder="First and Last name">
+        </div>
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+            <label>Initial Credits (KES)</label>
+            <input type="number" value="0">
+        </div>
+        <button class="btn-primary" style="width:100%" onclick="closeAll()">Create Account</button>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="https://i.ibb.co/CKRYPD4p/image.png" alt="TUNU" class="sidebar-logo">
+            <div style="font-weight: 800; font-size: 0.75rem; letter-spacing: 2px;">ADMIN CONSOLE</div>
+        </div>
+        
+        <nav>
+            <div class="nav-section">Main</div>
+            <a onclick="switchPage('insights', this)" class="nav-item active"><i class="fas fa-chart-pie"></i> Insights</a>
+            <a onclick="switchPage('orders', this)" class="nav-item"><i class="fas fa-shopping-bag"></i> Orders</a>
+            
+            <div class="nav-section">Content & Staff</div>
+            <a onclick="switchPage('inventory', this)" class="nav-item"><i class="fas fa-book"></i> Inventory</a>
+            <a onclick="switchPage('staff', this)" class="nav-item"><i class="fas fa-users"></i> Staff Accounts</a>
+            <a onclick="switchPage('blog', this)" class="nav-item"><i class="fas fa-pen-nib"></i> Blog Manager</a>
+            <a onclick="switchPage('readers', this)" class="nav-item"><i class="fas fa-user-graduate"></i> Readers UI</a>
+            
+            <div class="nav-section">Reports</div>
+            <a onclick="switchPage('sales', this)" class="nav-item"><i class="fas fa-file-invoice-dollar"></i> Daily Sales</a>
+            
+            <div style="margin-top: auto; padding-top: 30px;">
+                <a class="nav-item"><i class="fas fa-cog"></i> Settings</a>
+                <a href="login.html" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="menu-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </div>
+                <div id="pageTitle" style="font-weight: 800; font-size: 1.2rem; color: var(--dark-magenta);">Executive Overview</div>
+            </div>
+            
+            <div class="user-profile">
+                <div style="text-align: right;" class="user-info-text">
+                    <div style="font-weight: 800; font-size: 0.9rem;">Chief Administrator</div>
+                    <div style="font-size: 0.7rem; color: var(--orangered); font-weight: bold;">SUPER USER</div>
+                </div>
+                <div class="avatar">AD</div>
+            </div>
+        </header>
+
+        <div class="overlay" id="sidebarOverlay" onclick="closeAll()"></div>
+        <div class="modal" id="modalBook">
+            <div class="modal-header">
+                <h3 class="card-title">Book Details</h3>
+                <i class="fas fa-times" style="cursor:pointer" onclick="closeAll()"></i>
+            </div>
+            <div class="form-group">
+                <label>Book Title</label>
+                <input type="text" id="bookTitle">
+            </div>
+            <div class="form-group">
+                <label>Image URL</label>
+                <input type="file" accept="image/png, image/jpeg" id="bookImage">
+            </div>
+            <div class="form-group">
+                <label>Author</label>
+                <input type="text" id="bookAuthor">
+            </div>
+            <div class="price-row">
+                <div class="form-group">
+                    <label>Old Price</label>
+                    <input type="number" id="bookOldPrice">
+                </div>
+                <div class="form-group">
+                    <label>New Price</label>
+                    <input type="number" id="bookNewPrice">
+                </div>
+                <div class="form-group">
+                    <label>Grade / Audience</label>
+                    <input type="text" id="grade" placeholder="Enter grade: Eg. Grade 4, General Audience, Below 16Years, ">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Discount Status</label>
+                <select id="bookDiscounted">
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                </select>
+            </div>
+            <button class="btn-primary" id="saveBook" style="width:100%" onclick="saveBook()">Save</button>
+        </div>
+
+        <!-- <div class="form-group">
+            <label>Preview</label>
+            <img id="imagePreview" style="width:100%; max-height:200px; object-fit:cover; border-radius:10px; display:none;" />
+        </div>
+        
+        <div class="form-group">
+            <label>Upload Progress</label>
+            <div style="width:100%; background:#eee; border-radius:10px;">
+                <div id="uploadBar" style="width:0%; height:10px; background:#4caf50; border-radius:10px;"></div>
+            </div>
+            <small id="uploadText">0%</small>
+        </div> -->
+
+        
+
+        <div class="dashboard-body">
+            
+            <div id="insights" class="page-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: #fdf2f8; color: #db2777;"><i class="fas fa-coins"></i></div>
+                            <span style="color: #16a34a; font-size: 0.75rem; font-weight: bold;">+12.5%</span>
+                        </div>
+                        <div class="stat-value">KES 1.2M</div>
+                        <div class="stat-label">Monthly Revenue</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: #eff6ff; color: #2563eb;"><i class="fas fa-shopping-cart"></i></div>
+                            <span style="color: #16a34a; font-size: 0.75rem; font-weight: bold;">+84</span>
+                        </div>
+                        <div class="stat-value">1,402</div>
+                        <div class="stat-label">Total Orders</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: #f0fdf4; color: #16a34a;"><i class="fas fa-users"></i></div>
+                            <span style="color: #16a34a; font-size: 0.75rem; font-weight: bold;">+5.2%</span>
+                        </div>
+                        <div class="stat-value">8,920</div>
+                        <div class="stat-label">Total Readers</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header"><div class="card-title">Revenue Trends</div></div>
+                        <div class="cdv" style="height: 300px; width:100%; max-width:300px"><canvas id="revenueChart"></canvas></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><div class="card-title">Categories</div></div>
+                        <div style="height: 300px;width:300px"><canvas id="categoryChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="orders" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Order Management</div>
+                        <button class="btn-primary">Export CSV</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Status</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>#TN-9902</td><td>Alice Wambui</td><td>KES 1,200</td><td><span class="status-pill status-success">Delivered</span></td></tr>
+                                <tr><td>#TN-9901</td><td>John Koech</td><td>KES 450</td><td><span class="status-pill status-success">Paid</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="inventory" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Book Stock</div>
+                        <button class="btn-primary" onclick="openModal('modalBook', true)">+ Add New Book</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Author (s)</th>
+                                    <th>Price</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="booksTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="staff" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Team Management</div>
+                        <button class="btn-primary" onclick="openModal('modalStaff')">Add Staff Member</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Name</th><th>Phone</th><th>Role</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>STF-X920K</td>
+                                    <td>Worker Unit 04</td>
+                                    <td>0712345678</td>
+                                    <td><span class="status-pill status-success">Admin</span></td>
+                                    <td><button class="btn-secondary" style="padding: 5px 10px;" onclick="openModal('modalStaff')">Edit</button></td>
+                                </tr>
+                                <tr>
+                                    <td>STF-L003P</td>
+                                    <td>Finance Lead</td>
+                                    <td>0788990011</td>
+                                    <td><span class="status-pill status-warning">Staff</span></td>
+                                    <td><button class="btn-secondary" style="padding: 5px 10px;" onclick="openModal('modalStaff')">Edit</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="blog" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Published Articles</div>
+                        <button class="btn-primary" onclick="openModal('modalPost')">Write New Post</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>Article</th><th>Date</th><th>Reads</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Kenya's Literary Renaissance</td><td>May 02</td><td>1,402</td><td><button class="btn-secondary" style="padding: 5px 10px;">Edit</button></td></tr>
+                                <tr><td>Why Digital Publishing?</td><td>Apr 28</td><td>890</td><td><button class="btn-secondary" style="padding: 5px 10px;">Edit</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="readers" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Reader Directory</div>
+                        <button class="btn-primary" onclick="openModal('modalUser')">+ New Reader</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>Reader Name</th><th>Email</th><th>Total Spent</th><th>Plan</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Kevin Malenya</td><td>kevin@tunu.com</td><td>KES 12,400</td><td><span class="status-pill status-success">Premium</span></td></tr>
+                                <tr><td>Sophy Akinyi</td><td>sophy@tunu.com</td><td>KES 2,100</td><td><span class="status-pill status-warning">Basic</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sales" class="page-content">
+                <div class="card">
+                    <div class="card-title">Daily Sales Reports</div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>Date</th><th>Submitted By</th><th>Physical</th><th>Digital</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2024-05-06</td><td>Unit 04</td><td>12</td><td>KES 4,500</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <!-- <link rel="stylesheet" href="loader.css"> -->
+
+    <div class="loader active">
+        <div class="loading-div">
+                <div class="book">
+                    <div class="book__pg-shadow"></div>
+                    <div class="book__pg -small">TUNU PUBLISHERS</div>
+                    <div class="book__pg book__pg--2"></div>
+                    <div class="book__pg book__pg--3"></div>
+                    <div class="book__pg book__pg--4"></div>
+                    <div class="book__pg book__pg--5 -small">TUNU PUBLISHERS</div>
+                  </div>
+                  
+        </div>
+        <h4 id="auth-feedback"> Authenticating... </h4>
+        
+    </div>
+    <script>
+
+        
+        function authorizeAdmin() {
+            const token = getCookie('token')
+            const id = getCookie('sid')
+            const fdb = document.querySelector('#auth-feedback')
+        
+            fetch(`${API_URL}/admin/api/authorize`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'X-UID': id
+                }
+            })
+            .then(async r => {
+                const data = await r.json()
+                if (!r.ok) throw data
+                return data
+            })
+            .then(data => {
+                fdb.textContent = "Authorized"
+                document.querySelector('.loader').classList.toggle('active')
+
+                if(data.error){
+                    fdb.style.color= 'red'
+                    fdb.textContent = data.error
+                }
+            })
+            .catch(err => {
+ 
+                fdb.innerHTML = "Not authorized <br> " + get_text(err.message)
+                fdb.style.color= 'red'
+                console.log("Not authorized:" + get_text(err.message))
+            })
+        }
+        function get_text(text){
+            if( String(text).includes('Failed to')){
+                return 'Backend Connection Error. Contact ADMIN'
+            } else{
+                return text
+            }
+        }
+        
+        
+        document.addEventListener('DOMContentLoaded', ()=>{
+            window.token = getCookie('token')
+            window.id = getCookie('sid')
+
+            if(!window.token || !window.id){
+                return alert('Not Logged in. Please login to continue')
+            } else{
+            authorizeAdmin()
+            fetchBooks()
+            switchPage('inventory', 'e')
+
+            }
+
+})
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+        
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+        
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function fetchBooks(){
+
+            fetch(`${API_URL}/admin/api/get_books`, {method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${window.token}`,
+                'X-UID': window.id
+            }} )
+            .then(r=>r.json())
+            .then(data=>{
+                const books = data.books
+                const table = document.querySelector('.booksTable')
+                window.books = books
+
+                table.innerHTML = ''
+
+                books.forEach(book=>{
+                const tr = document.createElement('tr')
+                tr.innerHTML = `
+                 <td>${book.title}</td>
+                 <td>${book.authors}</td>
+                 <td>KES ${book.newPrice}</td>
+                 <td>
+                <div class="bookActions">
+                    <div id="delete" onclick="deleteInventory('${book.id}')">
+                        <i class="fas fa-trash"></i>
+                    </div>
+                    <div id="edit" onclick="editInventory('${(book.id)}')" style="color:blue"
+                        <i class="fas fa-pen"></i>
+                    </div>
+                </div>
+                    
+                 </td>
+                
+                `
+                table.appendChild(tr)
+                })
+            })
+        }
+
+        function editInventory(book_id) {
+
+            const book = window.books.find(b => b.id == book_id)
+        
+            openModal('modalBook')
+            console.log(book)
+
+            const modal = document.querySelector('#modalBook')
+
+            modal.querySelector('#bookTitle').value = book.title
+            modal.querySelector('#bookAuthor').value = book.authors
+
+            modal.querySelector('#bookNewPrice').value = book.newPrice
+            modal.querySelector('#bookOldPrice').value = book.oldPrice
+            modal.querySelector('#grade').value = book.grade
+            modal.querySelector('#bookDiscounted').value = book.oldPrice > book.newPrice
+
+            const btn = modal.querySelector('#saveBook')
+            if(!btn){
+                console.log('byeee')
+            }
+
+            btn.setAttribute('onclick', `updateBook('${book.id}')`)
+              
+        
+        }
+
+        function updateBook(id){
+            const modal = document.querySelector('#modalBook')
+
+            const t = modal.querySelector('#bookTitle').value 
+           const a =  modal.querySelector('#bookAuthor').value
+
+            const n = modal.querySelector('#bookNewPrice').value
+            const o = modal.querySelector('#bookOldPrice').value
+            const g = modal.querySelector('#grade').value
+            const d = modal.querySelector('#bookDiscounted').value
+
+
+            fetch(`${API_URL}/admin/api/edit`, {
+                method:'POST',
+                headers:{
+                    'Content-Type':'application/json',
+                    'Authorization': 'Bearer ' + window.token,
+                    'X-UID':window.id
+                },
+                body:JSON.stringify({'data':{'id':id, title:t, oldPrice:o, grade:g, discount:d, authors: a, newPrice: n}})
+            })
+        }
+        async function deleteInventory(id){
+
+            const confirmed = await confirmAction(
+                "Are you sure you want to delete this book?"
+            )
+        
+            if (!confirmed){
+                return
+            }
+        
+            const finished = await showCountDown(5)
+        
+            if (!finished){
+                return
+            }
+        
+            fetch(`${API_URL}/admin/api/delete_book`,{
+                method:'POST',
+                headers:{
+                    'Authorization':'Bearer ' + window.token,
+                    'X-UID': window.id,
+                    'Content-Type': 'application/json'
+                },
+                body:JSON.stringify({'id': id})
+            })
+            .then(r => r.json())
+            .then(data => {
+                console.log(data)
+            })
+        
+        }
+
+        function showCountDown(secs){
+
+            return new Promise((resolve) => {
+        
+                const div = document.createElement('div')
+        
+                div.innerHTML = `
+                    <div class="confirm-box">
+                        <p class="action-text"></p>
+        
+                        <div class="bookBtns">
+                            <button class="declineBtn">Cancel</button>
+                        </div>
+                    </div>
+                `
+        
+                div.classList.add('confirm-div')
+        
+                document.body.appendChild(div)
+        
+                const text = div.querySelector('.action-text')
+                const decline = div.querySelector('.declineBtn')
+        
+                let currentSec = secs
+        
+                text.innerHTML = `<h3> Excecuting in ${currentSec} seconds</h3>`
+        
+                const interval = setInterval(() => {
+        
+                    currentSec--
+        
+                    text.innerHTML = `<h3> Excecuting in ${currentSec} seconds</h3>`
+        
+                    if(currentSec <= 0){
+        
+                        clearInterval(interval)
+        
+                        div.remove()
+        
+                        resolve(true)
+        
+                    }
+        
+                }, 1000)
+        
+                decline.addEventListener('click', () => {
+        
+                    clearInterval(interval)
+        
+                    div.remove()
+        
+                    resolve(false)
+        
+                })
+        
+            })
+        
+        }
+      
+        function confirmAction(text) {
+            return new Promise((resolve) => {
+        
+                const div = document.createElement('div')
+        
+                div.innerHTML = `
+                    <div class="confirm-box">
+                        <p class="action-text"></p>
+
+                        <div class="bookBtns">
+    
+                        <button class="acceptBtn">Proceed</button>
+                        <button class="declineBtn">Cancel</button>
+                        </div>
+                    </div>
+                `
+        
+                div.querySelector('.action-text').textContent = text
+        
+                div.classList.add('confirm-div')
+        
+                document.body.appendChild(div)
+        
+                const accept = div.querySelector('.acceptBtn')
+                const decline = div.querySelector('.declineBtn')
+        
+                accept.addEventListener('click', () => {
+                    div.remove()
+                    resolve(true)
+                })
+        
+                decline.addEventListener('click', () => {
+                    div.remove()
+                    resolve(false)
+                })
+        
+            })
+        }
+        
+        
+        async function saveBook() {
+            const file = document.getElementById("bookImage").files[0];
+        
+            let base64Image = "";
+        
+            if (file) {
+                base64Image = await fileToBase64(file);
+            }
+        
+            const data = {
+                title: document.getElementById("bookTitle").value,
+                authors: document.getElementById("bookAuthor").value,
+                oldPrice: document.getElementById("bookOldPrice").value,
+                newPrice: document.getElementById("bookNewPrice").value,
+                discounted: document.getElementById("bookDiscounted").value === "true",
+                grade: document.getElementById('grade').value,
+                image: base64Image
+            };
+        
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", API_URL + "/api/books/add", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("X-UID", window.id);
+            xhr.setRequestHeader('Authorization', "Bearer " + window.token);
+        
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    alert("Book saved 😎");
+                    closeAll();
+                } else {
+                    alert("Failed ❌");
+                }
+            };
+        
+            xhr.send(JSON.stringify(data));
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+
+            console.log(sdo.classList + 'opened')
+
+        }
+
+        function openModal(id, clear) {
+            document.getElementById(id).classList.add('active');
+            document.getElementById('sidebarOverlay').classList.add('active');
+            const bookMode = document.querySelector('#modalBook')
+            const inputs = bookMode.querySelectorAll('input')
+            const selects = bookMode.querySelectorAll('select')
+            console.log(inputs.length, selects.length)
+
+            if(clear){
+                inputs.forEach(inp=>{
+                    inp.value= ''
+                })
+                selects.forEach(sel=>{
+                    sel.value= ''
+                })
+
+        }
+
+        }
+
+        function closeAll() {
+            const sdo = document.getElementById('sidebarOverlay')
+            sdo.className= 'overlay';
+
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+            document.getElementById('sidebar').classList.remove('active');
+        }
+
+        function saveStaff() {
+            const data = {
+                name: document.getElementById('staffName').value,
+                email: document.getElementById('staffEmail').value,
+                phone: document.getElementById('staffPhone').value,
+                location: document.getElementById('staffLocation').value,
+                is_admin: document.getElementById('staffIsAdmin').checked
+            };
+            fetch(`${API_URL}/admin/api/add-staff`, {
+                method:'POST',
+                headers:{
+                    'Authorization': 'Bearer ' + window.token,
+                    'Content-Type':'application/json',
+                    'X-UID':window.id
+                },
+                body:JSON.stringify(data)
+            })
+            closeAll();
+        }
+
+        function switchPage(pageId, element) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(pageId).classList.add('active');
+            element.classList.add('active');
+            
+            const titles = {
+                'insights': 'Executive Overview',
+                'orders': 'Order Management',
+                'inventory': 'Book Inventory',
+                'staff': 'Staff Accounts',
+                'blog': 'Blog & Content',
+                'readers': 'Reader Directory',
+                'sales': 'Sales Performance'
+            };
+            document.getElementById('pageTitle').innerText = titles[pageId];
+            
+            if (window.innerWidth <= 768) closeAll();
+        }
+
+        const revCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
+                    borderColor: '#8B008B',
+                    backgroundColor: 'rgba(139, 0, 139, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+
+        const catCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Fiction', 'Academic', 'Poetry', 'Children'],
+                datasets: [{
+                    data: [45, 25, 15, 15],
+                    backgroundColor: ['#8B008B', '#FF4500', '#4B004B', '#FFD700'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+    </script>
+</body>
+</html>

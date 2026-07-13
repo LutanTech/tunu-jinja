@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tunu Publishers - Corporate Admin Portal</title>
+    <script src="/static/assets/tailwind.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandPurple: '#800080',
+                        brandPurpleDark: '#550055',
+                        brandOrange: '#FF4F01',
+                        brandOrangeDark: '#D43F00',
+                        panelBg: '#FFFFFF',
+                        borderLight: '#E2E8F0',
+                    },
+                    borderRadius: {
+                        'none': '0px',
+                        'sm': '2px',
+                        'md': '4px',
+                        'lg': '4px',
+                        'xl': '4px',
+                        '2xl': '4px',
+                        'full': '9999px'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            border-radius: 2px !important;
+        }
+        .no-round-override {
+            border-radius: 9999px !important;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+        #add-author{
+            border: 1px solid magenta;
+            font-size: small;
+            padding: 3px 10px;
+            margin: 10px auto;
+            background: magenta;
+            color: white;
+            &:active{
+                scale: 0.9;
+            }
+
+        }
+        .author-pills{
+            display: flex;
+            justify-content: start;
+            gap: 4px;
+            align-items: flex-start;
+            padding: 5px;
+            flex-wrap: wrap;
+        }
+        .author-pill{
+            border: 1px solid beige;
+            padding: 3px 5px;
+            width: fit-content;
+            background: #80808057;
+            font-size: small;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            button{
+                font-size: 1.72em;
+                color: red;
+            }
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] font-sans text-[#1E293B] min-h-screen flex flex-col antialiased">
+
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-md w-full" style="z-index:40000000"></div>
+
+    <header class="bg-brandPurple text-white shadow-sm border-b border-brandPurpleDark/20 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-14">
+                <div class="flex items-center gap-3">
+                    <button id="sidebar-toggle" class="md:hidden text-white focus:outline-none hover:text-brandOrange transition-colors">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-white text-brandPurple font-black px-2.5 py-0.5 text-base tracking-wider">TUNU</span>
+                        <span class="font-bold text-xs tracking-widest text-purple-100 hidden sm:inline-block">ADMINISTRATIVE CORE</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-[10px] uppercase tracking-wider text-purple-200">Session Node</p>
+                        <p class="text-xs font-bold">{{ admin.name }}</p>
+                    </div>
+                    <div class="h-7 w-7 bg-brandOrange flex items-center justify-center font-bold text-xs text-white border border-white/20 shadow-inner">
+                        {{ admin.name[0] | upper }}
+                    </div>
+                    <a href="/staff/logout" class="bg-brandOrange hover:bg-brandOrangeDark text-white px-3 py-1 text-xs font-semibold flex items-center gap-1.5 transition-all border border-brandOrangeDark/40">
+                        <i class="fa-solid fa-power-off text-[10px]"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 flex-1 flex flex-col md:flex-row gap-5">
+        
+        <aside id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out z-50 md:z-0 bg-white md:bg-transparent w-64 md:w-52 shrink-0 flex flex-col gap-1 p-4 md:p-0 shadow-lg md:shadow-none border-r border-slate-200 md:border-none">
+            <div class="flex items-center justify-between mb-5 md:hidden">
+                <span class="text-brandPurple font-bold text-sm tracking-wider uppercase">Navigation</span>
+                <button id="sidebar-close" class="text-slate-500 hover:text-black">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 py-1.5">Management</p>
+            <button onclick="switchTab('overview')" data-tab="overview" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold transition-all bg-brandPurple text-white border-l-2 border-brandOrange">
+                <i class="fa-solid fa-chart-line w-4 text-center text-[13px]"></i>
+                Control Panel
+            </button>
+            <button onclick="switchTab('books')" data-tab="books" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-brandPurple border-l-2 border-transparent">
+                <i class="fa-solid fa-book-open w-4 text-center text-[13px]"></i>
+                Books Inventory
+            </button>
+            <button onclick="switchTab('staff')" data-tab="staff" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-brandPurple border-l-2 border-transparent">
+                <i class="fa-solid fa-user-shield w-4 text-center text-[13px]"></i>
+                Personnel Directory
+            </button>
+            <button onclick="switchTab('submissions')" data-tab="submissions" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-brandPurple border-l-2 border-transparent">
+                <i class="fa-solid fa-file-shield w-4 text-center text-[13px]"></i>
+                Field Invoices
+            </button>
+
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 py-1.5 mt-4">Database Tools</p>
+            <button onclick="triggerReset()" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-red-50 hover:text-red-700 transition-all border-l-2 border-transparent">
+                <i class="fa-solid fa-screwdriver-wrench w-4 text-center text-[13px]"></i>
+                Rebuild Schema
+            </button>
+            <button onclick="triggerDummy()" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-purple-50 hover:text-brandPurple transition-all border-l-2 border-transparent">
+                <i class="fa-solid fa-database w-4 text-center text-[13px]"></i>
+                Seed Dummy Data
+            </button>
+        </aside>
+
+        <main class="flex-1 min-w-0">
+            
+            <section id="tab-overview" class="tab-content space-y-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Field Visits (30D)</p>
+                            <h3 class="text-xl font-black text-brandPurple mt-0.5">
+                                {% if visits_this_month is number %}
+                                    {{ visits_this_month }}
+                                {% else %}
+                                    {{ visits_this_month.count() }}
+                                {% endif %}
+                            </h3>
+                        </div>
+                        <div class="h-9 w-9 bg-slate-50 border border-slate-200 flex items-center justify-center text-brandPurple text-sm">
+                            <i class="fa-solid fa-location-arrow"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Reports Logged Today</p>
+                            <h3 class="text-xl font-black text-brandOrange mt-0.5">
+                                {% if reports_today is number %}
+                                    {{ reports_today }}
+                                {% else %}
+                                    {{ reports_today.count() }}
+                                {% endif %}
+                            </h3>
+                        </div>
+                        <div class="h-9 w-9 bg-slate-50 border border-slate-200 flex items-center justify-center text-brandOrange text-sm">
+                            <i class="fa-solid fa-calendar-day"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Cataloged Volumes</p>
+                            <h3 class="text-xl font-black text-slate-800 mt-0.5">{{ books | length }}</h3>
+                        </div>
+                        <div class="h-9 w-9 bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 text-sm">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Authentication</p>
+                            <div class="mt-1">
+                                {% if admin.is_super_admin %}
+                                <span class="bg-red-50 text-red-700 text-[10px] font-extrabold px-2 py-0.5 border border-red-200 uppercase tracking-wider">Super Administrator</span>
+                                {% else %}
+                                <span class="bg-purple-50 text-brandPurple text-[10px] font-extrabold px-2 py-0.5 border border-purple-200 uppercase tracking-wider">Manager</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="h-9 w-9 bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 text-sm">
+                            <i class="fa-solid fa-key"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                    <div class="bg-white border border-slate-200 shadow-sm lg:col-span-2 flex flex-col">
+                        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-check text-brandPurple"></i> Recent Regional Actions
+                            </h4>
+                            <button onclick="switchTab('submissions')" class="text-[10px] font-bold text-brandOrange hover:underline uppercase tracking-wider">Open Directory</button>
+                        </div>
+                        <div class="overflow-x-auto custom-scrollbar flex-1">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 bg-slate-50 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                                        <th class="py-2 px-4">Entity Name</th>
+                                        <th class="py-2 px-4">Officer</th>
+                                        <th class="py-2 px-4">Classification</th>
+                                        <th class="py-2 px-4 text-right">Date Stamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-xs">
+                                    {% if recent_submissions %}
+                                        {% for sub in recent_submissions %}
+                                        <tr class="hover:bg-slate-50/50 transition-colors">
+                                            <td class="py-2.5 px-4 font-bold text-slate-800">{{ sub.institution_name }}</td>
+                                            <td class="py-2.5 px-4 text-slate-600">{{ sub.staffName }}</td>
+                                            <td class="py-2.5 px-4">
+                                                <span class="bg-slate-100 text-slate-700 px-1.5 py-0.5 border border-slate-200 font-mono text-[10px] uppercase font-bold">{{ sub.category or 'N/A' }}</span>
+                                            </td>
+                                            <td class="py-2.5 px-4 text-right text-slate-400 font-mono">{{ sub.submitted_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="4" class="py-6 text-center text-slate-400 font-mono text-[11px]">No active transmissions reported.</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div class="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-terminal text-brandOrange"></i> Console Core
+                            </h4>
+                        </div>
+                        <div class="p-4 flex-1">
+                            <p class="text-xs text-slate-500 leading-relaxed">Integrated core operations for catalog modification, staff verification, role setting, and live reporting auditing pipelines.</p>
+                            <div class="mt-4 p-3 bg-slate-50 border border-slate-100 font-mono text-[10px] text-slate-600 space-y-1">
+                                <p><span class="text-brandPurple font-bold">NODE:</span> production_server_2026</p>
+                                <p><span class="text-brandPurple font-bold">ENGINE:</span> Flask-SQLAlchemy</p>
+                                <p><span class="text-brandPurple font-bold">TIMEZONE:</span> GMT+3 (Nairobi)</p>
+                            </div>
+                        </div>
+                        <div class="p-4 border-t border-slate-200 bg-slate-50 space-y-2">
+                            <button onclick="openBookModal()" class="w-full bg-brandPurple hover:bg-brandPurpleDark text-white font-bold text-xs py-2 px-3 flex items-center justify-between transition-all shadow-sm border border-brandPurpleDark">
+                                <span>ADD BOOK VOLUME</span>
+                                <i class="fa-solid fa-plus text-[10px]"></i>
+                            </button>
+                            <button onclick="openAddStaffModal()" class="w-full bg-brandOrange hover:bg-brandOrangeDark text-white font-bold text-xs py-2 px-3 flex items-center justify-between transition-all shadow-sm border border-brandOrangeDark">
+                                <span>REGISTER STAFF MEMBER</span>
+                                <i class="fa-solid fa-user-plus text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-books" class="tab-content hidden space-y-4">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 border border-slate-200 shadow-sm">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="book-search" placeholder="Filter inventory catalog by keywords..." class="w-full pl-8 pr-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                    </div>
+                    <button onclick="openBookModal()" class="bg-brandPurple hover:bg-brandPurpleDark text-white px-4 py-1.5 text-xs font-bold flex items-center justify-center gap-2 transition-all border border-brandPurpleDark shadow-sm whitespace-nowrap">
+                        <i class="fa-solid fa-plus"></i> NEW VOLUME
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="books-grid">
+                    {% for book in books %}
+                    <div class="bg-white border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between book-card" data-title="{{ book.title | lower }}" data-authors="{{ book.authors | lower }}">
+                        <div class="p-3 flex gap-3">
+                            <div class="w-16 h-24 bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center overflow-hidden">
+                                <img src="{{ book.image }}" alt="{{ book.title }}" class="w-full h-full object-cover" onerror="this.src='/static/icons/tunu_logo.png'">
+                            </div>
+                            <div class="flex-1 min-w-0 flex flex-col justify-between">
+                                <div>
+                                    <h5 class="font-bold text-xs text-slate-900 leading-tight truncate" title="{{ book.title }}">{{ book.title }}</h5>
+                                    <p class="text-[10px] text-slate-500 truncate mt-0.5">Authors: {{ book.authors or 'Tunu Publishers' }}</p>
+                                    <div class="flex flex-wrap gap-1 mt-1.5">
+                                        {% if book.grade %}
+                                        <span class="bg-purple-50 text-brandPurple text-[9px] font-bold px-1.5 py-0.2 border border-purple-100 uppercase tracking-wide">{{ book.grade }}</span>
+                                        {% endif %}
+                                        {% if book.audience %}
+                                        <span class="bg-orange-50 text-brandOrange text-[9px] font-bold px-1.5 py-0.2 border border-orange-100 uppercase tracking-wide">{{ book.audience }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="mt-1">
+                                    <div class="flex items-baseline gap-1.5">
+                                        <span class="text-brandPurple font-black text-xs">Ksh {{ book.newPrice }}</span>
+                                        {% if book.oldPrice and book.oldPrice > 0 %}
+                                        <span class="text-slate-400 line-through text-[9px]">Ksh {{ book.oldPrice }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 px-3 py-2 border-t border-slate-200 flex items-center justify-between text-[11px]">
+                            <p class="font-mono text-[9px] text-slate-400">UUID: {{ book.id }}</p>
+                            <div class="flex gap-1.5">
+                                <button onclick="openBookModal({
+                                    id: '{{ book.id }}',
+                                    title: '{{ book.title | escape }}',
+                                    authors: '{{ book.authors | escape }}',
+                                    grade: '{{ book.grade | escape }}',
+                                    audience: '{{ book.audience | escape }}',
+                                    newPrice: '{{ book.newPrice }}',
+                                    oldPrice: '{{ book.oldPrice }}',
+                                    image: '{{ book.image }}'
+                                })" class="text-slate-700 hover:text-brandPurple font-bold bg-white border border-slate-200 px-2 py-0.5 transition-colors text-[10px]">
+                                    Edit
+                                </button>
+                                <button onclick="deleteBook('{{ book.id }}')" class="text-red-700 hover:bg-red-50 font-bold px-2 py-0.5 border border-transparent hover:border-red-200 transition-colors text-[10px]">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section id="tab-staff" class="tab-content hidden space-y-4">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 border border-slate-200 shadow-sm">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="staff-search" placeholder="Filter staff by name or phone..." class="w-full pl-8 pr-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                    </div>
+                    <button onclick="openAddStaffModal()" class="bg-brandOrange hover:bg-brandOrangeDark text-white px-4 py-1.5 text-xs font-bold flex items-center justify-center gap-2 transition-all border border-brandOrangeDark shadow-sm whitespace-nowrap">
+                        <i class="fa-solid fa-user-plus"></i> REGISTER PERSONNEL
+                    </button>
+                </div>
+
+                <div class="bg-white border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse" id="staff-table">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                                    <th class="py-2.5 px-4">System Key</th>
+                                    <th class="py-2.5 px-4">Officer Details</th>
+                                    <th class="py-2.5 px-4">Phone contact</th>
+                                    <th class="py-2.5 px-4">Location Node</th>
+                                    <th class="py-2.5 px-4">Security Level</th>
+                                    <th class="py-2.5 px-4">Operational State</th>
+                                    <th class="py-2.5 px-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-xs">
+
+                                {% for s in staff_dict %}
+                                    
+                                    <tr class="hover:bg-slate-50/50 transition-colors staff-row" data-name="{{ s.name | lower }}" data-phone="{{ s.phone }}">
+                                        <td class="py-3 px-4 font-mono text-[10px] font-bold text-slate-500">{{ s.id }}</td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="h-6 w-6 bg-slate-100 text-brandPurple border border-slate-200 font-bold flex items-center justify-center text-[10px]">
+                                                    {{ s.name[0] | upper }}
+                                                </div>
+                                                <div>
+                                                    <p class="font-bold text-slate-900">{{ s.name }}</p>
+                                                    <p class="text-[10px] text-slate-400">{{ s.email or 'N/A' }}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-slate-600 font-mono text-[10px]">{{ s.phone }}</td>
+                                        <td class="py-3 px-4 text-slate-500 font-medium">{{ s.location }}</td>
+                                        <td class="py-3 px-4">
+                                            {% if s.is_admin %}
+                                            <span class="bg-purple-100 text-brandPurple border border-purple-200 text-[9px] font-extrabold px-1.5 py-0.2 uppercase tracking-wide">Administrator</span>
+                                            {% else %}
+                                            <span class="bg-slate-100 text-slate-600 border border-slate-200 text-[9px] font-extrabold px-1.5 py-0.2 uppercase tracking-wide">Staff</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            {% if s.is_active %}
+                                            <span class="inline-flex items-center gap-1 text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.2 uppercase tracking-wide">
+                                                Active
+                                            </span>
+                                            {% else %}
+                                            <span class="inline-flex items-center gap-1 text-[9px] font-bold bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.2 uppercase tracking-wide">
+                                                Disabled
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3 px-4 text-right">
+                                            <div class="inline-flex gap-1">
+                                                <button onclick="openStaffModal({
+                                                    id: '{{ s.id }}',
+                                                    name: '{{ s.name | escape }}',
+                                                    email: '{{ s.email | escape }}',
+                                                    phone: '{{ s.phone | escape }}',
+                                                    location: '{{ s.location | escape }}',
+                                                    is_admin: {{ 'true' if s.is_admin else 'false' }}
+                                                })" class="text-brandPurple hover:text-brandPurpleDark font-bold text-[10px] bg-slate-50 border border-slate-200 hover:bg-slate-100 px-2 py-0.5 transition-all">
+                                                    Edit
+                                                </button>
+                                                <button onclick="toggleStaff('{{ s.id }}')" class="{% if s.is_active %}text-red-700 bg-red-50 hover:bg-red-100 border border-red-200{% else %}text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200{% endif %} font-bold text-[10px] px-2 py-0.5 transition-all">
+                                                    {% if s.is_active %}Deactivate{% else %}Activate{% endif %}
+                                                </button>
+                                                <button onclick="deleteStaff('{{ s.id }}')" class="text-slate-400 hover:text-red-700 font-bold px-1.5 py-0.5 border border-transparent hover:border-red-200 hover:bg-red-50 transition-all text-[10px]">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-submissions" class="tab-content hidden space-y-4">
+                <div class="bg-white border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-700">Institutional Submissions</h4>
+                            <p class="text-[10px] text-slate-400 font-bold mt-0.5 uppercase tracking-wider">Live feeds synchronized with mobile field agents</p>
+                        </div>
+                        <div class="relative w-full sm:w-64">
+                            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="report-search" placeholder="Search institutions..." class="w-full pl-8 pr-3 py-1 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-white">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                                    <th class="py-2.5 px-4">Log Key</th>
+                                    <th class="py-2.5 px-4">Entity Identity</th>
+                                    <th class="py-2.5 px-4">Principal Contact</th>
+                                    <th class="py-2.5 px-4">Liaison Officer</th>
+                                    <th class="py-2.5 px-4">Core Report Notes</th>
+                                    <th class="py-2.5 px-4 text-right">System Stamp</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-xs" id="report-table-body">
+                                {% if recent_submissions %}
+                                    {% for sub in recent_submissions %}
+                                    <tr class="report-row hover:bg-slate-50/50 transition-colors" data-inst="{{ sub.institution_name | lower }}">
+                                        <td class="py-3 px-4 font-mono text-[10px] font-bold text-slate-400">{{ sub.id }}</td>
+                                        <td class="py-3 px-4">
+                                            <p class="font-bold text-slate-900">{{ sub.institution_name }}</p>
+                                            <span class="bg-orange-50 text-brandOrange border border-orange-100 px-1.5 py-0.2 text-[9px] font-bold mt-0.5 inline-block uppercase tracking-wide">{{ sub.category or 'General' }}</span>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <p class="font-bold text-slate-700">{{ sub.contact_person or 'N/A' }}</p>
+                                            <p class="text-[10px] font-mono text-slate-400 mt-0.5">{{ sub.phone or 'N/A' }}</p>
+                                        </td>
+                                        <td class="py-3 px-4 text-slate-600 font-bold">{{ sub.staffName }}</td>
+                                        <td class="py-3 px-4 max-w-xs">
+                                            <div class="space-y-0.5">
+                                                <p class="text-[11px] text-slate-600 line-clamp-2" title="{{ sub.conversation_notes }}"><strong class="text-brandPurple font-bold uppercase tracking-wider text-[9px]">Notes:</strong> {{ sub.conversation_notes or 'No details specified.' }}</p>
+                                                {% if sub.challenges %}
+                                                <p class="text-[11px] text-red-600 line-clamp-2" title="{{ sub.challenges }}"><strong class="font-bold uppercase tracking-wider text-[9px]">Challenges:</strong> {{ sub.challenges }}</p>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-right font-mono text-[10px] text-slate-400">
+                                            {{ sub.submitted_at.strftime('%Y-%m-%d') }}<br>
+                                            <span class="text-[9px] text-slate-300">{{ sub.submitted_at.strftime('%H:%M:%S') }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="py-12 text-center text-slate-400 font-mono text-xs">No submission records cataloged.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="book-modal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-300 w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[97vh]">
+            <div class="bg-brandPurple p-4 text-white flex items-center justify-between border-b border-brandPurpleDark">
+                <h3 id="book-modal-title" class="font-bold text-sm uppercase tracking-wider">Add New Book</h3>
+                <button onclick="closeBookModal()" class="text-white/80 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="book-form" class="p-5 overflow-y-auto custom-scrollbar space-y-3">
+                <input type="hidden" id="book-id">
+                
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Book Title</label>
+                    <input type="text" id="book-form-title" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Authors</label>
+                    <button id="add-author" type="button" onclick="newAuthor()"> <i class="fas fa-plus"></i> Add Author</button>
+                    <div class="authors-div">                   
+                </div>
+                <div class="author-pills"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Class/Grade</label>
+                        <input type="text" id="book-form-grade" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50" placeholder="e.g. Grade 6, Adult">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Audience</label>
+                        <input type="text" id="book-form-audience" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50" placeholder="e.g. General, Students">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">New Price (Ksh)</label>
+                        <input type="number" step="0.01" id="book-form-newPrice" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Old Price (Ksh - Optional)</label>
+                        <input type="number" step="0.01" id="book-form-oldPrice" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Upload Cover File (Direct to server OS)</label>
+                    <input type="file" id="book-form-image-file" accept="image/*" class="w-full px-2 py-1 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Or Image Fallback URL</label>
+                    <input type="text" id="book-form-image" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50" placeholder="https://i.ibb.co/.../cover.png">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeBookModal()" class="px-4 py-1.5 text-xs font-bold border border-slate-200 text-slate-500 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" class="bg-brandOrange hover:bg-brandOrangeDark text-white px-4 py-1.5 text-xs font-bold transition-all border border-brandOrangeDark shadow-sm">Save Book Volume</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="staff-modal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-300 w-full max-w-sm shadow-2xl overflow-hidden">
+            <div class="bg-brandPurple p-4 text-white flex items-center justify-between border-b border-brandPurpleDark">
+                <h3 id="staff-modal-title" class="font-bold text-sm uppercase tracking-wider">Edit Staff Credentials</h3>
+                <button onclick="closeStaffModal()" class="text-white/80 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="staff-form" class="p-5 space-y-3">
+                <input type="hidden" id="staff-id">
+                
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Officer Name</label>
+                    <input type="text" id="staff-form-name" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Node</label>
+                    <input type="email" id="staff-form-email" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Node</label>
+                    <input type="text" id="staff-form-phone" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Office Hub</label>
+                    <input type="text" id="staff-form-location" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                </div>
+
+                <div class="flex items-center gap-2 py-1">
+                    <input type="checkbox" id="staff-form-admin" class="h-3.5 w-3.5 text-brandPurple focus:ring-brandPurple border-slate-200">
+                    <label for="staff-form-admin" class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Grant Admin Privileges</label>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeStaffModal()" class="px-4 py-1.5 text-xs font-bold border border-slate-200 text-slate-500 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" class="bg-brandOrange hover:bg-brandOrangeDark text-white px-4 py-1.5 text-xs font-bold transition-all border border-brandOrangeDark shadow-sm">Commit Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="add-staff-modal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-300 w-full max-w-sm shadow-2xl overflow-hidden">
+            <div class="bg-brandPurple p-4 text-white flex items-center justify-between border-b border-brandPurpleDark">
+                <h3 class="font-bold text-sm uppercase tracking-wider">Register Personnel</h3>
+                <button onclick="closeAddStaffModal()" class="text-white/80 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="add-staff-form" class="p-5 space-y-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Officer Name</label>
+                    <input type="text" id="add-staff-form-name" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Node (Optional)</label>
+                    <input type="email" id="add-staff-form-email" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Node</label>
+                    <input type="text" id="add-staff-form-phone" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50" placeholder="e.g. 07XXXXXXXX">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Temporary Security PIN / Password</label>
+                    <input type="password" id="add-staff-form-password" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeAddStaffModal()" class="px-4 py-1.5 text-xs font-bold border border-slate-200 text-slate-500 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" class="bg-brandOrange hover:bg-brandOrangeDark text-white px-4 py-1.5 text-xs font-bold transition-all border border-brandOrangeDark shadow-sm">Save Registry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
+            <p>&copy; 2026 Tunu Publishers. Security Gateway.</p>
+            <p class="font-mono text-[10px] uppercase">Node Status: Operational // Database Secure</p>
+        </div>
+    </footer>
+
+    <script>
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-brandPurple' : 'bg-red-700';
+            const icon = type === 'success' ? 'fa-square-check' : 'fa-triangle-exclamation';
+            
+            toast.className = `${bgColor} text-white px-3.5 py-2.5 shadow-md flex items-center justify-between gap-2.5 transition-all duration-200 text-xs font-bold border-l-4 border-white`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid ${icon}"></i>
+                    <span>${message}</span>
+                </div>
+                <button class="text-white/80 hover:text-white focus:outline-none">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            container.appendChild(toast);
+            const dismiss = () => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 200);
+            };
+            toast.querySelector('button').addEventListener('click', dismiss);
+            setTimeout(dismiss, 4500);
+        }
+
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarClose = document.getElementById('sidebar-close');
+
+        sidebarToggle.addEventListener('click', () => sidebar.classList.remove('-translate-x-full'));
+        sidebarClose.addEventListener('click', () => sidebar.classList.add('-translate-x-full'));
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabId) {
+                    btn.className = "tab-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold transition-all bg-brandPurple text-white border-l-2 border-brandOrange shadow-sm";
+                } else {
+                    btn.className = "tab-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-brandPurple border-l-2 border-transparent";
+                }
+            });
+            sidebar.classList.add('-translate-x-full');
+        }
+
+        const bookSearch = document.getElementById('book-search');
+        if (bookSearch) {
+            bookSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                document.querySelectorAll('.book-card').forEach(card => {
+                    const title = card.getAttribute('data-title');
+                    const authors = card.getAttribute('data-authors');
+                    if (title.includes(query) || authors.includes(query)) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+            });
+        }
+
+        const staffSearch = document.getElementById('staff-search');
+        if (staffSearch) {
+            staffSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                document.querySelectorAll('.staff-row').forEach(row => {
+                    const name = row.getAttribute('data-name');
+                    const phone = row.getAttribute('data-phone');
+                    if (name.includes(query) || phone.includes(query)) {
+                        row.classList.remove('hidden');
+                    } else {
+                        row.classList.add('hidden');
+                    }
+                });
+            });
+        }
+
+        const reportSearch = document.getElementById('report-search');
+        if (reportSearch) {
+            reportSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                document.querySelectorAll('.report-row').forEach(row => {
+                    const inst = row.getAttribute('data-inst');
+                    if (inst.includes(query)) {
+                        row.classList.remove('hidden');
+                    } else {
+                        row.classList.add('hidden');
+                    }
+                });
+            });
+        }
+
+        function newAuthor(){
+            const div = document.querySelector('.authors-div')
+            const inp = document.createElement('input')
+            div.appendChild(inp)
+            inp.id="book-form-authors"
+            inp.setAttribute('timestamp', new Date().getMilliseconds())
+            inp.className="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50" 
+            inp.placeholder="e.g. Dr. John Doe"
+            inp.focus()
+            inp.addEventListener('blur', (e)=>{
+                const val = inp.value
+                if(String(val).length > 2 ){
+                create_author(val)
+                } else{
+                    showToast('Failed to add author')
+                }
+                inp.remove()
+            })
+        }
+
+        function create_author(val){
+            const div = document.createElement('div')
+            div.className = 'author-pill'
+            div.innerHTML = `
+              <div class="text"> ${val}</div> <button id="delete_author"> &times; </button>            
+            `
+            const parent  = document.querySelector('.author-pills')
+            parent.appendChild(div)
+            div.querySelector('button').addEventListener('click', ()=>{
+                div.remove()
+            })
+        }
+
+        const bookModal = document.getElementById('book-modal');
+        function openBookModal(bookData = null) {
+            const titleEl = document.getElementById('book-modal-title');
+            const form = document.getElementById('book-form');
+            form.reset();
+            const aDiv = form.querySelector('.authors-div')
+
+            if (bookData) {
+                titleEl.textContent = "Edit Book Details";
+                document.getElementById('book-id').value = bookData.id || '';
+                document.getElementById('book-form-title').value = bookData.title || '';
+                const authors = bookData.authors?.split(',')
+                const authorsDict = JSON.stringify(authors)
+                console.log(authorsDict)
+                JSON.parse(authorsDict).forEach((a)=>{
+                    create_author(a) 
+                }) 
+                document.getElementById('book-form-grade').value = bookData.grade || '';
+                document.getElementById('book-form-audience').value = bookData.audience || '';
+                document.getElementById('book-form-newPrice').value = bookData.newPrice || '';
+                document.getElementById('book-form-oldPrice').value = bookData.oldPrice || '';
+                document.getElementById('book-form-image').value = bookData.image || '';
+                
+            } else {
+                titleEl.textContent = "Add New Volume";
+                aDiv.innerHTML = ''
+                document.getElementById('book-id').value = '';
+            }
+            bookModal.classList.remove('hidden');
+        }
+
+        function closeBookModal() {
+            bookModal.classList.add('hidden');
+            document.querySelector('.author-pills').innerHTML = ''
+        }
+
+        document.getElementById('book-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('book-id').value;
+            const fileInput = document.getElementById('book-form-image-file');
+            const pills = document.querySelectorAll('.author-pill .text')
+            let authors = []
+            pills.forEach(p=>{ 
+                authors.push(p.textContent.trim().replace('&times;', ''))
+            })
+
+            if (id) {
+                const payload = {
+                    data: {
+                        id: id,
+                        title: document.getElementById('book-form-title').value,
+                        authors:authors,
+                        grade: document.getElementById('book-form-grade').value,
+                        audience: document.getElementById('book-form-audience').value,
+                        newPrice: parseFloat(document.getElementById('book-form-newPrice').value),
+                        oldPrice: document.getElementById('book-form-oldPrice').value ? parseFloat(document.getElementById('book-form-oldPrice').value) : 0,
+                        image: document.getElementById('book-form-image').value
+                    }
+                };
+                executeFetch('/api/admin/edit_book', JSON.stringify(payload), 'application/json');
+            } else {
+                const formData = new FormData();
+                formData.append('title', document.getElementById('book-form-title').value);
+                const pills = document.querySelectorAll('.author-pill .text')
+                let authors = []
+                pills.forEach(p=>{ 
+                    authors.push(p.textContent.trim().replace('&times;', ''))
+                })
+                formData.append('authors', authors);
+                formData.append('grade', document.getElementById('book-form-grade').value);
+                formData.append('audience', document.getElementById('book-form-audience').value);
+                formData.append('newPrice', document.getElementById('book-form-newPrice').value);
+                formData.append('oldPrice', document.getElementById('book-form-oldPrice').value);
+                formData.append('image_fallback', document.getElementById('book-form-image').value);
+                if (fileInput && fileInput.files[0]) {
+                    formData.append('image', fileInput.files[0]);
+                }
+                executeFetch('/api/admin/add_book', formData, null);
+            }
+        });
+
+        async function executeFetch(url, bodyData, contentType) {
+            const headers = {};
+            if (contentType) {
+                headers['Content-Type'] = contentType;
+            }
+            try {
+                const res = await fetch(url, { method: 'POST', headers: headers, body: bodyData });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('Catalog processing finalized successfully!');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.error || 'Server rejected catalog operational values.', 'error');
+                }
+            } catch (err) {
+                showToast('Secure routing channel interrupted.', 'error');
+            }
+        }
+
+        async function deleteBook(id) {
+            const confirmBox = document.createElement('div');
+            confirmBox.className = 'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4';
+            confirmBox.innerHTML = `
+                <div class="bg-white border border-slate-300 p-5 max-w-xs w-full shadow-2xl space-y-3">
+                    <h4 class="font-bold text-slate-900 text-sm uppercase tracking-wider">Remove Book?</h4>
+                    <p class="text-[11px] text-slate-500">Confirming will mark this volume as deleted in the central catalogue directory.</p>
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button id="cancel-del" class="px-3 py-1 border border-slate-200 text-slate-500 text-xs font-bold hover:bg-slate-50">Cancel</button>
+                        <button id="confirm-del" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1 text-xs font-bold">Delete</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmBox);
+
+            const removeConfirm = () => confirmBox.remove();
+            confirmBox.querySelector('#cancel-del').addEventListener('click', removeConfirm);
+            confirmBox.querySelector('#confirm-del').addEventListener('click', async () => {
+                removeConfirm();
+                try {
+                    const res = await fetch('/api/admin/delete_book', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        showToast('Book deleted successfully.');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast(data.error || 'Deletion failed.', 'error');
+                    }
+                } catch (err) {
+                    showToast('Failed to contact delete service.', 'error');
+                }
+            });
+        }
+
+        const staffModal = document.getElementById('staff-modal');
+        function openStaffModal(staffData) {
+            document.getElementById('staff-id').value = staffData.id;
+            document.getElementById('staff-form-name').value = staffData.name;
+            document.getElementById('staff-form-email').value = (staffData.email && staffData.email !== 'None') ? staffData.email : '';
+            document.getElementById('staff-form-phone').value = staffData.phone;
+            document.getElementById('staff-form-location').value = staffData.location;
+            document.getElementById('staff-form-admin').checked = staffData.is_admin;
+            staffModal.classList.remove('hidden');
+        }
+
+        function closeStaffModal() {
+            staffModal.classList.add('hidden');
+        }
+
+        document.getElementById('staff-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                id: document.getElementById('staff-id').value,
+                name: document.getElementById('staff-form-name').value,
+                email: document.getElementById('staff-form-email').value,
+                phone: document.getElementById('staff-form-phone').value,
+                location: document.getElementById('staff-form-location').value,
+                is_admin: document.getElementById('staff-form-admin').checked
+            };
+
+            try {
+                const res = await fetch('/api/admin/edit/staff', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.msg || 'Staff credentials updated!');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.error || 'Failed to update personnel.', 'error');
+                }
+            } catch (err) {
+                showToast('Authorization request failed.', 'error');
+            }
+        });
+
+        const addStaffModal = document.getElementById('add-staff-modal');
+        function openAddStaffModal() {
+            document.getElementById('add-staff-form').reset();
+            addStaffModal.classList.remove('hidden');
+        }
+
+        function closeAddStaffModal() {
+            addStaffModal.classList.add('hidden');
+        }
+
+        document.getElementById('add-staff-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = new URLSearchParams();
+            payload.append('name', document.getElementById('add-staff-form-name').value);
+            payload.append('email', document.getElementById('add-staff-form-email').value);
+            payload.append('phone', document.getElementById('add-staff-form-phone').value);
+            payload.append('password', document.getElementById('add-staff-form-password').value);
+
+            try {
+                const res = await fetch('/staff/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: payload.toString()
+                });
+                if (res.redirected || res.ok) {
+                    showToast('Staff member registered successfully!');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('Failed to save staff registry details.', 'error');
+                }
+            } catch (err) {
+                showToast('Authentication connection failure.', 'error');
+            }
+        });
+
+        async function toggleStaff(staffId) {
+            try {
+                const res = await fetch('/api/admin/toggle/staff', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ staff_id: staffId })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.msg || 'Staff record state shifted.');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.error || 'Failed to change state.', 'error');
+                }
+            } catch (err) {
+                showToast('System operational error.', 'error');
+            }
+        }
+
+        async function deleteStaff(staffId) {
+            const confirmBox = document.createElement('div');
+            confirmBox.className = 'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4';
+            confirmBox.innerHTML = `
+                <div class="bg-white border border-slate-300 p-5 max-w-xs w-full shadow-2xl space-y-3">
+                    <h4 class="font-bold text-slate-900 text-sm uppercase tracking-wider">Permadelete Staff?</h4>
+                    <p class="text-[11px] text-slate-500">Are you sure you want to permanently disable and soft-remove this employee database node?</p>
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button id="cancel-del-staff" class="px-3 py-1 border border-slate-200 text-slate-500 text-xs font-bold hover:bg-slate-50">Cancel</button>
+                        <button id="confirm-del-staff" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1 text-xs font-bold">Remove</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmBox);
+
+            const removeConfirm = () => confirmBox.remove();
+            confirmBox.querySelector('#cancel-del-staff').addEventListener('click', removeConfirm);
+            confirmBox.querySelector('#confirm-del-staff').addEventListener('click', async () => {
+                removeConfirm();
+                try {
+                    const res = await fetch('/api/admin/toggle/staff', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ staff_id: staffId })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        showToast('Staff status deactivated successfully.');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast(data.error || 'Operation failed.', 'error');
+                    }
+                } catch (err) {
+                    showToast('Communication failure with authentication logs.', 'error');
+                }
+            });
+        }
+
+        async function triggerReset() {
+            try {
+                const res = await fetch('/create_db');
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('System schemas rebuilt successfully!');
+                } else {
+                    showToast('Failed to execute schema rebuild.', 'error');
+                }
+            } catch (err) {
+                showToast('Failed to ping DB core.', 'error');
+            }
+        }
+
+        async function triggerDummy() {
+            try {
+                const res = await fetch('/create_dummy');
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('Database populated with dummy books.');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('Failed to seed DB mock records.', 'error');
+                }
+            } catch (err) {
+                showToast('Failed to coordinate mock seed vectors.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

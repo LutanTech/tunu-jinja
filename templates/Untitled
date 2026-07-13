@@ -1,0 +1,2 @@
+
+Database error : (builtins.TypeError) unsupported operand type(s) for +: 'int' and 'str' [SQL: INSERT INTO "order" (id, temp_id, data, name, city, address, email, phone, created_at) VALUES (%(id)s, %(temp_id)s, %(data)s, %(name)s, %(city)s, %(address)s, %(email)s, %(phone)s, %(created_at)s)] [parameters: [{'data': ['BK-D54V3F'], 'temp_id': 'aa4cdff1-018f-4552-81bd-eb52be1a0871', 'name': None, 'phone': None, 'address': None, 'city': None, 'email': None}]]

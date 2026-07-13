@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% block title %}
+        TUNU Publishers | Elimu ni Tunu
+        {% endblock %}
+    </title>
+    <meta name="title" content="TUNU Publishers | Elimu ni Tunu">
+    <meta name="description" content="TUNU Publishers is Kenya's trusted publisher for CBC books, story books, novels, poetry, revision materials, educational resources and children's learning content.">
+    <meta name="keywords" content="TUNU Publishers, CBC books Kenya, novels, educational books, Grade books, revision books, story books, poetry books, publishers in Kenya, children's books, elimu ni tunu">
+    <meta name="author" content="TUNU Publishers">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
+    <meta name="theme-color" content="#8B008B">
+    <meta name="language" content="English">
+    <meta name="rating" content="general">
+    <meta name="revisit-after" content="2 days">
+    <link rel="canonical" href="https://www.tunupublishers.com">
+    <link rel="icon" type="image/png" href="/static/icons/tunu_logo.png">
+    <link rel="apple-touch-icon" href="/static/icons/tunu_logo.png">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="TUNU Publishers">
+    <meta property="og:title" content="TUNU Publishers | Elimu ni Tunu">
+    <meta property="og:description" content="Discover CBC books, novels, poetry, educational materials and children's learning resources from TUNU Publishers.">
+    <meta property="og:url" content="https://www.tunupublishers.com">
+    <meta name="google-site-verification" content="m92xg8EhgbFUx9VwfR6tNqK4UHym8uwtAHfDtcRYjwA" />
+    <meta property="og:image" content="https://www.tunupublishers.com/static/icons/tunu_logo.png">
+    <meta property="og:locale" content="en_KE">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="TUNU Publishers | Elimu ni Tunu">
+    <meta name="twitter:description" content="Kenya's trusted source for CBC books, educational materials, novels, poetry and children's learning resources.">
+    <meta name="twitter:image" content="https://www.tunupublishers.com/static/icons/tunu_logo.png">
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "BookStore",
+            "name": "TUNU Publishers",
+            "url": "https://www.tunupublishers.com",
+            "logo": "https://www.tunupublishers.com/static/icons/tunu_logo.png",
+            "image": "https://www.tunupublishers.com/static/icons/tunu_logo.png",
+            "description": "TUNU Publishers provides CBC books, educational resources, novels, poetry and children's learning materials in Kenya.",
+            "brand": {
+                "@type": "Brand",
+                "name": "TUNU Publishers"
+            },
+            "sameAs": [
+                "https://www.tunupublishers.com"
+            ]
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        magenta: '#8B008B',
+                        'dark-magenta': '#4B004B',
+                        orangered: '#FF4500',
+                        lightWarm: '#fdfbf9'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    {% block head %}{% endblock %}
+    <style>
+        :root {
+            --magenta: #8B008B;
+            --dark-magenta: #4B004B;
+            --orangered: #FF4500;
+            --white: #FFFFFF;
+            --light-bg: #fdfbf9;
+            --gray-text: #6B7280;
+            --border-color: #E5E7EB;
+        }
+        body {
+            background-color: var(--light-bg);
+            color: #2D2D2D;
+        }
+        .header-dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .dropdown-menu {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(8px);
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans transition-colors duration-300">
+
+    <div class="hidden md:block bg-white border-b border-gray-100 py-4">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-6 w-full md:w-auto justify-center md:justify-start">
+                <div class="flex flex-col sm:flex-row items-center gap-4 text-xs text-gray-600 font-semibold">
+                    <span class="flex items-center gap-2"><i class="fas fa-envelope text-magenta text-sm"></i> tunupublishers@gmail.com</span>
+                    <span class="flex items-center gap-2"><i class="fas fa-phone-alt text-magenta text-sm"></i> +254 722 68 21 29</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 w-full md:w-auto justify-center md:justify-end">
+                <div class="hidden sm:flex border border-gray-300 rounded overflow-hidden max-w-xs w-full">
+                    <input type="text" placeholder="Search for books..." id="search-input" class="px-3 py-1.5 text-xs outline-none w-full min-w-0">
+                    <button class="bg-magenta text-white px-4 transition-colors hover:bg-dark-magenta search-trigger-btn flex items-center justify-center shrink-0">
+                        <i class="fas fa-search text-xs"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-4 shrink-0">
+                    <button onclick="showAlert('info', 'Your Wishlist is currently empty.')" class="p-2 text-gray-500 hover:text-magenta transition-colors relative" title="My Wishlist">
+                        <i class="far fa-heart text-lg"></i>
+                        <span class="absolute -top-1 -right-1 bg-orangered text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                    </button>
+
+                    <button class="bg-magenta hover:bg-dark-magenta text-white px-6 py-2.5 rounded-full font-bold text-xs uppercase flex items-center gap-2.5 transition-all shadow-md shrink-0" onclick="openCart()">
+                        <i class="fas fa-shopping-cart text-sm"></i>
+                        <span>CART</span>
+                        <span class="bg-orangered text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center float-count" id="cart-count">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <header class="bg-magenta sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between py-3">
+            <a href="/" class="flex items-center gap-3">
+                <div class="bg-white p-1 rounded-lg">
+                    <img src="/static/icons/tunu_logo.png" alt="TUNU Publishers" class="h-10 w-10 object-contain" onerror="this.src='https://placehold.co/40x40/8B008B/ffffff?text=T'">
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-white leading-none tracking-wide">TUNU</h1>
+                    <p class="text-[9px] text-white/80 uppercase tracking-widest font-semibold mt-0.5">Publishers</p>
+                </div>
+            </a>
+
+            <nav class="hidden md:flex items-center gap-1">
+                <a href="/" class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider">HOME</a>
+                
+                <div class="relative header-dropdown cursor-pointer py-1">
+                    <button class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider flex items-center gap-1.5">
+                        BOOKS <i class="fas fa-chevron-down text-[8px] mt-0.5"></i>
+                    </button>
+                    <div class="dropdown-menu absolute left-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-xl border border-gray-100 z-50 py-1 font-bold text-xs uppercase tracking-wider">
+                        <a href="/books" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">All Books</a>
+                        <a href="/books?cat=junior" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Junior School</a>
+                        <a href="/books?cat=revision" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Revision</a>
+                    </div>
+                </div>
+
+                <div class="relative header-dropdown cursor-pointer py-1">
+                    <button class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider flex items-center gap-1.5">
+                        STORES <i class="fas fa-chevron-down text-[8px] mt-0.5"></i>
+                    </button>
+                    <div class="dropdown-menu absolute left-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-xl border border-gray-100 z-50 py-1 font-bold text-xs uppercase tracking-wider">
+                        <a href="/stores/nairobi" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Nairobi CBD Branch</a>
+                        <a href="/stores/mombasa" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Mombasa Depot</a>
+                        <a href="/stores/kisumu" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Kisumu Outlet</a>
+                    </div>
+                </div>
+
+                <a href="/about" class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider">ABOUT US</a>
+                <a href="/contact_us" class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider">CONTACT</a>
+                <a href="/blog" class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider">BLOG ZONE</a>
+            </nav>
+
+            <div class="flex items-center gap-1 md:hidden">
+                <button class="text-white p-2 text-lg" onclick="window.location.href = '/dashboard'">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+                <button class="text-white p-2 text-lg" onclick="toggleMobileSearch()">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button onclick="showAlert('info', 'Your Wishlist is currently empty.')" class="text-white p-2 text-lg relative" title="My Wishlist">
+                    <i class="far fa-heart"></i>
+                    <span class="absolute top-0 right-0 bg-orangered text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">0</span>
+                </button>
+                <button class="text-white p-2 text-lg relative" onclick="openCart()" title="Cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="absolute top-0 right-0 bg-orangered text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center float-count" id="cart-count-mobile">0</span>
+                </button>
+                <button class="text-white p-2 text-xl" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="hidden md:hidden px-4 pb-3" id="topbar-mobile-search">
+            <div class="flex border border-white/30 bg-white rounded overflow-hidden">
+                <input type="text" placeholder="Search for books..." id="topbar-search-input" class="px-3 py-2 text-xs outline-none w-full min-w-0">
+                <button class="bg-dark-magenta text-white px-4 flex items-center justify-center shrink-0" id="topbar-search-btn">
+                    <i class="fas fa-search text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="mobile-menu-overlay fixed inset-0 bg-black/60 hidden backdrop-blur-sm z-[99999] transition-all flex justify-start items-start" id="mobile-menu-wrapper">
+        <div class="mobile-menu w-full max-w-xs bg-white h-full shadow-2xl relative flex flex-col justify-between p-6 transform -translate-x-full transition-transform duration-300" id="mobile-menu-inner">
+            <div>
+                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                    <div class="flex items-center gap-2">
+                        <img src="/static/icons/tunu_logo.png" alt="Tunu Logo" class="w-8 h-8 object-contain">
+                        <span class="font-bold text-magenta text-base tracking-wide">TUNU PUBLISHERS</span>
+                    </div>
+                    <button class="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-red-500 hover:bg-red-50" onclick="toggleMenu()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="mb-6">
+                    <div class="flex border border-gray-300 rounded overflow-hidden">
+                        <input type="search" id="mobile-menu-search" placeholder="Search books..." class="w-full px-3 py-2 text-xs outline-none">
+                        <button class="bg-magenta text-white px-4 flex items-center justify-center" id="mobile-search-btn"> 
+                            <i class="fa fa-search text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <a href="/" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-home w-4 opacity-75"></i> Home</a>
+                    <a href="/books" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-book w-4 opacity-75"></i> Books</a>
+                    <a href="/books?cat=junior" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-school w-4 opacity-75"></i> Junior School</a>
+                    <a href="/books?cat=revision" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-pen w-4 opacity-75"></i> Revision</a>
+                    <a href="/stores" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-map-marker-alt w-4 opacity-75"></i> Stores Hub</a>
+                    <a href="/about" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-info-circle w-4 opacity-75"></i> About Us</a>
+                    <a href="/contact_us" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-phone w-4 opacity-75"> </i> Contact</a>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 pt-4 text-center">
+                <p class="text-[10px] text-gray-400 font-medium">
+                    <i class="fas fa-code"></i> Powered by <b>Lutan Solutions</b> | v2.5.0
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="overlay" class="fixed inset-0 bg-black/60 z-[1500] hidden backdrop-blur-sm" onclick="closeCart()"></div>
+    
+    <div id="cart-drawer" class="fixed top-0 right-0 w-full max-w-sm h-full bg-white shadow-2xl z-[2000] flex flex-col justify-between translate-x-full transition-transform duration-300">
+        <div class="bg-magenta text-white p-5 flex justify-between items-center shadow">
+            <h3 class="font-bold text-sm flex items-center gap-2">
+                <i class="fas fa-shopping-bag"></i> 
+                <span>Your Selected Books</span>
+            </h3>
+            <button onclick="closeCart()" class="w-8 h-8 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center text-white font-bold text-lg">&times;</button>
+        </div>
+        
+        <div id="cart-items-container" class="flex-grow overflow-y-auto p-5 flex flex-col gap-4"></div>
+        
+        <div class="border-t border-gray-100 p-5 bg-gray-50">
+            <div class="flex justify-between items-baseline mb-4">
+                <span class="text-xs font-semibold text-gray-500">Subtotal:</span>
+                <span id="cart-total-price" class="text-xl font-bold text-magenta">KES 0.00</span>
+            </div>
+            <button class="w-full bg-orangered hover:bg-magenta text-white font-bold py-3.5 rounded-lg transition-all shadow-md flex items-center justify-center gap-2 text-xs uppercase tracking-wider" onclick="checkCart()">
+                <i class="fas fa-lock"></i> Proceed to Checkout
+            </button>
+        </div>
+    </div>
+
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <div class="fixed bottom-20 right-6 z-40 flex flex-col gap-3">
+        <button onclick="openCart()" class="bg-magenta hover:bg-dark-magenta text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110 relative" title="Open Cart">
+            <i class="fas fa-shopping-cart text-lg"></i>
+            <span class="absolute -top-1 -right-1 bg-orangered text-white text-[9px] font-bold w-5 h-5 rounded-full flex items-center justify-center float-count">0</span>
+        </button>
+        
+        <a href="https://wa.me/254722682129" target="_blank" class="bg-[#25d366] hover:bg-[#128C7E] text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110" aria-label="WhatsApp Chat">
+            <i class="fab fa-whatsapp text-xl"></i>
+        </a>
+    </div>
+
+    <footer class="bg-dark-magenta text-white pt-12 pb-6 border-t border-magenta/30">
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 class="font-bold text-lg mb-4 tracking-wide flex items-center gap-2">
+                        <img src="/static/icons/tunu_logo.png" alt="Tunu Logo" class="h-8 bg-white p-1 rounded">
+                        <span>TUNU PUBLISHERS</span>
+                    </h3>
+                    <p class="text-gray-300 text-xs leading-relaxed mb-4">Innovative educational solutions crafted for learners. We bridge the gap between curriculum and understanding with relevant content.</p>
+                    <div class="flex items-center gap-3">
+                        <a href="https://www.facebook.com/p/TUNU-Publishers-61565538623974/" target="_blank" class="w-8 h-8 bg-white/5 hover:bg-orangered transition-colors rounded-full flex items-center justify-center border border-white/10"><i class="fab fa-facebook-f text-xs"></i></a>
+                        <a href="#" class="w-8 h-8 bg-white/5 hover:bg-orangered transition-colors rounded-full flex items-center justify-center border border-white/10"><i class="fab fa-twitter text-xs"></i></a>
+                        <a href="#" class="w-8 h-8 bg-white/5 hover:bg-orangered transition-colors rounded-full flex items-center justify-center border border-white/10"><i class="fab fa-instagram text-xs"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-xs text-orangered uppercase tracking-wider mb-4 border-l-2 border-orangered pl-2">Quick Navigation</h4> 
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="/" class="text-gray-300 hover:text-white transition-colors">Home Storefront</a></li>
+                        <li><a href="/about" class="text-gray-300 hover:text-white transition-colors">About TUNU Publishers</a></li>
+                        <li><a href="/books?cat=primary" class="text-gray-300 hover:text-white transition-colors">Primary Textbooks</a></li>
+                        <li><a href="/books?cat=junior" class="text-gray-300 hover:text-white transition-colors">Junior Secondary Catalog</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-xs text-orangered uppercase tracking-wider mb-4 border-l-2 border-orangered pl-2">Support</h4>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="/orders" class="text-gray-300 hover:text-white transition-colors">Track Your Order</a></li>
+                        <li><a href="/delivery_policy" class="text-gray-300 hover:text-white transition-colors">Delivery Policy</a></li>
+                        <li><a href="/privacy_policy" class="text-gray-300 hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="/terms_of_service" class="text-gray-300 hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-xs text-orangered uppercase tracking-wider mb-4 border-l-2 border-orangered pl-2">Get in Touch</h4>
+                    <ul class="space-y-2.5 text-xs text-gray-300">
+                        <li class="flex gap-2"><i class="fas fa-map-marker-alt text-orangered mt-0.5"></i> <span>Harambee Sacco Shopping Centre, Nairobi, Kenya</span></li>
+                        <li class="flex gap-2"><i class="fas fa-phone-alt text-orangered"></i> <span>+254 722 68 21 29</span></li>
+                        <li class="flex gap-2"><i class="fas fa-envelope text-orangered"></i> <span>info@tunupublishers.com</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="text-[10px] text-gray-400">&copy; {{ current_year }} TUNU Publishers Limited. All Rights Reserved.</p>
+                <div class="flex items-center gap-3 opacity-60">
+                    <img src="https://img.icons8.com/color/48/000000/visa.png" alt="Visa Pay" class="h-5">
+                    <img src="https://img.icons8.com/color/48/000000/mastercard.png" alt="Master Card" class="h-5">
+                    <img src="https://img.icons8.com/color/48/000000/mpesa.png" alt="Safaricom Mpesa" class="h-5 rounded">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let cart = [];
+        try {
+            cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        } catch (e) {
+            cart = [];
+        }
+
+        function updateCartUI() {
+            const container = document.getElementById('cart-items-container');
+            const totalDisplay = document.getElementById('cart-total-price');
+            const countBadges = document.querySelectorAll('.float-count');
+            const desktopCountBadge = document.getElementById('cart-count');
+        
+            if (!container || !totalDisplay) return;
+
+            container.innerHTML = '';
+            let cartSum = 0;
+            let cartTotalQuantity = 0;
+
+            cart.forEach((item) => {
+                const itemQty = parseInt(item.quantity || 1, 10);
+                cartSum += parseFloat(item.newPrice || 0) * itemQty;
+                cartTotalQuantity += itemQty;
+            });
+
+            countBadges.forEach(badge => {
+                badge.textContent = cartTotalQuantity;
+            });
+            if (desktopCountBadge) {
+                desktopCountBadge.textContent = cartTotalQuantity;
+            }
+
+            if (cart.length < 1) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center gap-3 py-12 text-center text-gray-400 border border-dashed border-gray-200 rounded-lg">
+                        <i class="fas fa-shopping-basket text-4xl text-magenta/20"></i>
+                        <span class="text-xs font-semibold text-gray-400">Your bag is completely empty</span>
+                    </div>
+                `;
+                totalDisplay.innerText = `KES 0.00`;
+                return;
+            }
+        
+            cart.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'flex items-center gap-3 bg-gray-50 p-2.5 rounded-lg border border-gray-100';
+                itemDiv.innerHTML = `
+                    <img src="${item.image}" alt="${item.title}" class="w-10 h-12 object-contain shrink-0 bg-white border border-gray-200 p-0.5 rounded">
+                    <div class="flex-grow text-left">
+                        <h5 class="text-xs font-bold text-gray-800 line-clamp-1 leading-snug">${item.title}</h5>
+                        <p class="text-xs font-extrabold text-magenta mt-0.5">KES ${(item.newPrice || 0).toLocaleString()}</p>
+                        <p class="text-[10px] text-gray-400 font-semibold mt-0.5">Qty: x${item.quantity || 1}</p>
+                    </div>
+                    <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 p-1 rounded shrink-0 transition-colors">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                `;
+                container.appendChild(itemDiv);
+            });
+        
+            totalDisplay.innerText = `KES ${cartSum.toLocaleString()}`;
+        }
+        
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        function addToCart(id, category) {
+            const db = window.booksData || window.booksDatabase || [];
+            let targetBook = null;
+
+            if (Array.isArray(db)) {
+                targetBook = db.find(b => b.id === id);
+            }
+
+            if (!targetBook) {
+                showAlert('error', 'Book reference not found. Please refresh.');
+                return;
+            }
+        
+            const existingMatch = cart.find(item => item.id === id);
+            if (existingMatch) {
+                existingMatch.quantity = parseInt(existingMatch.quantity || 1, 10) + 1;
+            } else {
+                cart.push({
+                    id: targetBook.id,
+                    title: targetBook.title,
+                    image: targetBook.image_url || targetBook.image,
+                    newPrice: targetBook.newPrice,
+                    category: category || targetBook.category || 'General',
+                    quantity: 1
+                });
+            }
+
+            saveCart();
+            updateCartUI();
+
+            if (window.innerWidth > 768) {
+                openCart();
+            } else {
+                showCartAlert(true);
+            }
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            saveCart();
+            updateCartUI();
+        }
+
+        function openCart() {
+            const drawer = document.getElementById('cart-drawer');
+            const overlay = document.getElementById('overlay');
+            if (drawer) drawer.classList.remove('translate-x-full');
+            if (overlay) overlay.classList.remove('hidden');
+            updateCartUI();
+        }
+
+        function closeCart() {
+            const drawer = document.getElementById('cart-drawer');
+            const overlay = document.getElementById('overlay');
+            if (drawer) drawer.classList.add('translate-x-full');
+            if (overlay) overlay.classList.add('hidden');
+        }
+
+        window.addEventListener('load', updateCartUI);
+
+        function checkCart() {
+            if (!cart || cart.length === 0) {
+                showAlert('error', 'Your shopping bag is currently empty.');
+            } else {
+                window.location.href = '/cart';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const inp = document.querySelector('#search-input');
+            const mobileInp = document.querySelector('#mobile-menu-search');
+            const sbtn = document.querySelector('.search-trigger-btn');
+            const mobileSbtn = document.querySelector('#mobile-search-btn');
+
+            if (inp) {
+                inp.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && inp.value.trim() !== '') {
+                        window.location.href = '/search?q=' + encodeURIComponent(inp.value.trim());
+                    }
+                });
+            }
+
+            if (sbtn && inp) {
+                sbtn.addEventListener('click', () => {
+                    if (inp.value.trim() !== '') {
+                        window.location.href = '/search?q=' + encodeURIComponent(inp.value.trim());
+                    }
+                });
+            }
+
+            if (mobileInp) {
+                mobileInp.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && mobileInp.value.trim() !== '') {
+                        window.location.href = '/search?q=' + encodeURIComponent(mobileInp.value.trim());
+                    }
+                });
+            }
+
+            if (mobileSbtn && mobileInp) {
+                mobileSbtn.addEventListener('click', () => {
+                    if (mobileInp.value.trim() !== '') {
+                        window.location.href = '/search?q=' + encodeURIComponent(mobileInp.value.trim());
+                    }
+                });
+            }
+
+            const topbarInp = document.querySelector('#topbar-search-input');
+            const topbarBtn = document.querySelector('#topbar-search-btn');
+
+            if (topbarInp) {
+                topbarInp.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && topbarInp.value.trim() !== '') {
+                        window.location.href = '/search?q=' + encodeURIComponent(topbarInp.value.trim());
+                    }
+                });
+            }
+
+            if (topbarBtn && topbarInp) {
+                topbarBtn.addEventListener('click', () => {
+                    if (topbarInp.value.trim() !== '') {
+                        window.location.href = '/search?q=' + encodeURIComponent(topbarInp.value.trim());
+                    }
+                });
+            }
+        });
+
+        function showAlert(type, text) {
+            const div = document.createElement('div');
+            div.className = 'fixed top-6 right-6 bg-white p-4 max-w-xs rounded-lg shadow-xl border border-gray-100 flex gap-3 z-[999999] transition-all duration-300 transform translate-x-12 opacity-0';
+            
+            let colorClass = 'text-blue-500';
+            let iconClass = 'fa-info-circle';
+            let borderClass = 'border-l-4 border-l-blue-500';
+
+            if (type === 'error') {
+                colorClass = 'text-red-500';
+                iconClass = 'fa-exclamation-triangle';
+                borderClass = 'border-l-4 border-l-red-500';
+            } else if (type === 'success') {
+                colorClass = 'text-green-500';
+                iconClass = 'fa-check-circle';
+                borderClass = 'border-l-4 border-l-green-500';
+            }
+
+            div.innerHTML = `
+                <div class="${colorClass} text-xl flex items-center shrink-0 ${borderClass} pl-2">
+                    <i class="fas ${iconClass}"></i>
+                </div>
+                <div class="text-left">
+                    <div class="font-bold text-[10px] uppercase tracking-wider text-gray-400 mb-0.5">${type}</div>
+                    <div class="text-xs font-semibold text-gray-700 leading-tight">${text}</div> 
+                </div>            
+            `;
+
+            document.body.appendChild(div);
+            
+            setTimeout(() => {
+                div.classList.remove('translate-x-12', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                div.classList.add('translate-x-12', 'opacity-0');
+                setTimeout(() => div.remove(), 300);
+            }, 4000);
+        }
+
+        function showCartAlert(success) {
+            if (!success) {
+                showAlert('error', 'Failed to update shopping bag.');
+                return;
+            }
+            const div = document.createElement('div');
+            div.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 max-w-[200px] bg-magenta text-white z-[99999] flex items-center justify-center gap-2 px-5 py-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 transform translate-y-4';
+            div.innerHTML = `  
+                <i class="fas fa-check-circle text-orangered text-sm"></i>
+                <span class="text-[11px] font-bold uppercase tracking-wider">Book Added to Bag</span>
+            `;
+            document.body.appendChild(div);
+            
+            setTimeout(() => {
+                div.classList.remove('opacity-0', 'translate-y-4');
+            }, 50);
+
+            setTimeout(() => {
+                div.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => div.remove(), 300);
+            }, 2500);
+        }
+
+        function toggleMobileSearch() {
+            const bar = document.getElementById('topbar-mobile-search');
+            if (!bar) return;
+            bar.classList.toggle('hidden');
+            if (!bar.classList.contains('hidden')) {
+                const inp = document.getElementById('topbar-search-input');
+                if (inp) inp.focus();
+            }
+        }
+
+        function toggleMenu() {
+            const wrapper = document.getElementById('mobile-menu-wrapper');
+            const inner = document.getElementById('mobile-menu-inner');
+            if (!wrapper || !inner) return;
+
+            if (wrapper.classList.contains('hidden')) {
+                wrapper.classList.remove('hidden');
+                setTimeout(() => {
+                    inner.classList.remove('-translate-x-full');
+                }, 50);
+            } else {
+                inner.classList.add('-translate-x-full');
+                setTimeout(() => {
+                    wrapper.classList.add('hidden');
+                }, 250);
+            }
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+
+{% block title %}My Bag | TUNU Publishers{% endblock %}
+
+{% block content %}
+<style>
+    .cart-wrapper {
+        padding: 20px 0;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .cart-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+    @media (min-width: 1024px) {
+        .cart-grid { grid-template-columns: 1.8fr 1fr; }
+        .cart-wrapper { padding: 40px 20px; }
+    }
+    .cart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+    }
+    .item-row {
+        display: flex;
+        gap: 15px;
+        padding: 15px 0;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+    }
+    #proceedToCheckout{
+        &:active{
+            scale: 0.9;
+        }
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-img {
+        width: 80px;
+        height: 100px;
+        object-fit: contain;
+        background: #f9f9f9;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+    .qty-controls {
+        display: flex;
+        align-items: center;
+        background: #f4f4f4;
+        border-radius: 50px;
+        padding: 2px;
+        margin-top: 10px;
+        width: fit-content;
+    }
+    .qty-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: none;
+        background: white;
+        color: var(--magenta);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: #555;
+    }
+</style>
+
+<div class="container">
+    <div class="cart-wrapper">
+        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <a href="/" style="text-decoration:none; color:var(--magenta); font-weight:600; font-size:14px;">
+                <i class="fas fa-chevron-left"></i> Continue Shopping
+            </a>
+            <h2 style="font-size: 22px; color: #1a1a1a;"><i class="fas fa-shopping-bag"></i> My Bag</h2>
+        </div>
+
+        <div id="cart-main-container" class="cart-grid">
+            <!-- Content Injected via JS -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function renderCartPage() {
+        const container = document.getElementById('cart-main-container');
+        
+        if (!cart || cart.length === 0) {
+            container.style.display = 'block';
+            container.innerHTML = `
+                <div style="text-align:center; padding: 60px 20px; background:white; border-radius:15px; border:2px dashed #eee;">
+                    <i class="fas fa-box-open" style="font-size: 50px; color: #ddd; margin-bottom: 20px;"></i>
+                    <h3 style="color:#333;">Your bag is empty</h3>
+                    <p style="color:#888; margin-bottom:25px;">Looks like you haven't added any books yet.</p>
+                    <a href="/" class="btn btn-primary" style="border-radius:50px;">
+                        <i class="fas fa-search"></i> Browse Collection
+                    </a>
+                </div>
+            `;
+            return;
+        }
+
+        container.style.display = 'grid';
+        let subtotal = 0;
+        let itemsHtml = '';
+
+        cart.forEach((item, index) => {
+            const itemTotal = item.newPrice * item.quantity;
+            subtotal += itemTotal;
+            itemsHtml += `
+                <div class="item-row">
+                    <img src="${item.image}" class="item-img" alt="${item.title}">
+                    <div style="flex:1">
+                        <h4 style="font-size:15px; margin-bottom:5px; color:#1a1a1a; padding-right: 25px;">${item.title}</h4>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                            <div>
+                                <p style="color:var(--magenta); font-weight:800; font-size:16px;">KES ${item.newPrice.toLocaleString()}</p>
+                                <div class="qty-controls">
+                                    <button class="qty-btn" onclick="updateQty('${item.id}', -1)"><i class="fas fa-minus"></i></button>
+                                    <span style="padding: 0 12px; font-weight: 700; font-size: 14px;">${item.quantity}</span>
+                                    <button class="qty-btn" onclick="updateQty('${item.id}', 1)"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div style="text-align:right;">
+                                <p style="font-size:12px; color:#999;">Subtotal</p>
+                                <p style="font-weight:700; color:#1a1a1a;">KES ${itemTotal.toLocaleString()}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="removeBook('${item.id}')" style="position:absolute; top:15px; right:0; background:none; border:none; color:#ffccd2; cursor:pointer; font-size:18px;" onmouseover="this.style.color='#ff4d4d'" onmouseout="this.style.color='#ffccd2'">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+            `;
+        });
+
+        container.innerHTML = `
+            <div class="cart-card">
+                <p style="font-weight:700; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+                    <i class="fas fa-list-ul" style="color:var(--orangered)"></i> Items In Bag (${cart.length})
+                </p>
+                ${itemsHtml}
+            </div>
+
+            <div class="cart-card" style="background: #fafafa;">
+                <h4 style="margin-bottom:20px; font-size:18px; color:#1a1a1a;"><i class="fas fa-receipt"></i> Order Summary</h4>
+                
+                <div class="summary-item">
+                    <span><i class="fas fa-tag"></i> Bag Subtotal</span>
+                    <span style="font-weight:600;">KES ${subtotal.toLocaleString()}</span>
+                </div>
+                <div class="summary-item">
+                    <span><i class="fas fa-truck"></i> Estimated Delivery</span>
+                    <span style="color:#27ae60; font-weight:700;">FREE</span>
+                </div>
+                <div class="summary-item" style="border-top:1px solid #eee; padding-top:15px; margin-top:15px;">
+                    <span style="font-weight:800; font-size:16px; color:#1a1a1a;">Order Total</span>
+                    <span style="font-weight:900; font-size:22px; color:var(--magenta);">KES ${subtotal.toLocaleString()}</span>
+                </div>
+
+                <button onclick="proceedToCheckout()" style="width:100%; background:var(--orangered); color:white; border:none; padding:18px; border-radius:12px; font-weight:800; cursor:pointer; font-size:16px; margin-top:20px; box-shadow: 0 5px 15px rgba(255,69,0,0.3); display:flex; align-items:center; justify-content:center; gap:10px;" id="proceedToCheckout">
+                    <i class="fas fa-lock"></i> SECURE CHECKOUT
+                </button>
+
+                <div style="margin-top:20px; display:flex; justify-content:center; gap:15px; opacity:0.5; font-size:20px;">
+                    <i class="fab fa-cc-visa"></i>
+                    <i class="fab fa-cc-mastercard"></i>
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                
+                <p style="font-size:11px; color:#999; text-align:center; margin-top:15px;">
+                    <i class="fas fa-shield-alt"></i> Your data is protected with SSL encryption
+                </p>
+            </div>
+        `;
+    }
+
+    function updateQty(id, delta) {
+
+
+        const existingItem = cart.find(
+            item => item.id === id
+        );
+    
+        if (existingItem && !existingItem.quantity < 1) {
+            const newVal = existingItem.quantity += delta;
+            if(newVal <= 0){
+                existingItem.quantity = 1
+            }
+        } else{
+            existingItem.quantity = 1
+        }
+        saveCart()
+        updateCartUI()
+        renderCartPage();
+    }
+
+    function removeBook(id){
+
+        cart = cart.filter(
+            item => item.id !== id
+        )
+    
+        localStorage.setItem(
+            'cart',
+            JSON.stringify(cart)
+        )
+    
+        updateCartUI()
+    
+        renderCartPage()
+    }
+
+    function proceedToCheckout() {
+        const uid = localStorage.getItem('temp_id') || crypto.randomUUID(4)
+        let ids = []
+        cart.forEach(i=>{
+            ids.push(i.id)
+        })
+
+        fetch('/create_order', {
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json'
+            }, body: JSON.stringify({'cart':ids, 'temp_id':uid})
+        })
+        .then(r=>r.json())
+        .then(data=>{
+            if(data.msg && data.order_id){
+                localStorage.setItem('temp_id', uid)
+               window.location.href = `/checkout?order=${data.order_id}`
+            } else{
+                showAlert('error', data.error)
+            }
+        })
+        .catch(e=>{
+            showAlert('error', e.message)
+        })
+    }
+
+    window.addEventListener('load', renderCartPage);
+</script>
+{% endblock %}

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Registration | TUNU Publishers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --magenta: #8B008B;
+            --dark-magenta: #5c005c;
+            --orangered: #FF4500;
+            --soft-bg: #fdf2f2;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--soft-bg) 0%, #ffffff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .auth-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(139, 0, 139, 0.1);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+            border: 1px solid rgba(139, 0, 139, 0.05);
+        }
+        .brand-header {
+            background: var(--magenta);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        .input-group {
+            position: relative;
+            margin-bottom: 18px;
+        }
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            transition: color 0.3s;
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s;
+            font-size: 15px;
+        }
+        .input-field:focus {
+            border-color: var(--magenta);
+            box-shadow: 0 0 0 4px rgba(139, 0, 139, 0.1);
+        }
+        .input-field:focus + i {
+            color: var(--magenta);
+        }
+        .btn-register {
+            background: var(--orangered);
+            color: white;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 69, 0, 0.2);
+        }
+        .btn-register:hover {
+            background: #e63e00;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 69, 0, 0.3);
+        }
+        .error-box {
+            background: #fff5f5;
+            border-left: 4px solid #ff4d4d;
+            color: #d63031;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        <div class="brand-header">
+            <a href="/" style="display: inline-block; background: white; padding: 8px; border-radius: 10px; margin-bottom: 15px;">
+                <img src="https://i.ibb.co/CKRYPD4p/image.png" alt="TUNU Logo" style="height: 40px;">
+            </a>
+            <h2 class="text-2xl font-extrabold tracking-tight">Staff Portal</h2>
+            <p class="text-sm opacity-80 mt-1">Create your professional account</p>
+        </div>
+
+        <div class="p-8">
+            <!-- Flask Error Message Display -->
+            {% if error %}
+            <div class="error-box">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <form action="/register" method="POST" id="registerForm">
+                <div class="input-group">
+                    <input type="text" name="name" class="input-field" placeholder="Full Name" required>
+                    <i class="fas fa-user-tie"></i>
+                </div>
+
+                <div class="input-group">
+                    <input type="email" name="email" class="input-field" placeholder="Email Address (Optional)">
+                    <i class="fas fa-envelope"></i>
+                </div>
+
+                <div class="input-group">
+                    <input type="tel" name="phone" class="input-field" placeholder="Phone Number (e.g. 07...)" required>
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" name="password" id="password" class="input-field" placeholder="Create Password" required>
+                    <i class="fas fa-lock"></i>
+                    <button type="button" onclick="togglePass()" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); color:#ccc; background:none; border:none; cursor:pointer;">
+                        <i class="fas fa-eye" id="eye-icon" style="position:static; transform:none;"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2 mb-6">
+                    <input type="checkbox" id="terms" required class="accent-pink-700 w-4 h-4">
+                    <label for="terms" class="text-xs text-gray-500">I agree to the TUNU Publishers <a href="#" class="text-magenta-700 font-semibold underline" style="color:var(--magenta)">Terms of Service</a></label>
+                </div>
+
+                <button type="submit" class="btn-register">
+                    <i class="fas fa-user-plus"></i>
+                    COMPLETE REGISTRATION
+                </button>
+            </form>
+
+            <div class="mt-8 text-center">
+                <p class="text-sm text-gray-600">
+                    Already have an account? 
+                    <a href="/login" class="font-bold transition-colors" style="color:var(--magenta)">Log In here</a>
+                </p>
+                <a href="/" class="inline-flex items-center gap-2 text-xs text-gray-400 mt-6 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-arrow-left"></i> Back to Bookstore
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle password visibility
+        function togglePass() {
+            const passInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eye-icon');
+            
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passInput.type = 'password';
+                eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // Basic form validation feedback
+        document.getElementById('registerForm').onsubmit = function() {
+            const btn = document.querySelector('.btn-register');
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> CREATING ACCOUNT...';
+            btn.style.opacity = '0.7';
+            btn.style.pointerEvents = 'none';
+        };
+    </script>
+</body>
+</html>

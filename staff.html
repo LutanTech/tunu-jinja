@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Management</title>
+    <style>
+        *{
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        header{
+            background: #ff00ff;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        body{
+            width: 100%;
+            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .back-btn{
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            background: black;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            &:active{
+                scale: 0.9;
+            }
+            &:hover{
+                background: rgb(111, 0, 128);
+            }
+        }
+        .nav-icon{
+            width: 20px;
+            cursor: pointer;
+            &:hover{
+                fill: red;
+            }
+        }
+        .back-nav{
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 2px;
+            user-select: none;
+        }
+        .back-nav a{
+            margin-left: 5px;
+            margin-right: 5px;
+            font-size: small;
+            color: blue;
+        }
+        @media (max-width:768px) {
+            .back-nav{
+                display: none;
+            }
+            
+        }
+        .header-left{
+            flex-grow: 1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 20px;
+            flex-direction: column;
+            align-items: flex-end;
+            align-content:flex-end;
+        }
+        @media (min-width:768px) {
+            .back-btn{
+                display: none;
+            }
+            
+        }
+        .search{
+            display: flex;
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            order: 2;
+        }
+        .search-icon{
+            width: 15px;
+            position: absolute;
+            top: 4px;
+            left: 5px;
+        }
+        .search-input{
+            flex-grow: 1;
+            width: 100%;
+        }
+        .search-input input{
+            padding: 5px 10px;
+            outline: 2px solid white;
+            border: 2px solid magenta;
+            width: 100%;
+            padding-left: 30px;
+        }
+        .help-icon{
+            padding: 2px;
+            border-radius: 50%;
+            margin: auto;
+            margin-left: 10px;
+            cursor: pointer;
+            width: 30px;
+            
+            &:hover{
+                background: rgb(255, 255, 255);
+            }
+            &:active{
+                scale: 0.9;
+            }
+        }
+        table{
+            border: 1;
+            border-collapse: collapse;
+            width: 100%;
+            padding: 10px;
+            max-width: 500px;
+            margin: 20px auto;
+        }
+        thead tr{
+            background: rgb(60, 3, 60);
+            border-top-left-radius: 10px;
+        }
+        thead th{
+            padding: 5px 10px;
+            color: white;
+        }
+        table{
+            td{
+                padding: 3px;
+            }
+        }
+    </style>
+
+</head>
+<body>
+    <header>
+            <div class="back-btn" onclick="window.history.back()"> 
+                <svg width="26px" height="26px" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" fill="#ff00ff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill="#ff00ff" d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path><path fill="#ff00ff" d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path></g></svg>
+            </div>
+            <div class="back-nav">
+                <a href="/staff/admin">
+                <img src="./static/svgs/home.svg" alt="" class="nav-icon">
+                </a>
+                /
+                <a href="/staff/admin#staff_modal">
+                   Staff
+                </a>
+                /
+                <a href="/staff/admin/manage">
+                    Manage
+                </a>
+            </div>
+            <div class="header-left">
+                <div class="search">
+                    <div class="search-icon">
+                        <img src="/static/svgs/search.svg" alt="" class="search-icon">
+                    </div>
+                    <div class="search-input">
+                        <input type="search" placeholder="search anything..">
+                    </div>
+                    <div class="help">
+                        <img src="/static/svgs/help.svg" alt="" class="help-icon">
+                    </div>
+                </div>
+               <!-- <h3> TUNU PUBLISHERS ADMIN </h3> -->
+            </div>
+            
+            </header>
+            <div class="content">
+                <table border="1"> 
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead> 
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Lutan</td>
+                            <td>0711808286</td>
+                            <td>lutancorpinfoteam@gmail.com</td>
+                            <td>Admin</td>
+                            <td>Active</td>
+                            <td>
+                                <button>✔ Edit</button>
+                                <button>❌ Delete</button>
+                            </td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+        <main>
+            
+
+        </main>
+</body>
+</html>

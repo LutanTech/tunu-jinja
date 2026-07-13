@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}About Us | TUNU Publishers{% endblock %}
+
+{% block content %}
+<section style="background: linear-gradient(rgba(139, 0, 139, 0.8), rgba(139, 0, 139, 0.8)), url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1600'); padding: 80px 0; color: white; text-align: center;">
+    <div class="container">
+        <h2 style="font-size: 42px;">About TUNU Publishers</h2>
+    </div>
+</section>
+
+<div class="container" style="padding: 80px 0;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 60px; align-items: center;">
+        <div>
+            <img src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800" style="width: 100%; border-radius: 8px; box-shadow: 20px 20px 0 var(--orangered);">
+        </div>
+        <div>
+            <h2 style="color: var(--magenta); font-size: 32px; margin-bottom: 20px;">Nurturing African Excellence</h2>
+            <p style="margin-bottom: 20px;">TUNU Publishers is a leading educational publishing house in Kenya, dedicated to producing high-quality materials for the CBC curriculum.</p>
+            <p>Our books are crafted to build character, competence, and confidence in the African child.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,762 @@
+{% extends "base.html" %}
+
+{% block title %}
+Secure Checkout | TUNU Publishers
+{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --brand-purple: var(--magenta);
+        --brand-purple-dark: var(--dark-magenta);
+        --brand-orange: var(--orangered);
+        --brand-orange-dark: #D43F00;
+        --bg-slate: #FAF9FB;
+        --border-slate: #F1EDF5;
+        --text-slate-dark: #2D1A2D;
+        --text-slate-muted: #7E6E7E;
+    }
+
+    .tunu-checkout-viewport {
+        background-color: var(--bg-slate);
+        min-height: 100vh;
+        padding: 40px 0;
+        font-family: 'Poppins', sans-serif;
+        color: var(--text-slate-dark);
+    }
+
+    .tunu-checkout-container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .tunu-grid-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px;
+        align-items: start;
+    }
+
+    @media (min-width: 1024px) {
+        .tunu-grid-layout {
+            grid-template-columns: 7fr 5fr;
+        }
+    }
+
+    .tunu-checkout-card {
+        background: #FFFFFF;
+        border: 1px solid var(--border-slate);
+        border-radius: 12px !important;
+        padding: 28px;
+        box-shadow: 0 10px 30px rgba(139, 0, 139, 0.04);
+        margin-bottom: 24px;
+    }
+
+    .tunu-checkout-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .tunu-step-heading {
+        font-size: 14px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-slate-dark);
+    }
+
+    .tunu-step-number {
+        background: var(--brand-purple);
+        color: #FFFFFF;
+        width: 28px;
+        height: 28px;
+        border-radius: 50% !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .tunu-form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    @media (min-width: 640px) {
+        .tunu-form-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .tunu-form-full {
+            grid-column: span 2;
+        }
+    }
+
+    .tunu-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .tunu-input-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-slate-muted);
+        letter-spacing: 0.03em;
+    }
+
+    .tunu-field-input {
+        font-family: 'Poppins', sans-serif;
+        font-size: 13px;
+        padding: 12px 16px;
+        border: 1px solid var(--border-slate);
+        border-radius: 50px !important;
+        background-color: #FAF8FB;
+        color: var(--text-slate-dark);
+        outline: none;
+        transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    .tunu-field-input:focus {
+        border-color: var(--brand-purple);
+        background-color: #FFFFFF;
+    }
+
+    textarea.tunu-field-input {
+        border-radius: 12px !important;
+    }
+
+    .tunu-payment-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .tunu-tab-selector {
+        background: #FAF8FB;
+        border: 1px solid var(--border-slate);
+        border-radius: 12px !important;
+        padding: 16px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .tunu-tab-selector i {
+        font-size: 20px;
+        color: var(--text-slate-muted);
+    }
+
+    .tunu-tab-selector.active {
+        background: #FDF4FD;
+        border-color: var(--brand-purple);
+        color: var(--brand-purple);
+        box-shadow: 0 4px 12px rgba(139, 0, 139, 0.05);
+    }
+
+    .tunu-tab-selector.active i {
+        color: var(--brand-purple);
+    }
+
+    .tunu-tab-panel {
+        background: #FCFAFD;
+        border: 1px solid var(--border-slate);
+        border-radius: 12px !important;
+        padding: 24px;
+        display: none;
+    }
+
+    .tunu-tab-panel.active {
+        display: block;
+    }
+
+    .tunu-panel-text {
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--text-slate-muted);
+        margin-bottom: 20px;
+    }
+
+    .tunu-phone-prefix-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+
+    .tunu-phone-prefix {
+        position: absolute;
+        left: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-slate-muted);
+    }
+
+    .tunu-field-input.phone-pl {
+        padding-left: 60px;
+        width: 100%;
+    }
+
+    .tunu-manifest-items {
+        max-height: 320px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+
+    .tunu-manifest-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border-slate);
+    }
+
+    .tunu-manifest-item:first-child {
+        padding-top: 0;
+    }
+
+    .tunu-manifest-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .tunu-manifest-img {
+        width: 52px;
+        height: 72px;
+        object-fit: contain;
+        background: #FAF6FA;
+        border: 1px solid var(--border-slate);
+        border-radius: 8px !important;
+    }
+
+    .tunu-manifest-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .tunu-manifest-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-slate-dark);
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tunu-manifest-qty {
+        font-size: 11px;
+        color: var(--text-slate-muted);
+        margin: 4px 0 0 0;
+    }
+
+    .tunu-manifest-price {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--brand-purple);
+    }
+
+    .tunu-summary-strip {
+        border-top: 1px dashed var(--border-slate);
+        padding-top: 20px;
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .tunu-summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: var(--text-slate-muted);
+    }
+
+    .tunu-summary-row.total {
+        border-top: 1px solid var(--border-slate);
+        padding-top: 16px;
+        margin-top: 4px;
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-slate-dark);
+    }
+
+    .tunu-summary-row.total .price {
+        color: var(--brand-orange);
+    }
+
+    .tunu-btn-submit {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        background-color: var(--brand-orange);
+        border: 1px solid var(--brand-orange-dark);
+        color: #FFFFFF;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 16px;
+        border-radius: 50px !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        box-shadow: 0 6px 16px rgba(255, 69, 0, 0.2);
+        transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+        margin-top: 24px;
+    }
+
+    .tunu-btn-submit:hover {
+        transform: translateY(-2px);
+        background-color: var(--brand-orange-dark);
+        box-shadow: 0 8px 24px rgba(255, 69, 0, 0.3);
+    }
+
+    .tunu-checkout-empty {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .tunu-checkout-empty i {
+        font-size: 48px;
+        color: var(--text-slate-muted);
+        opacity: 0.4;
+        margin-bottom: 20px;
+    }
+
+    .tunu-checkout-empty p {
+        font-size: 15px;
+        color: var(--text-slate-muted);
+        margin-bottom: 24px;
+    }
+
+    .tunu-return-link {
+        display: inline-block;
+        background: var(--brand-purple);
+        color: #FFFFFF;
+        padding: 12px 32px;
+        border-radius: 50px !important;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-decoration: none;
+        box-shadow: 0 6px 16px rgba(139, 0, 139, 0.15);
+        transition: transform 0.2s;
+    }
+
+    .tunu-return-link:hover {
+        transform: translateY(-2px);
+    }
+
+    .tunu-stk-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(45, 26, 45, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50000;
+        padding: 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .tunu-stk-modal.open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .tunu-stk-card {
+        background: #FFFFFF;
+        border-radius: 12px !important;
+        width: 100%;
+        max-width: 380px;
+        padding: 32px 24px;
+        box-shadow: 0 20px 50px rgba(45, 26, 45, 0.15);
+        text-align: center;
+    }
+
+    .tunu-stk-icon-box {
+        width: 56px;
+        height: 56px;
+        background: #FDF4FD;
+        color: var(--brand-purple);
+        font-size: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50% !important;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(139, 0, 139, 0.08);
+    }
+
+    .tunu-stk-title {
+        font-size: 16px;
+        font-weight: 800;
+        margin: 0 0 10px 0;
+    }
+
+    .tunu-stk-desc {
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--text-slate-muted);
+        margin: 0 0 24px 0;
+    }
+
+    .tunu-spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid var(--border-slate);
+        border-top-color: var(--brand-purple);
+        border-radius: 50% !important;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 24px auto;
+    }
+
+    .tunu-btn-sim {
+        background-color: var(--brand-purple);
+        color: #FFFFFF;
+        border: none;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 12px 24px;
+        border-radius: 50px !important;
+        cursor: pointer;
+        text-transform: uppercase;
+        box-shadow: 0 4px 12px rgba(139, 0, 139, 0.15);
+        transition: transform 0.2s;
+    }
+
+    .tunu-btn-sim:hover {
+        transform: translateY(-2px);
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<div class="tunu-checkout-viewport">
+    <div class="tunu-checkout-container" id="checkout-root">
+
+        <div class="tunu-grid-layout" id="checkout-content">
+            
+            <div class="tunu-left-column">
+                
+                <div class="tunu-checkout-card">
+                    <h2 class="tunu-step-heading">
+                        <span class="tunu-step-number">1</span>
+                        Delivery Destination & Address
+                    </h2>
+                    <form id="tunu-address-form" class="tunu-form-grid">
+                        <div class="tunu-input-group">
+                            <label class="tunu-input-label">Recipient Full Name</label>
+                            <input type="text" id="chk-name" required class="tunu-field-input">
+                        </div>
+                        <div class="tunu-input-group">
+                            <label class="tunu-input-label">Email Node</label>
+                            <input type="email" id="chk-email" required class="tunu-field-input">
+                        </div>
+                        <div class="tunu-input-group">
+                            <label class="tunu-input-label">Contact Phone Number</label>
+                            <input type="tel" id="chk-phone" required placeholder="07XXXXXXXX" class="tunu-field-input">
+                        </div>
+                        <div class="tunu-input-group">
+                            <label class="tunu-input-label">City / Major Town</label>
+                            <input type="text" id="chk-city" required placeholder="e.g. Nairobi, Eldoret" class="tunu-field-input">
+                        </div>
+                        <div class="tunu-input-group tunu-form-full">
+                            <label class="tunu-input-label">Detailed physical delivery address</label>
+                            <textarea id="chk-address" rows="2" required placeholder="Street name, building, apartment/house number or office instructions" class="tunu-field-input" style="resize: none;"></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="tunu-checkout-card">
+                    <h2 class="tunu-step-heading">
+                        <span class="tunu-step-number">2</span>
+                        Payment Method Selector
+                    </h2>
+                    
+                    <div class="tunu-payment-tabs">
+                        <div onclick="switchPaymentMethod('mpesa')" id="pay-tab-mpesa" class="tunu-tab-selector active">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                            <span>M-Pesa STK Prompt</span>
+                        </div>
+                        <div onclick="switchPaymentMethod('paystack')" id="pay-tab-paystack" class="tunu-tab-selector">
+                            <i class="fa-solid fa-credit-card"></i>
+                            <span>Paystack Payment</span>
+                        </div>
+                    </div>
+
+                    <div id="panel-mpesa" class="tunu-tab-panel active">
+                        <p class="tunu-panel-text">
+                            An automatic STK Push PIN entry dialogue request prompt will be transmitted instantly to the mobile device container configured down below.
+                        </p>
+                        <div class="tunu-input-group" style="max-width: 320px;">
+                            <label class="tunu-input-label">Safaricom Mobile Line</label>
+                            <div class="tunu-phone-prefix-wrap">
+                                <span class="tunu-phone-prefix">+254</span>
+                                <input type="tel" id="pay-mpesa-phone" placeholder="712345678" class="tunu-field-input phone-pl">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="panel-paystack" class="tunu-tab-panel">
+                        <p class="tunu-panel-text">
+                            Secure cryptographic integration infrastructure channel. Supports seamless authentication handling across global Credit/Debit Cards, Bank Accounts, and automated wallet pipelines.
+                        </p>
+                        <div class="tunu-form-grid" style="max-width: 440px;">
+                            <div class="tunu-input-group tunu-form-full">
+                                <label class="tunu-input-label">Card Number</label>
+                                <input type="text" placeholder="4000 1234 5678 9010" class="tunu-field-input">
+                            </div>
+                            <div class="tunu-input-group">
+                                <label class="tunu-input-label">Expiry Date</label>
+                                <input type="text" placeholder="MM/YY" class="tunu-field-input">
+                            </div>
+                            <div class="tunu-input-group">
+                                <label class="tunu-input-label">Card Verification Value (CVV)</label>
+                                <input type="password" placeholder="•••" maxlength="4" class="tunu-field-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="tunu-right-column">
+                <div class="tunu-checkout-card">
+                    <h2 class="tunu-step-heading" style="margin-bottom: 16px;">Order Summary Manifest</h2>
+                    
+                    <div class="tunu-manifest-items" id="manifest-items-list"></div>
+
+                    <div class="tunu-summary-strip">
+                        <div class="tunu-summary-row">
+                            <span>Cart Subtotal</span>
+                            <span id="summary-subtotal">KES 0</span>
+                        </div>
+                        <div class="tunu-summary-row">
+                            <span>Courier Freight Logistics</span>
+                            <span id="summary-shipping">KES 200</span>
+                        </div>
+                        <div class="tunu-summary-row total">
+                            <span>Net Total Payment</span>
+                            <span class="price" id="summary-total">KES 200</span>
+                        </div>
+                    </div>
+
+                    <button onclick="processOrderDispatch()" class="tunu-btn-submit">
+                        <i class="fa-solid fa-lock-open"></i> Complete Secure Purchase
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<div class="tunu-stk-modal" id="stk-prompt-modal">
+    <div class="tunu-stk-card">
+        <div class="tunu-stk-icon-box">
+            <i class="fa-solid fa-mobile-screen-button"></i>
+        </div>
+        <h4 class="tunu-stk-title">STK Push Dialogue Initialized</h4>
+        <p class="tunu-stk-desc">
+            A background checking payload verification prompt has been signaled. Please type your M-Pesa PIN inside the incoming phone screen modal to validate payment.
+        </p>
+        <div class="tunu-spinner"></div>
+        <button onclick="simulateSuccessfulSTK()" class="tunu-btn-sim">Simulate Success Callback</button>
+    </div>
+</div>
+
+<script>
+    let activePaymentType = 'mpesa';
+
+    function loadCheckoutManifest() {
+        const localItems = JSON.parse(localStorage.getItem('cart') || '[]');
+        const listContainer = document.getElementById('manifest-items-list');
+        const contentGrid = document.getElementById('checkout-content');
+        const viewRoot = document.getElementById('checkout-root');
+
+        if (!listContainer) return;
+
+        if (localItems.length === 0) {
+            contentGrid.style.display = 'none';
+            let emptyContainer = document.createElement('div');
+            emptyContainer.className = 'tunu-checkout-card tunu-checkout-empty';
+            emptyContainer.innerHTML = `
+                <i class="fa-solid fa-bag-shopping"></i>
+                <p>Your shopping bag manifest holds no books.</p>
+                <a href="/books" class="tunu-return-link">View Catalog Directory</a>
+            `;
+            viewRoot.appendChild(emptyContainer);
+            return;
+        }
+
+        listContainer.innerHTML = '';
+        let subtotal = 0;
+
+        localItems.forEach(item => {
+            const rowTotal = parseFloat(item.newPrice || 0) * parseInt(item.quantity || 1);
+            subtotal += rowTotal;
+
+            const div = document.createElement('div');
+            div.className = 'tunu-manifest-item';
+            div.innerHTML = `
+                <img src="${item.image}" class="tunu-manifest-img" onerror="this.src='/static/icons/tunu_logo.png'">
+                <div class="tunu-manifest-details">
+                    <h4 class="tunu-manifest-title">${item.title}</h4>
+                    <p class="tunu-manifest-qty">Quantity Matrix: ${item.quantity}</p>
+                </div>
+                <div class="tunu-manifest-price">KES ${rowTotal.toLocaleString()}</div>
+            `;
+            listContainer.appendChild(div);
+        });
+
+        const shipping = 200;
+        const netTotal = subtotal + shipping;
+
+        document.getElementById('summary-subtotal').innerText = 'KES ' + subtotal.toLocaleString();
+        document.getElementById('summary-total').innerText = 'KES ' + netTotal.toLocaleString();
+    }
+
+    function switchPaymentMethod(method) {
+        activePaymentType = method;
+        const tabMpesa = document.getElementById('pay-tab-mpesa');
+        const tabPaystack = document.getElementById('pay-tab-paystack');
+        const panelMpesa = document.getElementById('panel-mpesa');
+        const panelPaystack = document.getElementById('panel-paystack');
+
+        if (method === 'mpesa') {
+            tabMpesa.classList.add('active');
+            tabPaystack.classList.remove('active');
+            panelMpesa.classList.add('active');
+            panelPaystack.classList.remove('active');
+        } else {
+            tabPaystack.classList.add('active');
+            tabMpesa.classList.remove('active');
+            panelPaystack.classList.add('active');
+            panelMpesa.classList.remove('active');
+        }
+    }
+
+    async function processOrderDispatch() {
+        const addressForm = document.getElementById('tunu-address-form');
+        if (!addressForm.reportValidity()) {
+            if (typeof showAlert === 'function') {
+                showAlert('error', 'Please complete the physical delivery details block.');
+            } else {
+                alert('Please complete the physical delivery details block.');
+            }
+            return;
+        }
+
+        if (activePaymentType === 'mpesa') {
+            const mpesaInp = document.getElementById('pay-mpesa-phone').value.trim();
+            if (!mpesaInp) {
+                if (typeof showAlert === 'function') {
+                    showAlert('error', 'Please define your mobile billing line parameters.');
+                } else {
+                    alert('Please define your mobile billing line parameters.');
+                }
+                return;
+            }
+            document.getElementById('stk-prompt-modal').classList.add('open');
+        } else {
+            await submitCheckoutToServer();
+        }
+    }
+
+    async function simulateSuccessfulSTK() {
+        document.getElementById('stk-prompt-modal').classList.remove('open');
+        await submitCheckoutToServer();
+    }
+
+    async function submitCheckoutToServer() {
+        const localItems = JSON.parse(localStorage.getItem('cart') || '[]');
+
+        console.log(localItems)
+
+        const name = document.getElementById('chk-name').value;
+        const email = document.getElementById('chk-email').value;
+        const phone = document.getElementById('chk-phone').value;
+        const city = document.getElementById('chk-city').value;
+        const address = document.getElementById('chk-address').value;
+
+        const payload = {
+            name: name,
+            email: email,
+            phone: phone,
+            city: city,
+            address: address,
+            payment_method: activePaymentType,
+            cart: localItems
+        };
+
+        if (typeof showAlert === 'function') {
+            showAlert('info', 'Processing secure transaction on server nodes...');
+        }
+
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.removeItem('cart');
+                if (typeof updateCartUI === 'function') {
+                    updateCartUI();
+                }
+                if (typeof showAlert === 'function') {
+                    showAlert('success', 'Transaction verified! Package processing context logged.');
+                } else {
+                    alert('Transaction verified! Package processing context logged.');
+                }
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                if (typeof showAlert === 'function') {
+                    showAlert('error', data.error || 'Server rejected checkout parameters.');
+                } else {
+                    alert(data.error || 'Server rejected checkout parameters.');
+                }
+            }
+        } catch (error) {
+            if (typeof showAlert === 'function') {
+                showAlert('error', 'Unable to reach payment verification gateways.');
+            } else {
+                alert('Unable to reach payment verification gateways.');
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCheckoutManifest);
+</script>
+{% endblock %}

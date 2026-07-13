@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Login | TUNU Publishers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="/static/assets/tailwind.js"></script>
+    <style>
+        :root {
+            --magenta: #8B008B;
+            --dark-magenta: #5c005c;
+            --orangered: #FF4500;
+            --soft-bg: #fdf2f2;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--soft-bg) 0%, #ffffff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+        .auth-card {
+            background: white;
+            box-shadow: 0 20px 40px rgba(139, 0, 139, 0.1);
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+            border: 1px solid rgba(139, 0, 139, 0.08);
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .brand-header {
+            background: var(--magenta);
+            padding: 10px 5px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        .input-group {
+            position: relative;
+            margin-bottom: 10px;
+        }
+        .input-group i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            transition: color 0.3s;
+            font-size: 18px;
+        }
+        .input-field {
+            width: 100%;
+            padding: 5px 3px 5px 50px;
+            border: 2px solid #f0f0f0;
+            outline: none;
+            transition: all 0.3s;
+            font-size: 16px;
+            color: #333;
+        }
+        .input-field:focus {
+            border-color: var(--magenta);
+            box-shadow: 0 0 0 4px rgba(139, 0, 139, 0.1);
+            background: white;
+        }
+        .input-field:focus + i {
+            color: var(--magenta);
+        }
+        .btn-login {
+            background: var(--orangered);
+            color: white;
+            width: 100%;
+            padding: 10px;
+            margin:auto;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(255, 69, 0, 0.25);
+            margin-top: 10px;
+        }
+        .btn-login:hover {
+            background: #e63e00;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(255, 69, 0, 0.35);
+        }
+        .error-box {
+            background: #fff5f5;
+            border: 1px solid #ffccd2;
+            color: #d63031;
+            padding: 5px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: shake 0.4s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        <div class="brand-header">
+            <div style="background: white; display: inline-block; padding: 10px;  margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" class="mt-8">
+                <img src="https://i.ibb.co/CKRYPD4p/image.png" alt="TUNU Logo" style="height: 45px;">
+            </div>
+            <h2 class="text-sm font-black tracking-tight leading-none">Welcome Back</h2>
+            <p class="text-xs opacity-90 mt-2 font-medium">Access the TUNU Staff Portal</p>
+        </div>
+
+        <div class="p-6  md:p-10">
+            {% if error %}
+            <div class="error-box">
+                <i class="fas fa-shield-virus text-lg"></i>
+                <span class="font-semibold">{{ error|title }}</span>
+            </div>
+            {% endif %}
+
+            <form action="{{ url_for('login', next=next)}}" method="POST" id="loginForm">
+                <div class="input-group">
+                    <input type="tel" name="username" class="input-field" placeholder="Phone Number (e.g., 07...)" required autofocus>
+                    <i class="fas fa-mobile-screen-button"></i>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" name="password" id="password" class="input-field" placeholder="Your Password" required>
+                    <i class="fas fa-key"></i>
+                    <button type="button" onclick="togglePass()" style="position:absolute; right:18px; top:50%; transform:translateY(-50%); color:#ccc; background:none; border:none; cursor:pointer; font-size: 18px;">
+                        <i class="fas fa-eye" id="eye-icon" style="position:static; transform:none;"></i>
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-center mb-4">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="w-4 h-4 rounded accent-pink-800">
+                        <span class="text-xs text-gray-500 font-medium">Keep me logged in</span>
+                    </label>
+                    <a href="#" class="text-xs font-bold text-magenta-700 hover:underline" style="color:var(--magenta)">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <span>Log In</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="mt-10 text-center">
+                <p class="text-xs text-gray-500">
+                    Experiencing errors? 
+                    <a href="/staff/support" class="font-bold hover:underline" style="color:var(--magenta)">Contact Support</a>
+                </p>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePass() {
+            const passInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eye-icon');
+            
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+                eyeIcon.style.color = '#8B008B';
+            } else {
+                passInput.type = 'password';
+                eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
+                eyeIcon.style.color = '#ccc';
+            }
+        }
+
+        document.getElementById('loginForm').onsubmit = function() {
+            const btn = document.querySelector('.btn-login');
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> VERIFYING...';
+            btn.style.opacity = '0.8';
+            btn.style.pointerEvents = 'none';
+        };
+    </script>
+</body>
+</html>
