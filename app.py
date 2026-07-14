@@ -843,7 +843,7 @@ def method_not_allowed(e): return render_template("errors/405.html", error=e), 4
 @app.errorhandler(500)
 def server_error(e):
     db.session.rollback()
-    return render_template("errors/500.html", error=e), 500
+    return e, 500
 
 with app.app_context():
     db.create_all()
