@@ -1039,4 +1039,4 @@ logger.info("Flask application imported successfully")
 
 if __name__ == "__main__":
     logger.info("Flask application imported successfully twice")
-    # app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
