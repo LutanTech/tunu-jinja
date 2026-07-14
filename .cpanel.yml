@@ -1,5 +1,5 @@
 deployment:
   tasks:
-    - export APPDIR=/home3/tunupublsh/jinja
+    - export APPDIR=/home3/tunupublsh/sys
     - cd $APPDIR
     - /bin/git pull origin main

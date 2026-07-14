@@ -267,8 +267,10 @@ def books():
         cat=cat, search=search, sort=sort, min_price=min_price, max_price=max_price
     )
 
-@app.route("/book/<string:book_id>")
-def book_detail(book_id):
+@app.route("/book/<string:book_slug>")
+def book_detail(book_slug):
+    slugged = book_slug.split('_')
+    book_id = slugged[1]
     book = Book.query.filter_by(id=book_id, is_deleted=False).first_or_404()
     book.views += 1
     db.session.commit()
