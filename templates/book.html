@@ -50,7 +50,7 @@
 
         <!-- IMAGE -->
         <div class="md:sticky md:top-24 self-start">
-            <div class="relative bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden aspect-[3/4] flex items-center justify-center">
+            <div class="relative bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden aspect-[2/2] flex items-center justify-center">
                 <img src="{{ book.image_url }}" alt="{{ book.title }}" id="product-image" class="w-full h-full object-contain p-6 md:p-10" onerror="this.src='https://placehold.co/500x650/8B008B/ffffff?text=Book'">
                 {% if book.discounted and book.oldPrice and book.oldPrice > book.newPrice %}
                 <span class="absolute top-4 left-4 bg-orangered text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md">
@@ -138,7 +138,7 @@
             <div>
                 <h3 class="font-bold text-sm text-gray-800 uppercase tracking-wider mb-3 border-l-2 border-orangered pl-2">Description</h3>
                 {% if book.blurb %}
-                <p class="text-xs md:text-sm text-gray-600 leading-relaxed whitespace-pre-line">{{ book.blurb }}</p>
+                <p class="text-xs md:text-sm text-gray-600 leading-relaxed whitespace-pre-line" id="book-blurb"></p>
                 {% else %}
                 <p class="text-xs md:text-sm text-gray-400 italic">No description available for this title yet.</p>
                 {% endif %}
@@ -193,6 +193,11 @@
 
 {% block extra_js %}
 <script>
+
+
+    document.querySelector('#book-blurb').innerHTML =
+    {{ (book.blurb or 'Not yet added') | tojson }};
+
     window.booksData = [
         {
             id: {{ book.id | tojson }},

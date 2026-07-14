@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Explore Our Books | TUNU Publishers{% endblock %}
+
+{% block content %}
+
+<script>
+    window.booksDatabase = {{ books|map(attribute='to_dict')|list|tojson }};
+</script>
+
+<div class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div class="flex items-center gap-2 text-[11px] font-semibold text-gray-500">
+            <a href="/" class="hover:text-magenta transition-colors">Home</a>
+            <i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
+            <span class="text-gray-800">Publishing Catalog</span>
+        </div>
+        <button onclick="toggleFilterSidebar()" class="lg:hidden bg-magenta text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 self-start shadow-sm">
+            <i class="fas fa-filter"></i> Filters & Sort
+        </button>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        
+        <aside id="filter-sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full lg:relative lg:translate-x-0 transition-transform duration-300 z-50 lg:z-0 w-72 lg:w-auto bg-white lg:bg-transparent p-6 lg:p-0 shadow-2xl lg:shadow-none flex flex-col gap-6 overflow-y-auto">
+            <div class="flex items-center justify-between lg:hidden border-b border-gray-100 pb-4">
+                <span class="font-bold text-gray-800 text-sm">Filter Catalog</span>
+                <button onclick="toggleFilterSidebar()" class="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-red-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form method="GET" action="/books" class="flex flex-col gap-6">
+                {% if search %}
+                <input type="hidden" name="q" value="{{ search }}">
+                {% endif %}
+
+                <div>
+                    <h3 class="font-bold text-xs text-gray-800 uppercase tracking-widest mb-3 border-l-2 border-orangered pl-2">Filter Category</h3>
+                    <div class="flex flex-col gap-1.5 text-xs font-semibold">
+                        <a href="{{ url_for('books', q=search, min_price=min_price, max_price=max_price, sort=sort) }}" 
+                           class="px-3 py-2 rounded-lg transition-all flex justify-between items-center {% if not cat %}bg-magenta/10 text-magenta{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
+                            <span>All Collections</span>
+                            <span class="text-[10px] bg-white/50 px-2 py-0.5 rounded-full border border-gray-100">{{ book_count }}</span>
+                        </a>
+                        <a href="{{ url_for('books', cat='junior', q=search, min_price=min_price, max_price=max_price, sort=sort) }}" 
+                           class="px-3 py-2 rounded-lg transition-all flex justify-between items-center {% if cat == 'junior' %}bg-magenta/10 text-magenta{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
+                            <span>Junior School</span>
+                        </a>
+                        <a href="{{ url_for('books', cat='revision', q=search, min_price=min_price, max_price=max_price, sort=sort) }}" 
+                           class="px-3 py-2 rounded-lg transition-all flex justify-between items-center {% if cat == 'revision' %}bg-magenta/10 text-magenta{% else %}text-gray-600 hover:bg-gray-50{% endif %}">
+                            <span>Revision Materials</span>
+                        </a>
+                        <input type="hidden" name="cat" value="{{ cat or '' }}">
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-xs text-gray-800 uppercase tracking-widest mb-4 border-l-2 border-orangered pl-2">Price Limits (KSh)</h3>
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[9px] text-gray-400 font-bold uppercase">Min Price</span>
+                            <input type="number" name="min_price" value="{{ min_price or '' }}" placeholder="0" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-magenta bg-gray-50">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[9px] text-gray-400 font-bold uppercase">Max Price</span>
+                            <input type="number" name="max_price" value="{{ max_price or '' }}" placeholder="5000" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-magenta bg-gray-50">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider shadow transition-all">
+                        Apply Price Filter
+                    </button>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-xs text-gray-800 uppercase tracking-widest mb-3 border-l-2 border-orangered pl-2">Sort Results</h3>
+                    <select name="sort" onchange="this.form.submit()" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-magenta bg-gray-50 font-semibold text-gray-700">
+                        <option value="newest" {% if sort == 'newest' %}selected{% endif %}>New Arrivals</option>
+                        <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="popular" {% if sort == 'popular' %}selected{% endif %}>Best Selling</option>
+                        <option value="rating" {% if sort == 'rating' %}selected{% endif %}>Highest Rated</option>
+                    </select>
+                </div>
+            </form>
+        </aside>
+
+        <div class="lg:col-span-3 flex flex-col gap-8">
+            {% if books %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {% for book in books %}
+                <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group">
+                    <div class="relative overflow-hidden rounded-xl bg-lightWarm aspect-[3/4] flex items-center justify-center p-3 mb-4">
+                        <img src="{{ book.image_url }}" alt="{{ book.title }}" class="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/300x400/8B008B/ffffff?text=Book'">
+                        {% if book.discounted %}
+                        <span class="absolute top-3 left-3 bg-orangered text-white text-[8px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">On Sale</span>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <div class="flex flex-wrap gap-1 mb-2">
+                            {% if book.grade %}
+                            <span class="bg-purple-50 text-magenta text-[9px] font-bold px-2 py-0.5 rounded-md border border-purple-100 uppercase tracking-wide">{{ book.grade }}</span>
+                            {% endif %}
+                        </div>
+
+                        <a href="/book/{{ book.slug }}" class="block">
+                            <h3 class="font-bold text-xs md:text-sm text-gray-800 line-clamp-2 hover:text-magenta transition-colors leading-snug h-10">{{ book.title }}</h3>
+                        </a>
+                        
+                        <p class="text-[10px] text-gray-400 font-semibold uppercase mt-1">By: {{ book.authors or 'TUNU Publishers' }}</p>
+
+                        <div class="flex items-center gap-1 my-3 text-[10px] text-amber-400">
+                            {% for i in range(1, 6) %}
+                            <i class="{% if i <= book.stars %}fa-solid{% else %}fa-regular{% endif %} fa-star"></i>
+                            {% endfor %}
+                            <span class="text-gray-400 text-[9px] font-bold ml-1">({{ book.views }} Views)</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-50 pt-3 mt-3 flex items-center justify-between gap-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs md:text-sm font-black text-magenta">KSh {{ book.newPrice|number }}</span>
+                            {% if book.oldPrice and book.oldPrice > 0 %}
+                            <span class="text-[10px] text-gray-400 line-through">KSh {{ book.oldPrice|number }}</span>
+                            {% endif %}
+                        </div>
+
+                        <button onclick="addToCart('{{ book.id }}', '{{ book.grade or 'General' }}')" class="bg-magenta hover:bg-dark-magenta text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm">
+                            <i class="fas fa-shopping-bag text-[10px]"></i> Buy
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if pagination.pages > 1 %}
+            <div class="flex items-center justify-center gap-1 border-t border-gray-100 pt-8 mt-4">
+                {% if pagination.has_prev %}
+                <a href="{{ url_for('books', page=pagination.prev_num, cat=cat, q=search, min_price=min_price, max_price=max_price, sort=sort) }}" class="w-9 h-9 rounded-xl border border-gray-200 hover:border-magenta hover:text-magenta flex items-center justify-center text-xs font-bold transition-all text-gray-500">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                {% endif %}
+
+                {% for p in pagination.iter_pages() %}
+                    {% if p %}
+                        {% if p == pagination.page %}
+                        <span class="w-9 h-9 rounded-xl bg-magenta text-white flex items-center justify-center text-xs font-extrabold shadow-sm">{{ p }}</span>
+                        {% else %}
+                        <a href="{{ url_for('books', page=p, cat=cat, q=search, min_price=min_price, max_price=max_price, sort=sort) }}" class="w-9 h-9 rounded-xl border border-gray-200 hover:border-magenta hover:text-magenta flex items-center justify-center text-xs font-bold transition-all text-gray-500">{{ p }}</a>
+                        {% endif %}
+                    {% else %}
+                    <span class="w-9 h-9 flex items-center justify-center text-gray-400">...</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                <a href="{{ url_for('books', page=pagination.next_num, cat=cat, q=search, min_price=min_price, max_price=max_price, sort=sort) }}" class="w-9 h-9 rounded-xl border border-gray-200 hover:border-magenta hover:text-magenta flex items-center justify-center text-xs font-bold transition-all text-gray-500">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-16 md:py-24 border border-dashed border-gray-200 rounded-3xl">
+                <i class="fas fa-search text-5xl text-magenta/20 mb-4 block"></i>
+                <h3 class="font-bold text-gray-800 mb-1.5 text-sm">No items match your criteria</h3>
+                <p class="text-xs text-gray-400 mb-6 max-w-xs mx-auto">Try resetting pricing limits, modifying your search term, or browsing other collections.</p>
+                <a href="/books" class="inline-block bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-xl transition-all shadow-sm">
+                    Reset All Filters
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleFilterSidebar() {
+        const bar = document.getElementById('filter-sidebar');
+        if (!bar) return;
+        bar.classList.toggle('-translate-x-full');
+    }
+</script>
+{% endblock %}

@@ -108,7 +108,7 @@ def initiate_payment(order):
     passwd = base64.b64encode(f"{SHORTCODE}{PASSKEY}{ts}".encode()).decode()
     
     token = generate_hmac_token({"order_id": order.id})
-    callback_url = f"https://new.tunupublishers.com/mpesa/callback?order_id={order.id}&token={token}"
+    callback_url = f"https://tunupublishers.com/mpesa/callback?order_id={order.id}&token={token}"
     
     payload = {
         "BusinessShortCode": SHORTCODE, "Password": passwd, "Timestamp": ts,
@@ -158,9 +158,10 @@ class Book(db.Model):
     oldPrice, newPrice = db.Column(db.Float, default=0), db.Column(db.Float, default=0)
     stars, sold, views = db.Column(db.Integer, default=0), db.Column(db.Integer, default=0), db.Column(db.Integer, default=0)
     is_deleted = db.Column(db.Boolean, default=False)
-
+    
     def set_slug(self):
-        self.slug = re.sub(r"[^a-z0-9]+", "_", self.title.lower()).strip("_")
+        title_slug = re.sub(r"[^a-z0-9]+", "-", self.title.lower()).strip("-")
+        self.slug = f"{title_slug}_{self.unique_id}"
 
     # FIXED: Resolves image references cleanly whether they are remote URLs, asset paths, or raw filenames
     @property
@@ -509,7 +510,7 @@ def logs_page():
 @login_required
 @admin_required
 def books_admin():
-    return render_template("admin_books.html", books=Book.query.filter_by(is_deleted=False).order_by(Book.added_at.desc()).all())
+    return render_template("admin/books.html", books=Book.query.filter_by(is_deleted=False).order_by(Book.added_at.desc()).all())
 
 @app.route("/cp/books/new", methods=["GET", "POST"])
 @login_required
@@ -521,13 +522,13 @@ def add_book():
     if img and img.filename:
         fn = f"{secrets.token_hex(10)}.{img.filename.rsplit('.', 1)[1].lower()}"
         img.save(os.path.join(app.config["UPLOAD_FOLDER"], fn))
-    bk = Book(
+    bk = Book(id=generate_id('BK'),
         title=request.form.get("title"), authors=request.form.get("authors"), audience=request.form.get("audience"),
         grade=request.form.get("grade"), blurb=request.form.get("blurb"), oldPrice=float(request.form.get("oldPrice") or 0),
         newPrice=float(request.form.get("newPrice") or 0), image=fn, discounted=bool(request.form.get("discounted")), added_by=staff.id
     )
-    bk.set_slug()
     db.session.add(bk)
+    bk.set_slug()
     db.session.commit()
     log_action(f"Added book {bk.title}", 200, staff.id)
     return redirect(url_for("books_admin"))
@@ -844,7 +845,7 @@ def method_not_allowed(e): return render_template("errors/405.html", error=e), 4
 @app.errorhandler(500)
 def server_error(e):
     db.session.rollback()
-    return e, 500
+    return render_template("errors/500.html", error=e), 500
 
 with app.app_context():
     db.create_all()
