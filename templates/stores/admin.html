@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUNU Publishers | Store Directory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="{{ url_for('static', filename='assets/tailwind.js')}}"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        magenta: '#8B008B',
+                        'dark-magenta': '#4B004B',
+                        orangered: '#FF4500',
+                        lightWarm: '#fdfbf9'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --magenta: #8B008B;
+            --dark-magenta: #4B004B;
+            --orangered: #FF4500;
+            --bg: #f4f7f6;
+            --text: #2d3436;
+            --sidebar-width: 260px;
+        }
+        body { background-color: var(--bg); color: var(--text); }
+        .sidebar { width: var(--sidebar-width); transition: transform 0.3s ease; }
+        .nav-item { transition: all 0.2s; border-left: 4px solid transparent; }
+        .nav-item:hover, .nav-item.active { background: var(--dark-magenta); color: white; border-left-color: var(--orangered); }
+        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
+        .status-success { background: #dcfce7; color: #15803d; }
+        .status-warning { background: #fef9c3; color: #854d0e; }
+    </style>
+</head>
+<body class="font-sans">
+
+    <div class="min-h-screen flex overflow-hidden">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar bg-[#111111] text-white flex flex-col shrink-0 z-[1001] fixed md:relative h-full max-w-[80vw] -translate-x-full md:translate-x-0 overflow-auto" id="sidebar">
+            <div class="p-5 flex items-center gap-3 border-b border-white/5">
+                <img src="{{ url_for('static', filename='icons/tunu_logo.png') }}" alt="Logo" class="w-9 h-9 object-contain">
+                <div>
+                    <div class="font-extrabold text-sm tracking-wide">TUNU PUBLISHERS</div>
+                    <div class="text-[10px] text-gray-400 uppercase tracking-widest">Admin Panel</div>
+                </div>
+            </div>
+
+            <nav class="flex-1 py-3 overflow-auto space-y-0.5">
+                <div class="px-5 py-2 text-[10px] uppercase tracking-wider text-gray-500 font-bold">Main Dashboard</div>
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-chart-pie w-4 text-center"></i> Insights Workspace</a>
+                <a href="{{ url_for('admin_dashboard') }}?tab=orders" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-shopping-bag w-4 text-center"></i> Orders & Logistics</a>
+
+                <div class="px-5 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-bold">Content & Team</div>
+                <a href="{{ url_for('books_admin') }}" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-book w-4 text-center"></i> Book Stock Inventory</a>
+                <a href="{{ url_for('staff_page') }}" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-users w-4 text-center"></i> Staff Accounts</a>
+                <a href="{{ url_for('stores_admin') }}" class="nav-item active flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-store w-4 text-center"></i> Store Directory</a>
+
+                <div class="px-5 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-bold">Performance Logs</div>
+                <a href="{{ url_for('admin_dashboard') }}?tab=sales" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-file-invoice-dollar w-4 text-center"></i> Daily Sales Performance</a>
+                <a href="/clear-cache" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-red-400 cursor-pointer"><i class="fas fa-broom w-4 text-center"></i> Clear Cache</a>
+
+                <div class="pt-6 pb-4 border-t border-white/5 mt-auto">
+                    <a href="/staff/logout" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-red-400 hover:text-red-300 cursor-pointer"><i class="fas fa-sign-out-alt w-4 text-center"></i> Logout Session</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="flex-1 flex flex-col h-screen overflow-hidden">
+            <header class="bg-white h-16 md:h-20 shadow-sm flex items-center justify-between px-4 md:px-10 z-[100] shrink-0 border-b border-gray-100 gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <button class="md:hidden text-dark-magenta text-lg p-2 rounded-lg bg-gray-100 shrink-0" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                    <div class="font-extrabold text-xs md:text-lg text-dark-magenta uppercase tracking-wider truncate">Store Directory</div>
+                </div>
+                <div class="flex items-center gap-3 md:gap-4 shrink-0">
+                    <div class="text-right hidden sm:block">
+                        <div class="font-extrabold text-xs text-gray-800 uppercase tracking-wider">{{ admin.name }}</div>
+                        <div class="text-[10px] text-orangered font-bold uppercase tracking-widest mt-0.5">CHIEF ADMINISTRATOR</div>
+                    </div>
+                    <div class="h-9 w-9 md:h-10 md:w-10 bg-magenta rounded-full flex items-center justify-center text-white font-extrabold text-xs uppercase shadow shrink-0">{{ admin.name[:2] }}</div>
+                </div>
+            </header>
+
+            <div class="flex-grow overflow-y-auto p-4 md:p-10">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Registered Store Locations</h4>
+                        <button onclick="openStoreModal()" class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">+ Add New Store</button>
+                    </div>
+
+                    <form method="GET" action="{{ url_for('stores_admin') }}" class="p-4 border-b border-gray-100">
+                        <div class="relative max-w-sm">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+                            <input type="text" name="q" value="{{ search or '' }}" placeholder="Search by name or city..." class="w-full border border-gray-300 rounded-full pl-9 pr-4 py-2.5 text-xs outline-none focus:border-magenta">
+                        </div>
+                    </form>
+
+                    <!-- MOBILE CARDS -->
+                    <div class="md:hidden divide-y divide-gray-100">
+                        {% for store in stores %}
+                        <div class="p-4 flex items-center gap-3">
+                            <img src="{{ store.image_url }}" alt="{{ store.name }}" class="h-14 w-14 object-cover bg-gray-50 border border-gray-100 rounded-lg shrink-0" onerror="this.src='https://placehold.co/100x100/8B008B/ffffff?text=TUNU'">
+                            <div class="flex-grow min-w-0">
+                                <div class="font-extrabold text-gray-800 line-clamp-1 leading-snug text-xs">{{ store.name }}</div>
+                                <div class="text-[10px] text-gray-400 font-bold uppercase mt-0.5">{{ store.city or 'No city set' }}</div>
+                                <div class="text-[10px] text-gray-500 font-bold mt-0.5">{{ store.phone or 'No phone' }}</div>
+                                <span class="status-pill mt-1.5 {{ 'status-success' if store.is_active else 'status-warning' }}">{{ 'Active' if store.is_active else 'Hidden' }}</span>
+                            </div>
+                            <div class="flex flex-col gap-2 shrink-0">
+                                <button onclick='openStoreModal({{ store.to_dict() | tojson }})' class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit store"><i class="fas fa-edit"></i></button>
+                                <button onclick="toggleStoreActive('{{ store.id }}')" class="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors" title="Toggle visibility"><i class="fas fa-eye{{ '' if store.is_active else '-slash' }}"></i></button>
+                                <button onclick="deleteStore('{{ store.id }}', '{{ store.name }}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete store"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="p-8 text-center text-gray-400 font-bold text-xs">No stores match your search.</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="overflow-x-auto hidden md:block">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
+                                    <th class="p-4">Store</th>
+                                    <th class="p-4">City / Address</th>
+                                    <th class="p-4">Contact</th>
+                                    <th class="p-4">Visibility</th>
+                                    <th class="p-4 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-xs">
+                                {% for store in stores %}
+                                <tr class="hover:bg-gray-50/50 transition-colors">
+                                    <td class="p-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="{{ store.image_url }}" alt="{{ store.name }}" class="h-10 w-10 object-cover bg-gray-50 border border-gray-100 rounded-lg" onerror="this.src='https://placehold.co/100x100/8B008B/ffffff?text=TUNU'">
+                                            <div class="font-extrabold text-gray-800 line-clamp-1 leading-snug">{{ store.name }}</div>
+                                        </div>
+                                    </td>
+                                    <td class="p-4 font-bold text-gray-600">
+                                        <div>{{ store.city or '—' }}</div>
+                                        <div class="text-[10px] text-gray-400 mt-0.5 line-clamp-1 max-w-xs">{{ store.address or '' }}</div>
+                                    </td>
+                                    <td class="p-4 font-bold text-gray-600">
+                                        <div>{{ store.phone or '—' }}</div>
+                                        <div class="text-[10px] text-gray-400 mt-0.5">{{ store.email or '' }}</div>
+                                    </td>
+                                    <td class="p-4"><span class="status-pill {{ 'status-success' if store.is_active else 'status-warning' }}">{{ 'Active' if store.is_active else 'Hidden' }}</span></td>
+                                    <td class="p-4">
+                                        <div class="flex items-center justify-center gap-3">
+                                            <button onclick='openStoreModal({{ store.to_dict() | tojson }})' class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit store"><i class="fas fa-edit"></i></button>
+                                            <button onclick="toggleStoreActive('{{ store.id }}')" class="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors" title="Toggle visibility"><i class="fas fa-eye{{ '' if store.is_active else '-slash' }}"></i></button>
+                                            <button onclick="deleteStore('{{ store.id }}', '{{ store.name }}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete store"><i class="fas fa-trash-alt"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">No stores match your search.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <span class="text-[10px] text-gray-400 font-semibold">{{ pagination.total }} store{{ 's' if pagination.total != 1 else '' }} found</span>
+                        {% if pagination.pages > 1 %}
+                        <div class="flex items-center gap-2">
+                            <a href="{{ url_for('stores_admin') }}?q={{ search | urlencode }}&page={{ pagination.prev_num or 1 }}"
+                               class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 {{ 'opacity-40 pointer-events-none' if not pagination.has_prev else 'hover:bg-magenta hover:text-white hover:border-magenta transition-colors' }}">‹</a>
+                            {% for p in range(1, pagination.pages + 1) %}
+                                {% if p == pagination.page %}
+                                <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-magenta text-white text-xs font-bold">{{ p }}</span>
+                                {% elif p == 1 or p == pagination.pages or (p >= pagination.page - 1 and p <= pagination.page + 1) %}
+                                <a href="{{ url_for('stores_admin') }}?q={{ search | urlencode }}&page={{ p }}" class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-magenta hover:text-white hover:border-magenta transition-colors">{{ p }}</a>
+                                {% elif p == pagination.page - 2 or p == pagination.page + 2 %}
+                                <span class="text-gray-300 text-xs px-1">…</span>
+                                {% endif %}
+                            {% endfor %}
+                            <a href="{{ url_for('stores_admin') }}?q={{ search | urlencode }}&page={{ pagination.next_num or pagination.pages }}"
+                               class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 {{ 'opacity-40 pointer-events-none' if not pagination.has_next else 'hover:bg-magenta hover:text-white hover:border-magenta transition-colors' }}">›</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ADD/EDIT STORE MODAL -->
+    <div id="storeModalOverlay" class="fixed inset-0 bg-black/60 hidden backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="storeModalTitle" class="font-extrabold text-sm uppercase tracking-wider text-gray-800">Add New Store</h3>
+                <button onclick="closeStoreModal()" class="text-gray-400 hover:text-magenta text-xl"><i class="fas fa-times"></i></button>
+            </div>
+
+            <form id="storeForm" method="POST" enctype="multipart/form-data" class="flex flex-col gap-3">
+                <input type="text" name="name" id="sf-name" required placeholder="Store Name" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" name="city" id="sf-city" placeholder="City / Town" class="w-full min-w-0 border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta">
+                    <input type="text" name="phone" id="sf-phone" placeholder="Phone Number" class="w-full min-w-0 border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta">
+                </div>
+
+                <textarea name="address" id="sf-address" placeholder="Full Address" rows="2" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta resize-none"></textarea>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="email" name="email" id="sf-email" placeholder="Email Address" class="w-full min-w-0 border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta">
+                    <input type="text" name="hours" id="sf-hours" placeholder="e.g. Mon–Sat, 8AM–6PM" class="w-full min-w-0 border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" step="any" name="latitude" id="sf-lat" placeholder="Latitude (optional)" class="w-full min-w-0 border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta">
+                    <input type="number" step="any" name="longitude" id="sf-lng" placeholder="Longitude (optional)" class="w-full min-w-0 border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta">
+                </div>
+
+                <textarea name="description" id="sf-description" placeholder="Short description of this store" rows="3" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta resize-none"></textarea>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Store Photo</label>
+                    <input type="file" name="image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none">
+                </div>
+
+                <button type="submit" class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider py-3 rounded-full transition-colors mt-2">
+                    <span id="storeModalSubmitText">Add Store</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRM -->
+    <form id="deleteStoreForm" method="POST" class="hidden"></form>
+    <form id="toggleStoreForm" method="POST" class="hidden"></form>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        }
+
+        function openStoreModal(store) {
+            const form = document.getElementById('storeForm');
+            const title = document.getElementById('storeModalTitle');
+            const submitText = document.getElementById('storeModalSubmitText');
+
+            form.reset();
+
+            if (store) {
+                title.textContent = 'Edit Store';
+                submitText.textContent = 'Save Changes';
+                form.action = `/cp/stores/edit/${store.id}`;
+                document.getElementById('sf-name').value = store.name || '';
+                document.getElementById('sf-city').value = store.city || '';
+                document.getElementById('sf-phone').value = store.phone || '';
+                document.getElementById('sf-address').value = store.address || '';
+                document.getElementById('sf-email').value = store.email || '';
+                document.getElementById('sf-hours').value = store.hours || '';
+                document.getElementById('sf-lat').value = store.latitude || '';
+                document.getElementById('sf-lng').value = store.longitude || '';
+                document.getElementById('sf-description').value = store.description || '';
+            } else {
+                title.textContent = 'Add New Store';
+                submitText.textContent = 'Add Store';
+                form.action = '/cp/stores/new';
+            }
+
+            document.getElementById('storeModalOverlay').classList.remove('hidden');
+        }
+
+        function closeStoreModal() {
+            document.getElementById('storeModalOverlay').classList.add('hidden');
+        }
+
+        function toggleStoreActive(id) {
+            const form = document.getElementById('toggleStoreForm');
+            form.action = `/api/admin/toggle_store/${id}`;
+            form.submit();
+        }
+
+        function deleteStore(id, name) {
+            if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+            const form = document.getElementById('deleteStoreForm');
+            form.action = `/api/admin/delete_store/${id}`;
+            form.submit();
+        }
+    </script>
+</body>
+</html>

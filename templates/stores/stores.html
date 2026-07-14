@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Find a Store | TUNU Publishers{% endblock %}
+
+{% block content %}
+
+<!-- BREADCRUMB -->
+<div class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center gap-2 text-[11px] font-semibold text-gray-500">
+        <a href="/" class="hover:text-magenta transition-colors">Home</a>
+        <i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
+        <span class="text-gray-800">Store Locator</span>
+    </div>
+</div>
+
+<!-- HEADER -->
+<section class="bg-gradient-to-br from-magenta to-dark-magenta">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-16 text-center">
+        <span class="inline-block bg-orangered text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">Find Us Near You</span>
+        <h1 class="text-2xl md:text-4xl font-extrabold text-white leading-tight mb-3">Our Retail & Partner Stores</h1>
+        <p class="text-white/80 text-xs md:text-sm max-w-lg mx-auto mb-8">Visit any of our stockists across Kenya to browse and buy TUNU Publishers books in person.</p>
+
+        <form method="GET" action="{{ url_for('stores') }}" class="max-w-md mx-auto">
+            <div class="flex border border-white/30 bg-white rounded-full overflow-hidden shadow-lg">
+                <input type="text" name="q" value="{{ search or '' }}" placeholder="Search by store name or city..." class="w-full min-w-0 px-5 py-3 text-xs outline-none">
+                <button type="submit" class="bg-orangered hover:bg-dark-magenta text-white px-5 flex items-center justify-center shrink-0 transition-colors">
+                    <i class="fas fa-search text-xs"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- STORE GRID -->
+<section class="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
+    {% if search %}
+    <div class="flex items-center flex-wrap gap-2 mb-6">
+        <span class="flex items-center gap-2 bg-lightWarm text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-gray-200">
+            "{{ search }}" <a href="{{ url_for('stores') }}" class="text-gray-400 hover:text-magenta"><i class="fas fa-times"></i></a>
+        </span>
+    </div>
+    {% endif %}
+
+    <p class="text-xs text-gray-500 font-semibold mb-6">{{ stores|length }} store{{ 's' if stores|length != 1 else '' }} found</p>
+
+    {% if stores %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+        {% for store in stores %}
+        <a href="/store/{{ store.name | urlencode }}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+            <div class="relative bg-lightWarm aspect-[16/10] overflow-hidden">
+                <img src="{{ store.image_url }}" alt="{{ store.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/500x320/8B008B/ffffff?text=TUNU+Store'">
+                {% if store.city %}
+                <span class="absolute top-3 left-3 bg-white/95 text-magenta text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
+                    <i class="fas fa-map-marker-alt"></i> {{ store.city }}
+                </span>
+                {% endif %}
+            </div>
+            <div class="p-4 flex flex-col flex-grow">
+                <h3 class="font-bold text-sm text-gray-800 leading-snug mb-1.5 group-hover:text-magenta transition-colors">{{ store.name }}</h3>
+                {% if store.address %}
+                <p class="text-[11px] text-gray-500 line-clamp-2 mb-3">{{ store.address }}</p>
+                {% endif %}
+                <div class="mt-auto flex items-center justify-between gap-2 pt-3 border-t border-gray-50">
+                    {% if store.phone %}
+                    <span class="text-[11px] font-semibold text-gray-500 flex items-center gap-1.5 truncate">
+                        <i class="fas fa-phone-alt text-magenta text-[10px]"></i> {{ store.phone }}
+                    </span>
+                    {% endif %}
+                    <span class="text-xs font-bold text-magenta group-hover:text-dark-magenta transition-colors flex items-center gap-1 shrink-0">
+                        Visit <i class="fas fa-arrow-right text-[10px]"></i>
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-16 md:py-24 text-gray-400 text-xs font-semibold border border-dashed border-gray-200 rounded-2xl">
+        <i class="fas fa-store-slash text-4xl text-magenta/20 mb-4 block"></i>
+        No stores match your search.
+        <a href="{{ url_for('stores') }}" class="block text-magenta font-bold mt-2 hover:underline">Clear search</a>
+    </div>
+    {% endif %}
+</section>
+
+{% endblock %}

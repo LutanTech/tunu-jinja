@@ -1,13 +1,32 @@
-import os, re, json, hmac, base64, hashlib, secrets, string
+import base64
 from datetime import datetime, timedelta
 from functools import wraps
-import requests
+import hashlib
+import hmac
+import json
+import os
+import re
+import secrets
+import string
+from urllib.parse import quote
+
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, abort, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+from flask import (
+    Flask,
+    abort,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    session,
+    url_for,
+)
 from flask_mail import Mail, Message
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+import requests
+from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv()
 
@@ -217,6 +236,148 @@ BOOKS_DATA = [
     {"title": "Fragments of Survival", "newPrice": 650, "oldPrice": 0, "image": "/static/books/fragments.jpeg", "audience": "General", "grade": "Adult", "authors": "Tunu Publishers"},
     {"title": "CBC English Grade 6", "newPrice": 700, "oldPrice": 850, "image": "/static/books/english6.jpeg", "audience": "Students", "grade": "Grade 6", "authors": "Tunu Publishers"}
 ]
+
+
+class Store(db.Model):
+    id = db.Column(db.String(20), primary_key=True, default=lambda: generate_id("ST"))
+    name = db.Column(db.String(255), nullable=False)
+    image = db.Column(db.String(1024), default="https://i.ibb.co/CKRYPD4p/image.png")
+    city = db.Column(db.String(120))
+    address = db.Column(db.Text)
+    phone = db.Column(db.String(20))
+    email = db.Column(db.String(120))
+    description = db.Column(db.Text)
+    hours = db.Column(db.String(255))
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
+    is_active = db.Column(db.Boolean, default=True)
+    added_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(hours=3))
+
+    @property
+    def image_url(self):
+        if self.image and self.image.startswith(("http://", "https://", "/static/")):
+            return self.image
+        return self.image or "https://i.ibb.co/CKRYPD4p/image.png"
+
+    @property
+    def maps_url(self):
+        if self.latitude and self.longitude:
+            return f"https://www.google.com/maps/search/?api=1&query={self.latitude},{self.longitude}"
+        fallback_query = f"{self.name} {self.city or ''}"
+        return f"https://www.google.com/maps/search/?api=1&query={quote(fallback_query)}"
+
+    def to_dict(self):
+        return {"id": self.id, "name": self.name, "image": self.image_url, "city": self.city, "address": self.address, "phone": self.phone, "email": self.email, "description": self.description, "hours": self.hours, "latitude": self.latitude, "longitude": self.longitude}
+
+
+@app.route("/stores")
+def stores():
+    q = Store.query.filter_by(is_active=True)
+    search_term = request.args.get("q", "").strip()
+    if search_term:
+        like = f"%{search_term}%"
+        q = q.filter(db.or_(Store.name.ilike(like), Store.city.ilike(like), Store.address.ilike(like)))
+    stores_list = q.order_by(Store.city.asc(), Store.name.asc()).all()
+    return render_template("stores/stores.html", stores=stores_list, search=search_term)
+
+@app.route("/store/<string:store_name>")
+def store_detail(store_name):
+    store = Store.query.filter(db.func.lower(Store.name) == store_name.lower(), Store.is_active == True).first_or_404()
+    other_stores = Store.query.filter(Store.id != store.id, Store.is_active == True).order_by(Store.name.asc()).limit(4).all()
+    return render_template("stores/store.html", store=store, other_stores=other_stores)
+
+
+@app.route("/cp/stores")
+@login_required
+@admin_required
+def stores_admin():
+    q = Store.query
+    search_term = request.args.get("q", "").strip()
+    if search_term:
+        like = f"%{search_term}%"
+        q = q.filter(db.or_(Store.name.ilike(like), Store.city.ilike(like)))
+    pagination = q.order_by(Store.added_at.desc()).paginate(
+        page=request.args.get("page", 1, type=int), per_page=10, error_out=False
+    )
+    return render_template("stores/admin.html", admin=db.session.get(Staff, session["staff_id"]),
+                           stores=pagination.items, pagination=pagination, search=search_term)
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+@app.route("/cp/stores/new", methods=["POST"])
+@login_required
+@admin_required
+def add_store():
+    staff = db.session.get(Staff, session["staff_id"])
+    img, fn = request.files.get("image"), None
+    if img and img.filename:
+        fn = f"{secrets.token_hex(10)}.{img.filename.rsplit('.', 1)[1].lower()}"
+        img.save(os.path.join(app.config["UPLOAD_FOLDER"], fn))
+
+    store = Store(
+        name=request.form.get("name"),
+        city=request.form.get("city"),
+        address=request.form.get("address"),
+        phone=request.form.get("phone"),
+        email=request.form.get("email"),
+        hours=request.form.get("hours"),
+        description=request.form.get("description"),
+        latitude=float(request.form["latitude"]) if request.form.get("latitude") else None,
+        longitude=float(request.form["longitude"]) if request.form.get("longitude") else None,
+    )
+    if fn:
+        store.image = fn
+    db.session.add(store)
+    db.session.commit()
+    log_action(f"Added store {store.name}", 200, staff.id)
+    return redirect(url_for("stores_admin"))
+
+@app.route("/cp/stores/edit/<string:id>", methods=["POST"])
+@login_required
+@admin_required
+def edit_store(id):
+    staff = db.session.get(Staff, session["staff_id"])
+    store = Store.query.get_or_404(id)
+
+    for fld in ["name", "city", "address", "phone", "email", "hours", "description"]:
+        setattr(store, fld, request.form.get(fld))
+
+    store.latitude = float(request.form["latitude"]) if request.form.get("latitude") else None
+    store.longitude = float(request.form["longitude"]) if request.form.get("longitude") else None
+
+    img = request.files.get("image")
+    if img and img.filename:
+        fn = f"{secrets.token_hex(10)}.{img.filename.rsplit('.', 1)[1].lower()}"
+        img.save(os.path.join(app.config["UPLOAD_FOLDER"], fn))
+        store.image = fn
+
+    db.session.commit()
+    log_action(f"Edited store {store.name}", 200, staff.id)
+    return redirect(url_for("stores_admin"))
+
+@app.route("/api/admin/toggle_store/<string:id>", methods=["POST"])
+@login_required
+@admin_required
+def toggle_store(id):
+    staff = db.session.get(Staff, session["staff_id"])
+    store = Store.query.get_or_404(id)
+    store.is_active = not store.is_active
+    db.session.commit()
+    log_action(f"Toggled visibility for store {store.name}", 200, staff.id)
+    return redirect(url_for("stores_admin"))
+
+@app.route("/api/admin/delete_store/<string:id>", methods=["POST"])
+@login_required
+@admin_required
+def delete_store(id):
+    staff = db.session.get(Staff, session["staff_id"])
+    store = Store.query.get_or_404(id)
+    log_action(f"Deleted store {store.name}", 200, staff.id)
+    db.session.delete(store)
+    db.session.commit()
+    return redirect(url_for("stores_admin"))
 
 @app.route("/")
 def home():

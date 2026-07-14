@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}{{ store.name }} | TUNU Publishers{% endblock %}
+
+{% block head %}
+<meta name="description" content="{{ (store.description or (store.name ~ ' - a TUNU Publishers store in ' ~ (store.city or 'Kenya')))[:160] }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- BREADCRUMB -->
+<div class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center gap-2 text-[11px] font-semibold text-gray-500 overflow-x-auto whitespace-nowrap">
+        <a href="/" class="hover:text-magenta transition-colors shrink-0">Home</a>
+        <i class="fas fa-chevron-right text-[8px] text-gray-300 shrink-0"></i>
+        <a href="/stores" class="hover:text-magenta transition-colors shrink-0">Stores</a>
+        <i class="fas fa-chevron-right text-[8px] text-gray-300 shrink-0"></i>
+        <span class="text-gray-800 truncate">{{ store.name }}</span>
+    </div>
+</div>
+
+<section class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+
+        <!-- IMAGE -->
+        <div class="md:sticky md:top-24 self-start">
+            <div class="relative bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden aspect-[4/3]">
+                <img src="{{ store.image_url }}" alt="{{ store.name }}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x450/8B008B/ffffff?text=TUNU+Store'">
+                {% if store.city %}
+                <span class="absolute top-4 left-4 bg-white/95 text-magenta text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-md">
+                    <i class="fas fa-map-marker-alt"></i> {{ store.city }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- DETAILS -->
+        <div class="flex flex-col">
+            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800 leading-tight mb-2">{{ store.name }}</h1>
+            {% if store.address %}
+            <p class="text-xs md:text-sm text-gray-500 font-semibold mb-6 flex items-start gap-2">
+                <i class="fas fa-map-marker-alt text-magenta mt-0.5 shrink-0"></i> {{ store.address }}
+            </p>
+            {% endif %}
+
+            <!-- CONTACT ACTIONS -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-8">
+                <a href="{{ store.maps_url }}" target="_blank" class="flex-1 bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider px-6 py-3.5 rounded-full transition-colors shadow-md flex items-center justify-center gap-2">
+                    <i class="fas fa-directions"></i> Get Directions
+                </a>
+                {% if store.phone %}
+                <a href="tel:{{ store.phone }}" class="flex-1 border border-gray-300 hover:border-magenta hover:text-magenta text-gray-700 font-bold text-xs uppercase tracking-wider px-6 py-3.5 rounded-full transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-phone-alt"></i> Call Store
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- INFO CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+                {% if store.phone %}
+                <div class="flex items-center gap-3 bg-lightWarm border border-gray-100 rounded-xl px-4 py-3">
+                    <i class="fas fa-phone-alt text-magenta"></i>
+                    <div class="min-w-0">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Phone</p>
+                        <p class="text-xs font-bold text-gray-700 truncate">{{ store.phone }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                {% if store.email %}
+                <div class="flex items-center gap-3 bg-lightWarm border border-gray-100 rounded-xl px-4 py-3">
+                    <i class="fas fa-envelope text-magenta"></i>
+                    <div class="min-w-0">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Email</p>
+                        <p class="text-xs font-bold text-gray-700 truncate">{{ store.email }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                {% if store.hours %}
+                <div class="flex items-center gap-3 bg-lightWarm border border-gray-100 rounded-xl px-4 py-3 sm:col-span-2">
+                    <i class="fas fa-clock text-magenta"></i>
+                    <div class="min-w-0">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Opening Hours</p>
+                        <p class="text-xs font-bold text-gray-700">{{ store.hours }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- MAP -->
+            {% if store.latitude and store.longitude %}
+            <div class="rounded-2xl overflow-hidden border border-gray-100 shadow-sm mb-8 aspect-video">
+                <iframe
+                    src="https://maps.google.com/maps?q={{ store.latitude }},{{ store.longitude }}&z=15&output=embed"
+                    class="w-full h-full" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+            {% endif %}
+
+            <!-- DESCRIPTION -->
+            {% if store.description %}
+            <div>
+                <h3 class="font-bold text-sm text-gray-800 uppercase tracking-wider mb-3 border-l-2 border-orangered pl-2">About This Store</h3>
+                <p class="text-xs md:text-sm text-gray-600 leading-relaxed whitespace-pre-line">{{ store.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- OTHER STORES -->
+{% if other_stores %}
+<section class="bg-white border-t border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
+        <div class="flex items-center justify-between mb-6 md:mb-8 gap-3">
+            <div>
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800">Other Stores</h2>
+                <p class="text-xs text-gray-500 mt-1">More places to find our books</p>
+            </div>
+            <a href="/stores" class="text-xs font-bold text-magenta hover:text-dark-magenta uppercase tracking-wider flex items-center gap-1 shrink-0">
+                View All <i class="fas fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {% for other in other_stores %}
+            <a href="/store/{{ other.name | urlencode }}" class="group bg-lightWarm rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+                <div class="relative bg-white aspect-[16/10] overflow-hidden">
+                    <img src="{{ other.image_url }}" alt="{{ other.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/400x250/8B008B/ffffff?text=TUNU+Store'">
+                </div>
+                <div class="p-3 flex flex-col flex-grow">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{{ other.city or 'Kenya' }}</p>
+                    <h4 class="font-bold text-xs text-gray-800 leading-snug line-clamp-2 group-hover:text-magenta transition-colors">{{ other.name }}</h4>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}

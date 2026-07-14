@@ -8,6 +8,7 @@
         TUNU Publishers | Elimu ni Tunu
         {% endblock %}
     </title>
+    {% block head%}
     <meta name="title" content="TUNU Publishers | Elimu ni Tunu">
     <meta name="description" content="TUNU Publishers is Kenya's trusted publisher for CBC books, story books, novels, poetry, revision materials, educational resources and children's learning content.">
     <meta name="keywords" content="TUNU Publishers, CBC books Kenya, novels, educational books, Grade books, revision books, story books, poetry books, publishers in Kenya, children's books, elimu ni tunu">
@@ -51,6 +52,7 @@
             ]
         }
     </script>
+    {% endblock %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -73,7 +75,6 @@
             }
         }
     </script>
-    {% block head %}{% endblock %}
     <style>
         :root {
             --magenta: #8B008B;
@@ -167,9 +168,9 @@
                         STORES <i class="fas fa-chevron-down text-[8px] mt-0.5"></i>
                     </button>
                     <div class="dropdown-menu absolute left-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-xl border border-gray-100 z-50 py-1 font-bold text-xs uppercase tracking-wider">
-                        <a href="/stores/nairobi" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Nairobi CBD Branch</a>
-                        <a href="/stores/mombasa" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Mombasa Depot</a>
-                        <a href="/stores/kisumu" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Kisumu Outlet</a>
+                        <a href="/store/Nairobi" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Nairobi CBD Branch</a>
+                        <a href="/store/Mombasa" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Mombasa Depot</a>
+                        <a href="/store/Kisumu" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Kisumu Outlet</a>
                     </div>
                 </div>
 

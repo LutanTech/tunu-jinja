@@ -6,7 +6,7 @@
 <meta name="description" content="{{ (book.blurb or (book.title ~ ' by ' ~ (book.authors or 'TUNU Publishers')))[:160] }}">
 <meta property="og:title" content="{{ book.title }} | TUNU Publishers">
 <meta property="og:description" content="{{ (book.blurb or '')[:160] }}">
-<meta property="og:image" content="{{ book.image_url }}">
+<meta property="og:image" content="https://www.tunupublishers.com{{ book.image_url }}">
 <meta property="og:type" content="product">
 <script type="application/ld+json">
 {
@@ -169,7 +169,7 @@
                 </a>
                 <div class="p-3 flex flex-col flex-grow">
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{{ rbook.grade or rbook.audience or 'General' }}</p>
-                    <a href="/book/{{ rbook.id }}" class="font-bold text-xs text-gray-800 leading-snug line-clamp-2 mb-1 hover:text-magenta transition-colors min-h-[2rem]">{{ rbook.title }}</a>
+                    <a href="/book/{{ rbook.slug }}" class="font-bold text-xs text-gray-800 leading-snug line-clamp-2 mb-1 hover:text-magenta transition-colors min-h-[2rem]">{{ rbook.title }}</a>
                     <div class="mt-auto flex items-center justify-between gap-2">
                         <span class="text-sm font-extrabold text-magenta truncate">{{ rbook.newPrice | currency }}</span>
                         <button onclick="addToCart('{{ rbook.id }}', '{{ rbook.audience }}')" class="bg-magenta hover:bg-dark-magenta text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0" title="Add to Cart">
