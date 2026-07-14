@@ -1,12 +1,12 @@
 Flask
-Flask_SQLAlchemy
-Flask_Mail
-Flask_Migrate
-Flask_WTF
+Flask-SQLAlchemy
+Flask-Mail
+Flask-Migrate
+Flask-WTF
 Werkzeug
 SQLAlchemy
 alembic
 psycopg2-binary
 python-dotenv
-pymysql
+PyMySQL
 requests
