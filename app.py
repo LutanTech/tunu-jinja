@@ -10,6 +10,7 @@ from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 
 load_dotenv()
+
 app = Flask(__name__)
 app.config.update(
     SECRET_KEY=os.getenv("SECRET_KEY", "THIS_IS_SO_SECRET_FOR_2026_TUNU"),
@@ -99,7 +100,7 @@ def send_mail(subject, recipients, html):
 
 def get_access_token():
     res = requests.get(f"{BASE_URL}/oauth/v1/generate?grant_type=client_credentials", auth=(CONSUMER_KEY, CONSUMER_SECRET))
-    if res.status_code != 200: raise Exception("Failed to obtain MPESA token.")
+    if res.status_code != 200: raise Exception(f"Failed to obtain MPESA token. {res}")
     return res.json()["access_token"]
 
 def initiate_payment(order):
