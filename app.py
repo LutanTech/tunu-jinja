@@ -4,6 +4,8 @@ from functools import wraps
 import hashlib
 import hmac
 import json
+import logging
+import os
 import os
 import re
 import secrets
@@ -22,6 +24,7 @@ from flask import (
     session,
     url_for,
 )
+from flask import request
 from flask_mail import Mail, Message
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -1010,6 +1013,30 @@ def server_error(e):
 
 with app.app_context():
     db.create_all()
+    
+
+
+
+LOG_FILE = os.path.join(os.path.dirname(__file__), "app.log")
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)s %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_FILE),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+
+@app.before_request
+def log_request():
+    logger.info("%s %s", request.method, request.path)
+    
+logger.info("Flask application imported successfully")
 
 if __name__ == "__main__":
-    print('app.run(host="0.0.0.0", port=5000, debug=True)')
+    logger.info("Flask application imported successfully twice")
+    # app.run(host="0.0.0.0", port=5000, debug=True)

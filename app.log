@@ -1,0 +1,5 @@
+2026-07-14 23:25:11,952 WARNING  * Debugger is active!
+2026-07-14 23:25:11,967 INFO  * Debugger PIN: 131-308-806
+2026-07-14 23:25:37,020 INFO  * Detected change in 'd:\\PYTHON\\Tunu Jinja v2\\app.py', reloading
+2026-07-14 23:25:39,682 INFO Flask application imported successfully
+2026-07-14 23:25:39,683 INFO Flask application imported successfully twice
