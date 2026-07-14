@@ -1,985 +1,318 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Books | TUNU Publishers{% endblock %}
+{% block title %}Shop All Books | TUNU Publishers{% endblock %}
 
 {% block content %}
-<style>
-        :root {
-            --magenta: #8B008B;
-            --dark-magenta: #4B004B;
-            --orangered: #FF4500;
-            --white: #FFFFFF;
-            --light-bg: #f9f9f9;
-            --gray-text: #666;
-            --border-color: #eee;
-            --shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light-bg);
-            color: #333;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .top-bar {
-            background: var(--white);
-            border-bottom: 1px solid var(--border-color);
-            padding: 8px 0;
-            display: none;
-        }
-
-        @media (min-width: 768px) {
-            .top-bar { display: block; }
-        }
-
-        .top-bar-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-        }
-
-        .contact-info {
-            display: flex;
-            gap: 20px;
-        }
-
-        .contact-item i {
-            color: var(--magenta);
-            margin-right: 8px;
-        }
-
-        .search-area {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .search-box {
-            display: flex;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .search-box input {
-            padding: 5px 10px;
-            border: none;
-            outline: none;
-            width: 200px;
-        }
-
-        .search-btn {
-            background: var(--magenta);
-            color: white;
-            border: none;
-            padding: 5px 15px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .search-btn:hover { background: var(--dark-magenta); }
-
-        .cart-trigger {
-            background: var(--magenta);
-            color: white;
-            padding: 8px 24px;
-            border-radius: 50px;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-            text-transform: uppercase;
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: var(--shadow);
-        }
-
-        .cart-trigger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 0, 139, 0.3);
-        }
-
-        .cart-count {
-            background: var(--orangered);
-            color: white;
-            font-size: 11px;
-            min-width: 20px;
-            height: 20px;
-            padding: 0 4px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        header {
-            background: var(--magenta);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-        }
-
-        .logo-area {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-        }
-
-        .logo-img {
-            height: 48px;
-            background: white;
-            padding: 4px;
-            border-radius: 4px;
-            margin-right: 12px;
-        }
-
-        .brand-text { color: white; }
-        .brand-text h1 { font-size: 24px; line-height: 1; }
-        .brand-text p { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; }
-
-        nav { display: none; }
-        @media (min-width: 1024px) {
-            nav { display: flex; gap: 5px; }
-        }
-
-        .nav-link {
-            color: white;
-            text-decoration: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            font-size: 13px;
-            font-weight: 500;
-            transition: background 0.3s;
-        }
-
-        .nav-link:hover, .nav-link.active { background: rgba(255, 69, 0, 0.8); }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .mobile-menu-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-        }
-
-        .mobile-nav-toggle {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            display: block;
-        }
-
-        @media (min-width: 1024px) {
-            .mobile-nav-toggle {
-                display: none;
-            }
-        }
-
-        .count-span {
-            background: red;
-            border-radius: 50%;
-            font-size: 10px;
-            width: 18px;
-            height: 18px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: absolute;
-            right: -2px;
-            top: -2px;
-            color: white;
-            font-weight: bold;
-        }
-
-        .catalog-banner {
-            background: linear-gradient(rgba(139, 0, 139, 0.85), rgba(75, 0, 75, 0.95)), url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1600') no-repeat center center/cover;
-            color: white;
-            text-align: center;
-            padding: 60px 20px;
-        }
-
-        .catalog-banner h2 {
-            font-size: 36px;
-            margin-bottom: 10px;
-        }
-
-        .catalog-banner p {
-            font-size: 16px;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .filter-section {
-            padding: 30px 0;
-            background: white;
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 72px;
-            z-index: 900;
-        }
-
-        .filter-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        @media (min-width: 768px) {
-            .filter-container {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-            }
-        }
-
-        .category-tabs {
-            display: flex;
-            gap: 10px;
-        }
-
-        .category-tab {
-            white-space: nowrap;
-            background: #f1f1f1;
-            border: none;
-            outline: none;
-            padding: 8px 18px;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s;
-            color: #555;
-        }
-
-        .category-tab.active {
-            background: var(--magenta);
-            color: white;
-        }
-
-        .category-dropdown-wrapper {
-            display: none;
-            position: relative;
-            width: 100%;
-        }
-
-        .category-dropdown-btn {
-            width: 100%;
-            background: var(--white);
-            border: 1px solid #ddd;
-            padding: 12px 20px;
-            border-radius: 40px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            text-align: left;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        }
-
-        .category-dropdown-btn i {
-            color: var(--magenta);
-        }
-
-        .category-dropdown-content {
-            display: none;
-            position: absolute;
-            top: calc(100% + 5px);
-            left: 0;
-            width: 100%;
-            background: var(--white);
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            z-index: 950;
-            overflow: hidden;
-        }
-
-        .category-dropdown-content.show {
-            display: block;
-        }
-
-        .category-dropdown-item {
-            width: 100%;
-            padding: 12px 20px;
-            background: none;
-            border: none;
-            text-align: left;
-            font-size: 14px;
-            font-weight: 500;
-            color: #444;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .category-dropdown-item:hover {
-            background: #f5f5f5;
-            color: var(--magenta);
-        }
-
-        .category-dropdown-item.active {
-            background: rgba(139, 0, 139, 0.05);
-            color: var(--magenta);
-            font-weight: 700;
-        }
-
-        @media (max-width: 767px) {
-            .category-tabs {
-                display: none;
-            }
-            .category-dropdown-wrapper {
-                display: block;
-            }
-        }
-
-        .search-filter-box {
-            display: flex;
-            width: 100%;
-            max-width: 350px;
-            border: 1px solid #ddd;
-            border-radius: 40px;
-            padding: 6px 15px;
-            background: var(--light-bg);
-        }
-
-        @media (max-width: 767px) {
-            .search-filter-box {
-                max-width: 100%;
-            }
-        }
-
-        .search-filter-box input {
-            border: none;
-            outline: none;
-            background: transparent;
-            width: 100%;
-            padding-left: 10px;
-            font-size: 14px;
-        }
-
-        .search-filter-box i {
-            color: #999;
-            align-self: center;
-        }
-
-        .masonry-wrapper {
-            padding: 40px 0;
-        }
-
-        .masonry-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 24px;
-            width: 100%;
-        }
-
-        @media (max-width: 1200px) {
-            .masonry-grid { grid-template-columns: repeat(3, 1fr); }
-        }
-
-        @media (max-width: 768px) {
-            .masonry-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        }
-
-        @media (max-width: 480px) {
-            .masonry-grid { grid-template-columns: 1fr; }
-        }
-
-        .masonry-item {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            transition: all 0.3s ease;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-        }
-
-        .masonry-item:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow);
-            border-color: transparent;
-        }
-
-        .discount-badge {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: var(--orangered);
-            color: white;
-            font-size: 11px;
-            font-weight: 800;
-            padding: 4px 10px;
-            border-radius: 3px;
-            z-index: 5;
-        }
-
-        .book-img-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fdfdfd;
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 15px;
-            height: 240px;
-        }
-
-        .book-img-wrapper img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            transition: transform 0.3s ease;
-        }
-
-        .masonry-item:hover .book-img-wrapper img {
-            transform: scale(1.03);
-        }
-
-        .book-info {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            justify-content: space-between;
-        }
-
-        .book-details {
-            margin-bottom: 15px;
-        }
-
-        .book-info h4 {
-            font-size: 15px;
-            font-weight: 700;
-            color: #222;
-            margin-bottom: 5px;
-            line-height: 1.3;
-        }
-
-        .book-meta {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .book-price {
-            font-weight: 800;
-            font-size: 15px;
-        }
-
-        .old-price {
-            text-decoration: line-through;
-            color: var(--orangered);
-            font-size: 13px;
-            margin-right: 8px;
-        }
-
-        .new-price {
-            color: var(--magenta);
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 24px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            width: 100%;
-            font-size: 13px;
-        }
-
-        .btn i {
-            font-size: 14px;
-        }
-
-        .btn-secondary {
-            background: var(--magenta);
-            color: white;
-            margin-top: auto;
-        }
-
-        .btn-secondary:hover {
-            background: var(--dark-magenta);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(139, 0, 139, 0.2);
-        }
-
-        .btn-small {
-            padding: 10px 16px;
-            font-size: 12px;
-        }
-
-        .cart-drawer {
-            position: fixed;
-            top: 0;
-            right: -450px;
-            width: 100%;
-            max-width: 450px;
-            height: 100%;
-            background: white;
-            z-index: 2000;
-            box-shadow: -5px 0 25px rgba(0,0,0,0.15);
-            transition: right 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .cart-drawer.open { right: 0; }
-
-        .cart-header {
-            padding: 25px;
-            background: var(--magenta);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .cart-items { flex: 1; overflow-y: auto; padding: 25px; }
-
-        .cart-item {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 20px;
-            align-items: center;
-        }
-
-        .cart-item img { width: 60px; height: 80px; object-fit: contain; background: #f4f4f4; border-radius: 4px; }
-
-        .checkout-btn {
-            width: 100%;
-            background: var(--orangered);
-            color: white;
-            border: none;
-            padding: 18px;
-            border-radius: 4px;
-            font-weight: 800;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            display: none;
-            z-index: 1500;
-            backdrop-filter: blur(2px);
-        }
-
-        .mobile-drawer {
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 280px;
-            height: 100%;
-            background: var(--white);
-            z-index: 2000;
-            box-shadow: 5px 0 25px rgba(0,0,0,0.15);
-            transition: left 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .mobile-drawer.open {
-            left: 0;
-        }
-
-        .mobile-drawer-header {
-            padding: 20px;
-            background: var(--magenta);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .mobile-drawer-links {
-            display: flex;
-            flex-direction: column;
-            padding: 20px 0;
-        }
-
-        .mobile-drawer-link {
-            padding: 12px 25px;
-            color: #333;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 15px;
-            border-left: 4px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .mobile-drawer-link:hover, .mobile-drawer-link.active {
-            background: #f5f5f5;
-            color: var(--magenta);
-            border-left-color: var(--magenta);
-        }
-
-        footer {
-            background: #2a002a;
-            color: white;
-            padding: 80px 0 30px;
-            margin-top: 50px;
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 40px;
-            margin-bottom: 50px;
-        }
-
-        .footer-col h4 {
-            color: var(--orangered);
-            margin-bottom: 25px;
-            font-size: 18px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-left: 4px solid var(--orangered);
-            padding-left: 15px;
-        }
-
-        .footer-links { list-style: none; }
-        .footer-links li { margin-bottom: 12px; }
-        .footer-links a {
-            color: #ccc;
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.3s;
-        }
-
-        .footer-links a:hover { color: var(--white); }
-
-        .footer-contact li {
-            display: flex;
-            gap: 12px;
-            color: #ccc;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-
-        .footer-contact i { color: var(--orangered); margin-top: 4px; }
-
-        .social-links { display: flex; gap: 15px; margin-top: 20px; }
-        .social-links a {
-            width: 35px;
-            height: 35px;
-            background: rgba(255,255,255,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            color: white;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-        .social-links a:hover { background: var(--orangered); }
-
-        .footer-bottom {
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 30px;
-            text-align: center;
-            color: #888;
-            font-size: 14px;
-        }
-
-        .whatsapp-float {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #25d366;
-            color: white;
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 35px;
-            z-index: 1000;
-            text-decoration: none;
-            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4);
-            transition: transform 0.3s;
-        }
-
-        .whatsapp-float:hover { transform: scale(1.1) rotate(5deg); }
-
-        @media (max-width: 768px) {
-            .header-content { padding: 12px 20px; }
-            .filter-section { top: 72px; padding: 15px 0; }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="overlay" id="overlay" onclick="closeAllDrawers()"></div>
-
-    <div class="mobile-drawer" id="mobile-drawer">
-        <div class="mobile-drawer-header">
-            <h3>Menu</h3>
-            <button onclick="closeMobileDrawer()" style="background:none; border:none; color:white; cursor:pointer; font-size:24px;"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="mobile-drawer-links">
-            <a href="index.html" class="mobile-drawer-link">Home</a>
-            <a href="books.html" class="mobile-drawer-link active">Books</a>
-            <a href="books.html?cat=junior" class="mobile-drawer-link">Junior School</a>
-            <a href="books.html?cat=revision" class="mobile-drawer-link">Revision</a>
-            <a href="index.html#about" class="mobile-drawer-link">About Us</a>
-            <a href="index.html#contact" class="mobile-drawer-link">Contact</a>
-        </div>
+<!-- BREADCRUMB -->
+<div class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center gap-2 text-[11px] font-semibold text-gray-500">
+        <a href="/" class="hover:text-magenta transition-colors">Home</a>
+        <i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
+        <span class="text-gray-800">Books</span>
     </div>
+</div>
 
-    <section class="catalog-banner">
-        <h2>TUNU Book Catalog</h2>
-        <p>Explore our extensive and carefully typeset selection of school textbooks, revision guides, and creative arts readers.</p>
-    </section>
+<div class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+    <div class="flex flex-col lg:flex-row gap-8">
 
-    <section class="filter-section">
-        <div class="container filter-container">
-            <div class="category-tabs" id="category-tabs-list">
-                <button class="category-tab active" onclick="filterCategory('all')">All Books</button>
-                <button class="category-tab" onclick="filterCategory('primary')">Primary School</button>
-                <button class="category-tab" onclick="filterCategory('junior')">Junior Secondary</button>
-                <button class="category-tab" onclick="filterCategory('revision')">Revision</button>
-                <button class="category-tab" onclick="filterCategory('creative')">Creative Readers</button>
-                <button class="category-tab" onclick="filterCategory('general')">General Reading</button>
+        <!-- FILTERS SIDEBAR (desktop) -->
+        <aside class="hidden lg:block w-64 shrink-0">
+            <div class="sticky top-24 space-y-8">
+
+                <div>
+                    <h3 class="font-bold text-xs uppercase tracking-wider text-gray-800 mb-3 border-l-2 border-orangered pl-2">Search</h3>
+                    <div class="flex border border-gray-300 rounded-full overflow-hidden">
+                        <input type="text" id="filter-q-desktop" placeholder="Search books..." value="{{ search or '' }}" class="w-full min-w-0 px-4 py-2.5 text-xs outline-none">
+                        <button onclick="applyFilters()" class="bg-magenta text-white px-4 flex items-center justify-center shrink-0">
+                            <i class="fas fa-search text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-xs uppercase tracking-wider text-gray-800 mb-3 border-l-2 border-orangered pl-2">Categories</h3>
+                    <div class="flex flex-col gap-1">
+                        <button onclick="setCategory('')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if not cat else 'text-gray-600 hover:bg-lightWarm' }}">All Books</button>
+                        <button onclick="setCategory('primary')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'primary' else 'text-gray-600 hover:bg-lightWarm' }}">Primary</button>
+                        <button onclick="setCategory('junior')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'junior' else 'text-gray-600 hover:bg-lightWarm' }}">Junior Secondary</button>
+                        <button onclick="setCategory('revision')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'revision' else 'text-gray-600 hover:bg-lightWarm' }}">Revision</button>
+                        <button onclick="setCategory('novels')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'novels' else 'text-gray-600 hover:bg-lightWarm' }}">Novels</button>
+                        <button onclick="setCategory('poetry')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'poetry' else 'text-gray-600 hover:bg-lightWarm' }}">Poetry</button>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-xs uppercase tracking-wider text-gray-800 mb-3 border-l-2 border-orangered pl-2">Price Range (KSh)</h3>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="filter-min-desktop" placeholder="Min" value="{{ min_price if min_price is not none else '' }}" class="w-full min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none">
+                        <span class="text-gray-400 text-xs shrink-0">–</span>
+                        <input type="number" id="filter-max-desktop" placeholder="Max" value="{{ max_price if max_price is not none else '' }}" class="w-full min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none">
+                    </div>
+                    <button onclick="applyFilters()" class="mt-3 w-full bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider py-2.5 rounded-full transition-colors">Apply</button>
+                </div>
+
+                {% if cat or search or (min_price is not none) or (max_price is not none) %}
+                <a href="/books" class="block text-center text-xs font-bold text-gray-500 hover:text-magenta transition-colors">
+                    <i class="fas fa-times-circle"></i> Clear All Filters
+                </a>
+                {% endif %}
             </div>
+        </aside>
 
-            <div class="category-dropdown-wrapper">
-                <button class="category-dropdown-btn" onclick="toggleDropdown(event)">
-                    <span id="selected-category-label"><i class="fas fa-filter" style="margin-right: 8px;"></i> Filter: All Books</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="category-dropdown-content" id="category-dropdown-content">
-                    <button class="category-dropdown-item active" data-cat="all" onclick="selectDropdownCategory('all', 'All Books')">All Books</button>
-                    <button class="category-dropdown-item" data-cat="primary" onclick="selectDropdownCategory('primary', 'Primary School')">Primary School</button>
-                    <button class="category-dropdown-item" data-cat="junior" onclick="selectDropdownCategory('junior', 'Junior Secondary')">Junior Secondary</button>
-                    <button class="category-dropdown-item" data-cat="revision" onclick="selectDropdownCategory('revision', 'Revision')">Revision</button>
-                    <button class="category-dropdown-item" data-cat="creative" onclick="selectDropdownCategory('creative', 'Creative Readers')">Creative Readers</button>
-                    <button class="category-dropdown-item" data-cat="general" onclick="selectDropdownCategory('general', 'General Reading')">General Reading</button>
+        <!-- MAIN -->
+        <div class="flex-1 min-w-0">
+
+            <!-- TOOLBAR -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleFilterDrawer()" class="lg:hidden flex items-center gap-2 border border-gray-300 rounded-full px-4 py-2.5 text-xs font-bold text-gray-700 shrink-0">
+                        <i class="fas fa-sliders-h"></i> Filters
+                    </button>
+                    <p class="text-xs text-gray-500 font-semibold">
+                        {{ pagination.total }} book{{ 's' if pagination.total != 1 else '' }} found
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                    <label for="sort-select" class="text-xs font-semibold text-gray-500 hidden sm:block">Sort by</label>
+                    <select id="sort-select" onchange="applyFilters()" class="border border-gray-300 rounded-full px-4 py-2.5 text-xs font-semibold outline-none bg-white w-full sm:w-auto">
+                        <option value="newest" {{ 'selected' if sort == 'newest' }}>Newest</option>
+                        <option value="price_asc" {{ 'selected' if sort == 'price_asc' }}>Price: Low to High</option>
+                        <option value="price_desc" {{ 'selected' if sort == 'price_desc' }}>Price: High to Low</option>
+                        <option value="popular" {{ 'selected' if sort == 'popular' }}>Most Popular</option>
+                        <option value="rating" {{ 'selected' if sort == 'rating' }}>Top Rated</option>
+                    </select>
                 </div>
             </div>
 
-            <div class="search-filter-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="live-search" placeholder="Type to search books..." oninput="handleSearch()">
+            {% if search or cat %}
+            <div class="flex items-center flex-wrap gap-2 mb-6">
+                {% if search %}
+                <span class="flex items-center gap-2 bg-lightWarm text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-gray-200">
+                    "{{ search }}" <a href="#" onclick="event.preventDefault(); clearParam('q');" class="text-gray-400 hover:text-magenta"><i class="fas fa-times"></i></a>
+                </span>
+                {% endif %}
+                {% if cat %}
+                <span class="flex items-center gap-2 bg-lightWarm text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-gray-200 capitalize">
+                    {{ cat }} <a href="#" onclick="event.preventDefault(); clearParam('cat');" class="text-gray-400 hover:text-magenta"><i class="fas fa-times"></i></a>
+                </span>
+                {% endif %}
             </div>
-        </div>
-    </section>
+            {% endif %}
 
-    <section class="masonry-wrapper">
-        <div class="container">
-            <div class="masonry-grid" id="masonry-book-container"></div>
-        </div>
-    </section>
-
-    <a href="https://wa.me/254722682129" target="_blank" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
-
-    <script>
-        let currentCategory = 'all';
-        let searchQuery = '';
-
-        window.booksDatabase = {{  books_data | tojson | safe }};
-        console.log(booksDatabase)
-
-        function getDiscount(book) {
-            if (!book.oldPrice) return 0;
-            return Math.round((100 * (book.oldPrice - book.newPrice)) / book.oldPrice);
-        }
-
-        function renderMasonry() {
-            const container = document.getElementById('masonry-book-container');
-            container.innerHTML = '';
-
-            const filtered = booksDatabase.filter(book => {
-                const matchesCategory = (currentCategory === 'all' || book.group === currentCategory);
-                const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                      book.subtitle.toLowerCase().includes(searchQuery.toLowerCase());
-                return matchesCategory && matchesSearch;
-            });
-
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 50px 0; color: #888; width: 100%;">
-                        <i class="fas fa-book-open fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
-                        <p>No books found matching the filters or query.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            filtered.forEach(book => {
-                const discount = getDiscount(book);
-                container.innerHTML += `
-                    <div class="masonry-item">
-                        ${discount > 0 ? `<span class="discount-badge">SAVE ${discount}%</span>` : ''}
-                        <div class="book-img-wrapper">
-                            <img src="${book.image}" alt="${book.title}" onerror="this.onerror=null; this.src='/static/icons/tunu_logo.png';">
-                        </div>
-                        <div class="book-info">
-                            <div class="book-details">
-                                <h4>${book.title}</h4>
-                                <p class="book-meta">${book.grade ? `<b> Grade:  </b>${book.grade}` : book.audience}</p>
-                                <div class="book-price">
-                                    ${book.oldPrice > 0 ? `<span class="old-price">KES ${book.oldPrice}</span>` : ''}
-                                    <span class="new-price">KES ${book.newPrice}</span>
-                                </div>
+            <!-- GRID -->
+            {% if books %}
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {% for book in books %}
+                <div class="group relative bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+                    <a href="/book/{{ book.slug }}" class="block relative bg-lightWarm aspect-[3/4] overflow-hidden">
+                        <img src="{{ book.image_url }}" alt="{{ book.title }}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/300x400/8B008B/ffffff?text=Book'">
+                        {% if book.discounted and book.oldPrice and book.oldPrice > book.newPrice %}
+                        <span class="absolute top-2 left-2 bg-orangered text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                            -{{ (((book.oldPrice - book.newPrice) / book.oldPrice) * 100) | round | int }}%
+                        </span>
+                        {% endif %}
+                        <button onclick="event.preventDefault(); showAlert('info', 'Your Wishlist is currently empty.')" class="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-gray-500 hover:text-magenta shadow-sm transition-colors">
+                            <i class="far fa-heart text-xs"></i>
+                        </button>
+                    </a>
+                    <div class="p-3 flex flex-col flex-grow">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{{ book.grade or book.audience or 'General' }}</p>
+                        <a href="/book/{{ book.slug }}" class="font-bold text-xs text-gray-800 leading-snug line-clamp-2 mb-1 hover:text-magenta transition-colors min-h-[2rem]">{{ book.title }}</a>
+                        <p class="text-[10px] text-gray-400 mb-2 line-clamp-1">{{ book.authors or 'TUNU Publishers' }}</p>
+                        <div class="mt-auto flex items-center justify-between gap-2">
+                            <div class="min-w-0">
+                                {% if book.discounted and book.oldPrice and book.oldPrice > book.newPrice %}
+                                <span class="text-[10px] text-gray-400 line-through block">{{ book.oldPrice | currency }}</span>
+                                {% endif %}
+                                <span class="text-sm font-extrabold text-magenta block truncate">{{ book.newPrice | currency }}</span>
                             </div>
-                            <button onclick="addToCart('${book.id}', ${book.category})" class="btn btn-secondary btn-small">
-                                <i class="fas fa-cart-plus"></i> ADD TO CART
+                            <button onclick="addToCart('{{ book.id }}', '{{ book.audience }}')" class="bg-magenta hover:bg-dark-magenta text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0" title="Add to Cart">
+                                <i class="fas fa-cart-plus text-xs"></i>
                             </button>
                         </div>
                     </div>
-                `;
-            });
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- PAGINATION -->
+            {% if pagination.pages > 1 %}
+            <div class="flex items-center justify-center gap-2 mt-10">
+                {% set base_qs = [] %}
+                {% if cat %}{% set _ = base_qs.append('cat=' ~ cat) %}{% endif %}
+                {% if search %}{% set _ = base_qs.append('q=' ~ search) %}{% endif %}
+                {% if sort %}{% set _ = base_qs.append('sort=' ~ sort) %}{% endif %}
+                {% if min_price is not none %}{% set _ = base_qs.append('min_price=' ~ min_price) %}{% endif %}
+                {% if max_price is not none %}{% set _ = base_qs.append('max_price=' ~ max_price) %}{% endif %}
+
+                <a href="/books?{{ (base_qs + ['page=' ~ (pagination.page - 1)]) | join('&') }}"
+                   class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 text-gray-500 text-xs {{ 'pointer-events-none opacity-40' if not pagination.has_prev else 'hover:bg-magenta hover:text-white hover:border-magenta transition-colors' }}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+
+                {% for p in range(1, pagination.pages + 1) %}
+                    {% if p == pagination.page %}
+                    <span class="w-9 h-9 flex items-center justify-center rounded-full bg-magenta text-white text-xs font-bold">{{ p }}</span>
+                    {% elif p == 1 or p == pagination.pages or (p >= pagination.page - 1 and p <= pagination.page + 1) %}
+                    <a href="/books?{{ (base_qs + ['page=' ~ p]) | join('&') }}" class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 text-xs font-semibold hover:bg-magenta hover:text-white hover:border-magenta transition-colors">{{ p }}</a>
+                    {% elif p == pagination.page - 2 or p == pagination.page + 2 %}
+                    <span class="text-gray-300 text-xs px-1">…</span>
+                    {% endif %}
+                {% endfor %}
+
+                <a href="/books?{{ (base_qs + ['page=' ~ (pagination.page + 1)]) | join('&') }}"
+                   class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 text-gray-500 text-xs {{ 'pointer-events-none opacity-40' if not pagination.has_next else 'hover:bg-magenta hover:text-white hover:border-magenta transition-colors' }}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-20 text-gray-400 text-xs font-semibold border border-dashed border-gray-200 rounded-xl">
+                <i class="fas fa-book-open text-4xl text-magenta/20 mb-4 block"></i>
+                No books match your filters.
+                <a href="/books" class="block text-magenta font-bold mt-2 hover:underline">Clear filters</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- MOBILE FILTER DRAWER -->
+<div class="fixed inset-0 bg-black/60 hidden backdrop-blur-sm z-[99999] lg:hidden" id="filter-drawer-overlay" onclick="toggleFilterDrawer()">
+    <div class="bg-white w-full max-w-xs h-full ml-auto shadow-2xl p-6 overflow-y-auto transform translate-x-full transition-transform duration-300" id="filter-drawer-inner" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
+            <h3 class="font-bold text-sm uppercase tracking-wider text-gray-800">Filters</h3>
+            <button onclick="toggleFilterDrawer()" class="text-gray-400 hover:text-magenta text-xl"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="space-y-8">
+            <div>
+                <h4 class="font-bold text-xs uppercase tracking-wider text-gray-800 mb-3 border-l-2 border-orangered pl-2">Search</h4>
+                <input type="text" id="filter-q-mobile" placeholder="Search books..." value="{{ search or '' }}" class="w-full border border-gray-300 rounded-full px-4 py-2.5 text-xs outline-none">
+            </div>
+
+            <div>
+                <h4 class="font-bold text-xs uppercase tracking-wider text-gray-800 mb-3 border-l-2 border-orangered pl-2">Categories</h4>
+                <div class="flex flex-col gap-1">
+                    <button onclick="setCategory('')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if not cat else 'text-gray-600 hover:bg-lightWarm' }}">All Books</button>
+                    <button onclick="setCategory('primary')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'primary' else 'text-gray-600 hover:bg-lightWarm' }}">Primary</button>
+                    <button onclick="setCategory('junior')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'junior' else 'text-gray-600 hover:bg-lightWarm' }}">Junior Secondary</button>
+                    <button onclick="setCategory('revision')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'revision' else 'text-gray-600 hover:bg-lightWarm' }}">Revision</button>
+                    <button onclick="setCategory('novels')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'novels' else 'text-gray-600 hover:bg-lightWarm' }}">Novels</button>
+                    <button onclick="setCategory('poetry')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'poetry' else 'text-gray-600 hover:bg-lightWarm' }}">Poetry</button>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-xs uppercase tracking-wider text-gray-800 mb-3 border-l-2 border-orangered pl-2">Price Range (KSh)</h4>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="filter-min-mobile" placeholder="Min" value="{{ min_price if min_price is not none else '' }}" class="w-full min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none">
+                    <span class="text-gray-400 text-xs shrink-0">–</span>
+                    <input type="number" id="filter-max-mobile" placeholder="Max" value="{{ max_price if max_price is not none else '' }}" class="w-full min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none">
+                </div>
+            </div>
+
+            <button onclick="applyFilters('mobile')" class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider py-3 rounded-full transition-colors">Apply Filters</button>
+
+            {% if cat or search or (min_price is not none) or (max_price is not none) %}
+            <a href="/books" class="block text-center text-xs font-bold text-gray-500 hover:text-magenta transition-colors">
+                <i class="fas fa-times-circle"></i> Clear All Filters
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.booksData = [
+        {% for book in books %}
+        {
+            id: {{ book.id | tojson }},
+            title: {{ book.title | tojson }},
+            image_url: {{ book.image_url | tojson }},
+            image: {{ book.image_url | tojson }},
+            newPrice: {{ book.newPrice or 0 }},
+            oldPrice: {{ book.oldPrice or 0 }},
+            category: {{ (book.audience or 'General') | tojson }}
+        },
+        {% endfor %}
+    ];
+
+    const CURRENT_CAT = {{ (cat or '') | tojson }};
+    const CURRENT_SORT = {{ (sort or 'newest') | tojson }};
+    const CURRENT_Q = {{ (search or '') | tojson }};
+    const CURRENT_MIN = {{ (min_price if min_price is not none else '') | tojson }};
+    const CURRENT_MAX = {{ (max_price if max_price is not none else '') | tojson }};
+
+    function toggleFilterDrawer() {
+        const overlay = document.getElementById('filter-drawer-overlay');
+        const inner = document.getElementById('filter-drawer-inner');
+        if (!overlay || !inner) return;
+        const isHidden = overlay.classList.contains('hidden');
+        if (isHidden) {
+            overlay.classList.remove('hidden');
+            requestAnimationFrame(() => inner.classList.remove('translate-x-full'));
+        } else {
+            inner.classList.add('translate-x-full');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
         }
+    }
 
-        function filterCategory(category) {
-            currentCategory = category;
-            
-            const tabs = document.querySelectorAll('.category-tab');
-            tabs.forEach(tab => {
-                tab.classList.remove('active');
-                if (tab.getAttribute('onclick').includes(category)) {
-                    tab.classList.add('active');
-                }
-            });
+    function setCategory(cat) {
+        const params = buildParams({ cat });
+        window.location.href = '/books?' + params;
+    }
 
-            const dropdownItems = document.querySelectorAll('.category-dropdown-item');
-            dropdownItems.forEach(item => {
-                item.classList.remove('active');
-                if (item.getAttribute('data-cat') === category) {
-                    item.classList.add('active');
-                    const labelText = item.textContent;
-                    document.getElementById('selected-category-label').innerHTML = `<i class="fas fa-filter" style="margin-right: 8px;"></i> Filter: ${labelText}`;
-                }
-            });
+    function clearParam(key) {
+        const params = buildParams({ [key]: '' });
+        window.location.href = '/books' + (params ? '?' + params : '');
+    }
 
-            renderMasonry();
-        }
+    function buildParams(overrides) {
+        const state = {
+            cat: CURRENT_CAT,
+            q: CURRENT_Q,
+            sort: CURRENT_SORT,
+            min_price: CURRENT_MIN,
+            max_price: CURRENT_MAX,
+            ...overrides
+        };
+        const parts = [];
+        Object.keys(state).forEach(key => {
+            const val = state[key];
+            if (val !== '' && val !== null && val !== undefined) {
+                parts.push(`${key}=${encodeURIComponent(val)}`);
+            }
+        });
+        return parts.join('&');
+    }
 
-        function toggleDropdown(event) {
-            event.stopPropagation();
-            document.getElementById('category-dropdown-content').classList.toggle('show');
-        }
+    function applyFilters(source) {
+        const qInput = source === 'mobile'
+            ? document.getElementById('filter-q-mobile')
+            : document.getElementById('filter-q-desktop');
+        const minInput = source === 'mobile'
+            ? document.getElementById('filter-min-mobile')
+            : document.getElementById('filter-min-desktop');
+        const maxInput = source === 'mobile'
+            ? document.getElementById('filter-max-mobile')
+            : document.getElementById('filter-max-desktop');
+        const sortSelect = document.getElementById('sort-select');
 
-        function selectDropdownCategory(category, label) {
-            filterCategory(category);
-            document.getElementById('category-dropdown-content').classList.remove('show');
-        }
-
-        function handleSearch() {
-            searchQuery = document.getElementById('live-search').value;
-            renderMasonry();
-        }
-
-
-
-        function closeAllDrawers() {
-            closeCart();
-            closeMobileDrawer();
-            document.getElementById('category-dropdown-content').classList.remove('show');
-        }
-
-        function combineCart() {
-            const cart_items = JSON.parse(localStorage.getItem('cart') || '[]');
-            if (cart_items.length === 0) return;
-
-            let message = '📚 *TUNU BOOK ORDER* %0A%0A';
-            let total = 0;
-
-            cart_items.forEach((i, index) => {
-                const qty = i.quantity || 1;
-                const subtotal = qty * i.newPrice;
-                total += subtotal;
-
-                message += `*${index + 1}.* ${i.title}%0A`;
-                message += `Qty: ${qty}%0A`;
-                message += `Price: KES ${i.newPrice}%0A`;
-                message += `Subtotal: KES ${subtotal}%0A%0A`;
-            });
-
-            //message += `💰 *TOTAL: KES ${total}*`;
-            //window.open(`https://wa.me/254722682129?text=${message}`, '_blank');
- 
-            window.location.href = '/cart'
-
-        }
-
-        document.addEventListener('click', () => {
-            document.getElementById('category-dropdown-content').classList.remove('show');
+        const params = buildParams({
+            q: qInput ? qInput.value.trim() : CURRENT_Q,
+            min_price: minInput ? minInput.value.trim() : CURRENT_MIN,
+            max_price: maxInput ? maxInput.value.trim() : CURRENT_MAX,
+            sort: sortSelect ? sortSelect.value : CURRENT_SORT
         });
 
-        window.addEventListener('DOMContentLoaded', () =>{
-            const urlParams = new URLSearchParams(window.location.search);
-            const initialCat = urlParams.get('cat');
-            if (initialCat) {
-                filterCategory(initialCat);
-                console.log(initialCat)
-            } else {
-                renderMasonry();
-            }
-            updateCartUI();
-        })
-    </script>
+        window.location.href = '/books' + (params ? '?' + params : '');
+    }
+</script>
 {% endblock %}

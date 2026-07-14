@@ -1,258 +1,237 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}My Bag | TUNU Publishers{% endblock %}
+{% block title %}Your Cart | TUNU Publishers{% endblock %}
 
 {% block content %}
-<style>
-    .cart-wrapper {
-        padding: 20px 0;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    .cart-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 20px;
-        align-items: start;
-    }
-    @media (min-width: 1024px) {
-        .cart-grid { grid-template-columns: 1.8fr 1fr; }
-        .cart-wrapper { padding: 40px 20px; }
-    }
-    .cart-card {
-        background: white;
-        border-radius: 12px;
-        padding: 15px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        border: 1px solid #eee;
-    }
-    .item-row {
-        display: flex;
-        gap: 15px;
-        padding: 15px 0;
-        border-bottom: 1px solid #f0f0f0;
-        position: relative;
-    }
-    #proceedToCheckout{
-        &:active{
-            scale: 0.9;
-        }
-    }
-    .item-row:last-child { border-bottom: none; }
-    .item-img {
-        width: 80px;
-        height: 100px;
-        object-fit: contain;
-        background: #f9f9f9;
-        border-radius: 8px;
-        flex-shrink: 0;
-    }
-    .qty-controls {
-        display: flex;
-        align-items: center;
-        background: #f4f4f4;
-        border-radius: 50px;
-        padding: 2px;
-        margin-top: 10px;
-        width: fit-content;
-    }
-    .qty-btn {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        border: none;
-        background: white;
-        color: var(--magenta);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .summary-item {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 12px;
-        font-size: 14px;
-        color: #555;
-    }
-</style>
 
-<div class="container">
-    <div class="cart-wrapper">
-        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-            <a href="/" style="text-decoration:none; color:var(--magenta); font-weight:600; font-size:14px;">
-                <i class="fas fa-chevron-left"></i> Continue Shopping
+<!-- BREADCRUMB -->
+<div class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center gap-2 text-[11px] font-semibold text-gray-500">
+        <a href="/" class="hover:text-magenta transition-colors">Home</a>
+        <i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
+        <span class="text-gray-800">Cart</span>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+    <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800 mb-8">Your Cart</h1>
+
+    <!-- EMPTY STATE -->
+    <div id="cart-empty-state" class="hidden text-center py-16 md:py-24 border border-dashed border-gray-200 rounded-2xl">
+        <i class="fas fa-shopping-basket text-5xl text-magenta/20 mb-5 block"></i>
+        <h2 class="font-bold text-sm text-gray-700 mb-2">Your cart is empty</h2>
+        <p class="text-xs text-gray-400 mb-6">Looks like you haven't added any books yet.</p>
+        <a href="/books" class="inline-block bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider px-8 py-3.5 rounded-full transition-colors shadow-md">
+            Browse Books
+        </a>
+    </div>
+
+    <!-- CART CONTENT -->
+    <div id="cart-content-wrapper" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- ITEMS -->
+        <div class="lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <p class="text-xs font-semibold text-gray-500"><span id="cart-item-count">0</span> item(s) in your bag</p>
+                <button onclick="clearCartPage()" class="text-xs font-bold text-gray-400 hover:text-orangered transition-colors flex items-center gap-1">
+                    <i class="fas fa-trash-alt"></i> Clear Cart
+                </button>
+            </div>
+            <div id="cart-page-items" class="flex flex-col gap-3"></div>
+
+            <a href="/books" class="inline-flex items-center gap-2 text-xs font-bold text-magenta hover:text-dark-magenta transition-colors mt-6">
+                <i class="fas fa-arrow-left text-[10px]"></i> Continue Shopping
             </a>
-            <h2 style="font-size: 22px; color: #1a1a1a;"><i class="fas fa-shopping-bag"></i> My Bag</h2>
         </div>
 
-        <div id="cart-main-container" class="cart-grid">
-            <!-- Content Injected via JS -->
+        <!-- SUMMARY + SHIPPING -->
+        <div class="lg:col-span-1">
+            <div class="sticky top-24 bg-white border border-gray-100 rounded-2xl shadow-sm p-5 md:p-6">
+                <h3 class="font-bold text-sm text-gray-800 uppercase tracking-wider mb-4 border-l-2 border-orangered pl-2">Order Summary</h3>
+
+                <div class="flex justify-between items-center text-xs font-semibold text-gray-500 mb-2">
+                    <span>Subtotal</span>
+                    <span id="summary-subtotal" class="text-gray-700">KSh 0</span>
+                </div>
+                <p class="text-[10px] text-gray-400 mb-4">Delivery fee is calculated and confirmed at dispatch.</p>
+
+                <div class="flex justify-between items-baseline border-t border-gray-100 pt-4 mb-6">
+                    <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Total</span>
+                    <span id="summary-total" class="text-xl font-extrabold text-magenta">KSh 0</span>
+                </div>
+
+                <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider mb-3 border-l-2 border-orangered pl-2">Shipping Details</h4>
+
+                <form id="checkout-form" class="flex flex-col gap-3">
+                    <input type="text" id="cf-name" required placeholder="Full Name" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                    <input type="email" id="cf-email" required placeholder="Email Address" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                    <input type="tel" id="cf-phone" required placeholder="Phone Number (e.g. 0722 682 129)" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                    <input type="text" id="cf-city" required placeholder="City / Town" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                    <textarea id="cf-address" required placeholder="Delivery Address" rows="2" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors resize-none"></textarea>
+
+                    <button type="submit" id="place-order-btn" class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider py-3.5 rounded-full transition-colors shadow-md flex items-center justify-center gap-2 mt-2">
+                        <i class="fas fa-lock"></i> <span id="place-order-btn-text">Place Order</span>
+                    </button>
+                </form>
+
+                <div class="flex items-center justify-center gap-4 mt-5 pt-5 border-t border-gray-100">
+                    <span class="text-[10px] text-gray-400 font-semibold flex items-center gap-1"><i class="fas fa-shield-alt text-magenta"></i> Secure Checkout</span>
+                    <span class="text-[10px] text-gray-400 font-semibold flex items-center gap-1"><i class="fas fa-mobile-alt text-magenta"></i> M-Pesa STK Push</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
     function renderCartPage() {
-        const container = document.getElementById('cart-main-container');
-        
+        const itemsContainer = document.getElementById('cart-page-items');
+        const emptyState = document.getElementById('cart-empty-state');
+        const contentWrapper = document.getElementById('cart-content-wrapper');
+        const itemCountEl = document.getElementById('cart-item-count');
+        const subtotalEl = document.getElementById('summary-subtotal');
+        const totalEl = document.getElementById('summary-total');
+
+        if (!itemsContainer) return;
+
         if (!cart || cart.length === 0) {
-            container.style.display = 'block';
-            container.innerHTML = `
-                <div style="text-align:center; padding: 60px 20px; background:white; border-radius:15px; border:2px dashed #eee;">
-                    <i class="fas fa-box-open" style="font-size: 50px; color: #ddd; margin-bottom: 20px;"></i>
-                    <h3 style="color:#333;">Your bag is empty</h3>
-                    <p style="color:#888; margin-bottom:25px;">Looks like you haven't added any books yet.</p>
-                    <a href="/" class="btn btn-primary" style="border-radius:50px;">
-                        <i class="fas fa-search"></i> Browse Collection
-                    </a>
-                </div>
-            `;
+            emptyState.classList.remove('hidden');
+            contentWrapper.classList.add('hidden');
             return;
         }
 
-        container.style.display = 'grid';
+        emptyState.classList.add('hidden');
+        contentWrapper.classList.remove('hidden');
+
+        itemsContainer.innerHTML = '';
         let subtotal = 0;
-        let itemsHtml = '';
+        let totalQty = 0;
 
         cart.forEach((item, index) => {
-            const itemTotal = item.newPrice * item.quantity;
-            subtotal += itemTotal;
-            itemsHtml += `
-                <div class="item-row">
-                    <img src="${item.image}" class="item-img" alt="${item.title}">
-                    <div style="flex:1">
-                        <h4 style="font-size:15px; margin-bottom:5px; color:#1a1a1a; padding-right: 25px;">${item.title}</h4>
-                        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-                            <div>
-                                <p style="color:var(--magenta); font-weight:800; font-size:16px;">KES ${item.newPrice.toLocaleString()}</p>
-                                <div class="qty-controls">
-                                    <button class="qty-btn" onclick="updateQty('${item.id}', -1)"><i class="fas fa-minus"></i></button>
-                                    <span style="padding: 0 12px; font-weight: 700; font-size: 14px;">${item.quantity}</span>
-                                    <button class="qty-btn" onclick="updateQty('${item.id}', 1)"><i class="fas fa-plus"></i></button>
-                                </div>
-                            </div>
-                            <div style="text-align:right;">
-                                <p style="font-size:12px; color:#999;">Subtotal</p>
-                                <p style="font-weight:700; color:#1a1a1a;">KES ${itemTotal.toLocaleString()}</p>
-                            </div>
+            const qty = parseInt(item.quantity || 1, 10);
+            const price = parseFloat(item.newPrice || 0);
+            const lineTotal = qty * price;
+            subtotal += lineTotal;
+            totalQty += qty;
+
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-4 bg-white border border-gray-100 rounded-xl p-3 md:p-4 shadow-sm';
+            row.innerHTML = `
+                <img src="${item.image || ''}" alt="${item.title || ''}" class="w-16 h-20 md:w-20 md:h-24 object-contain bg-lightWarm border border-gray-100 rounded-lg p-1.5 shrink-0" onerror="this.src='https://placehold.co/150x200/8B008B/ffffff?text=Book'">
+                <div class="flex-grow min-w-0">
+                    <h5 class="text-xs md:text-sm font-bold text-gray-800 line-clamp-2 leading-snug mb-1">${item.title || 'Untitled'}</h5>
+                    <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">${item.category || 'General'}</p>
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                        <div class="flex items-center border border-gray-300 rounded-full overflow-hidden shrink-0">
+                            <button onclick="updateCartQty(${index}, -1)" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-magenta transition-colors" aria-label="Decrease quantity">
+                                <i class="fas fa-minus text-[9px]"></i>
+                            </button>
+                            <span class="w-8 text-center text-xs font-bold">${qty}</span>
+                            <button onclick="updateCartQty(${index}, 1)" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-magenta transition-colors" aria-label="Increase quantity">
+                                <i class="fas fa-plus text-[9px]"></i>
+                            </button>
                         </div>
+                        <span class="text-xs md:text-sm font-extrabold text-magenta">KSh ${lineTotal.toLocaleString()}</span>
                     </div>
-                    <button onclick="removeBook('${item.id}')" style="position:absolute; top:15px; right:0; background:none; border:none; color:#ffccd2; cursor:pointer; font-size:18px;" onmouseover="this.style.color='#ff4d4d'" onmouseout="this.style.color='#ffccd2'">
-                        <i class="fas fa-times-circle"></i>
-                    </button>
                 </div>
+                <button onclick="removeCartItem(${index})" class="text-gray-400 hover:text-orangered p-2 shrink-0 transition-colors" title="Remove item">
+                    <i class="fas fa-trash-alt text-sm"></i>
+                </button>
             `;
+            itemsContainer.appendChild(row);
         });
 
-        container.innerHTML = `
-            <div class="cart-card">
-                <p style="font-weight:700; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
-                    <i class="fas fa-list-ul" style="color:var(--orangered)"></i> Items In Bag (${cart.length})
-                </p>
-                ${itemsHtml}
-            </div>
-
-            <div class="cart-card" style="background: #fafafa;">
-                <h4 style="margin-bottom:20px; font-size:18px; color:#1a1a1a;"><i class="fas fa-receipt"></i> Order Summary</h4>
-                
-                <div class="summary-item">
-                    <span><i class="fas fa-tag"></i> Bag Subtotal</span>
-                    <span style="font-weight:600;">KES ${subtotal.toLocaleString()}</span>
-                </div>
-                <div class="summary-item">
-                    <span><i class="fas fa-truck"></i> Estimated Delivery</span>
-                    <span style="color:#27ae60; font-weight:700;">FREE</span>
-                </div>
-                <div class="summary-item" style="border-top:1px solid #eee; padding-top:15px; margin-top:15px;">
-                    <span style="font-weight:800; font-size:16px; color:#1a1a1a;">Order Total</span>
-                    <span style="font-weight:900; font-size:22px; color:var(--magenta);">KES ${subtotal.toLocaleString()}</span>
-                </div>
-
-                <button onclick="proceedToCheckout()" style="width:100%; background:var(--orangered); color:white; border:none; padding:18px; border-radius:12px; font-weight:800; cursor:pointer; font-size:16px; margin-top:20px; box-shadow: 0 5px 15px rgba(255,69,0,0.3); display:flex; align-items:center; justify-content:center; gap:10px;" id="proceedToCheckout">
-                    <i class="fas fa-lock"></i> SECURE CHECKOUT
-                </button>
-
-                <div style="margin-top:20px; display:flex; justify-content:center; gap:15px; opacity:0.5; font-size:20px;">
-                    <i class="fab fa-cc-visa"></i>
-                    <i class="fab fa-cc-mastercard"></i>
-                    <i class="fas fa-mobile-alt"></i>
-                </div>
-                
-                <p style="font-size:11px; color:#999; text-align:center; margin-top:15px;">
-                    <i class="fas fa-shield-alt"></i> Your data is protected with SSL encryption
-                </p>
-            </div>
-        `;
+        if (itemCountEl) itemCountEl.textContent = totalQty;
+        if (subtotalEl) subtotalEl.textContent = `KSh ${subtotal.toLocaleString()}`;
+        if (totalEl) totalEl.textContent = `KSh ${subtotal.toLocaleString()}`;
     }
 
-    function updateQty(id, delta) {
-
-
-        const existingItem = cart.find(
-            item => item.id === id
-        );
-    
-        if (existingItem && !existingItem.quantity < 1) {
-            const newVal = existingItem.quantity += delta;
-            if(newVal <= 0){
-                existingItem.quantity = 1
-            }
-        } else{
-            existingItem.quantity = 1
-        }
-        saveCart()
-        updateCartUI()
+    function updateCartQty(index, delta) {
+        if (!cart[index]) return;
+        const newQty = parseInt(cart[index].quantity || 1, 10) + delta;
+        if (newQty < 1) return;
+        cart[index].quantity = newQty;
+        saveCart();
+        updateCartUI();
         renderCartPage();
     }
 
-    function removeBook(id){
-
-        cart = cart.filter(
-            item => item.id !== id
-        )
-    
-        localStorage.setItem(
-            'cart',
-            JSON.stringify(cart)
-        )
-    
-        updateCartUI()
-    
-        renderCartPage()
+    function removeCartItem(index) {
+        removeFromCart(index);
+        renderCartPage();
     }
 
-    function proceedToCheckout() {
-        const uid = localStorage.getItem('temp_id') || crypto.randomUUID(4)
-        let ids = []
-        cart.forEach(i=>{
-            ids.push(i.id)
-        })
-
-        fetch('/create_order', {
-            method:'POST',
-            headers:{
-                'Content-Type':'application/json'
-            }, body: JSON.stringify({'cart':ids, 'temp_id':uid})
-        })
-        .then(r=>r.json())
-        .then(data=>{
-            if(data.msg && data.order_id){
-                localStorage.setItem('temp_id', uid)
-               window.location.href = `/checkout?order=${data.order_id}`
-            } else{
-                showAlert('error', data.error)
-            }
-        })
-        .catch(e=>{
-            showAlert('error', e.message)
-        })
+    function clearCartPage() {
+        if (!cart || cart.length === 0) return;
+        cart.length = 0;
+        saveCart();
+        updateCartUI();
+        renderCartPage();
     }
 
-    window.addEventListener('load', renderCartPage);
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCartPage();
+
+        const form = document.getElementById('checkout-form');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                if (!cart || cart.length === 0) {
+                    showAlert('error', 'Your cart is empty.');
+                    return;
+                }
+
+                const name = document.getElementById('cf-name').value.trim();
+                const email = document.getElementById('cf-email').value.trim();
+                const phone = document.getElementById('cf-phone').value.trim();
+                const city = document.getElementById('cf-city').value.trim();
+                const address = document.getElementById('cf-address').value.trim();
+
+                if (!name || !email || !phone || !city || !address) {
+                    showAlert('error', 'Please fill in all shipping details.');
+                    return;
+                }
+
+                const btn = document.getElementById('place-order-btn');
+                const btnText = document.getElementById('place-order-btn-text');
+                btn.disabled = true;
+                btn.classList.add('opacity-60', 'cursor-not-allowed');
+                btnText.textContent = 'Placing Order...';
+
+                try {
+                    const res = await fetch('/api/create-order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            cart: cart.map(item => ({ id: item.id, qty: parseInt(item.quantity || 1, 10) })),
+                            name, email, phone, city, address
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        cart.length = 0;
+                        saveCart();
+                        window.location.href = data.redirect;
+                    } else {
+                        showAlert('error', data.error || 'Could not place order. Please try again.');
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-60', 'cursor-not-allowed');
+                        btnText.textContent = 'Place Order';
+                    }
+                } catch (err) {
+                    showAlert('error', 'Network error. Please try again.');
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    btnText.textContent = 'Place Order';
+                }
+            });
+        }
+    });
 </script>
 {% endblock %}

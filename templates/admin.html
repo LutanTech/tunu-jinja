@@ -3,1092 +3,1428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tunu Publishers - Corporate Admin Portal</title>
-    <script src="/static/assets/tailwind.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>TUNU Publishers | Admin Executive Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="{{ url_for('static', filename='assets/tailwind.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        brandPurple: '#800080',
-                        brandPurpleDark: '#550055',
-                        brandOrange: '#FF4F01',
-                        brandOrangeDark: '#D43F00',
-                        panelBg: '#FFFFFF',
-                        borderLight: '#E2E8F0',
+                        magenta: '#8B008B',
+                        'dark-magenta': '#4B004B',
+                        orangered: '#FF4500',
+                        lightWarm: '#fdfbf9'
                     },
-                    borderRadius: {
-                        'none': '0px',
-                        'sm': '2px',
-                        'md': '4px',
-                        'lg': '4px',
-                        'xl': '4px',
-                        '2xl': '4px',
-                        'full': '9999px'
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif']
                     }
                 }
             }
         }
     </script>
     <style>
-        * {
-            border-radius: 2px !important;
+        :root {
+            --magenta: #8B008B;
+            --dark-magenta: #4B004B;
+            --orangered: #FF4500;
+            --white: #FFFFFF;
+            --bg: #f4f7f6;
+            --text: #2d3436;
+            --sidebar-width: 260px;
+            --border: #e0e0e0;
+            --shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-        .no-round-override {
-            border-radius: 9999px !important;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #F1F5F9;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94A3B8;
-        }
-        #add-author{
-            border: 1px solid magenta;
-            font-size: small;
-            padding: 3px 10px;
-            margin: 10px auto;
-            background: magenta;
-            color: white;
-            &:active{
-                scale: 0.9;
-            }
 
+        body {
+            background-color: var(--bg);
+            color: var(--text);
         }
-        .author-pills{
-            display: flex;
-            justify-content: start;
-            gap: 4px;
-            align-items: flex-start;
-            padding: 5px;
-            flex-wrap: wrap;
+
+        .sidebar {
+            width: var(--sidebar-width);
+            transition: transform 0.3s ease;
         }
-        .author-pill{
-            border: 1px solid beige;
-            padding: 3px 5px;
-            width: fit-content;
-            background: #80808057;
-            font-size: small;
-            display: flex;
-            justify-content: space-between;
+
+        .nav-item {
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--dark-magenta);
+            color: white;
+            border-left-color: var(--orangered);
+        }
+
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .status-success { background: #dcfce7; color: #15803d; }
+        .status-warning { background: #fef9c3; color: #854d0e; }
+        .status-danger { background: #fee2e2; color: #991b1b; }
+
+        .loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.95);
+            justify-content: center;
             align-items: center;
-            button{
-                font-size: 1.72em;
-                color: red;
+            flex-direction: column;
+        }
+        .loader.active {
+            display: flex;
+        }
+
+        .book,
+        .book__pg-shadow,
+        .book__pg {
+            animation: cover 5s ease-in-out infinite;
+        }
+        .book {
+            background-color: #a855f7;
+            border-radius: 0.25em;
+            box-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.3), 0 0 0 0.25em #c084fc inset;
+            padding: 0.25em;
+            perspective: 37.5em;
+            position: relative;
+            width: 8em;
+            height: 6em;
+            transform-style: preserve-3d;
+        }
+        .book__pg-shadow,
+        .book__pg {
+            position: absolute;
+            left: 0.25em;
+            width: calc(50% - 0.25em);
+        }
+        .book__pg-shadow {
+            animation-name: shadow;
+            background-image: linear-gradient(-45deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.3) 50%);
+            filter: blur(0.25em);
+            top: calc(100% - 0.25em);
+            height: 3.75em;
+            transform: scaleY(0);
+            transform-origin: 100% 0%;
+        }
+        .book__pg {
+            animation-name: pg1;
+            background-color: #ffffff;
+            background-image: linear-gradient(90deg, rgba(223,223,223,0) 87.5%, #e5e5e5);
+            height: calc(100% - 0.5em);
+            transform-origin: 100% 50%;
+            justify-content: center;
+            align-items: center;
+            display: flex;
+            font-weight: bolder;
+            color: var(--magenta);
+        }
+        .-small {
+            font-size: 0.5rem;
+            text-align: center;
+        }
+        .book__pg--2,
+        .book__pg--3,
+        .book__pg--4 {
+            background-image: repeating-linear-gradient(#2d3436 0 0.125em, rgba(45,52,54,0) 0.125em 0.5em),
+                              linear-gradient(90deg, rgba(223,223,223,0) 87.5%, #e5e5e5);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 2.5em 4.125em, 100% 100%;
+        }
+        .book__pg--2 { animation-name: pg2; }
+        .book__pg--3 { animation-name: pg3; }
+        .book__pg--4 { animation-name: pg4; }
+        .book__pg--5 { animation-name: pg5; }
+
+        @keyframes cover {
+            from, 5%, 45%, 55%, 95%, to {
+                animation-timing-function: ease-out;
+                background-color: #c084fc;
+            }
+            10%, 40%, 60%, 90% {
+                animation-timing-function: ease-in;
+                background-color: #7e22ce;
+            }
+        }
+        @keyframes shadow {
+            from, 10.01%, 20.01%, 30.01%, 40.01% {
+                animation-timing-function: ease-in;
+                transform: translate3d(0, 0, 1px) scaleY(0) rotateY(0);
+            }
+            5%, 15%, 25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% {
+                animation-timing-function: ease-out;
+                transform: translate3d(0, 0, 1px) scaleY(0.2) rotateY(90deg);
+            }
+            10%, 20%, 30%, 40%, 50%, to {
+                animation-timing-function: ease-out;
+                transform: translate3d(0, 0, 1px) scaleY(0) rotateY(180deg);
+            }
+            50.01%, 60.01%, 70.01%, 80.01%, 90.01% {
+                animation-timing-function: ease-in;
+                transform: translate3d(0, 0, 1px) scaleY(0) rotateY(180deg);
+            }
+            60%, 70%, 80%, 90%, to {
+                animation-timing-function: ease-out;
+                transform: translate3d(0, 0, 1px) scaleY(0) rotateY(0);
+            }
+        }
+        @keyframes pg1 {
+            from, to {
+                animation-timing-function: ease-in-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(0.4deg);
+            }
+            10%, 15% {
+                animation-timing-function: ease-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(180deg);
+            }
+            20%, 80% {
+                animation-timing-function: ease-in;
+                background-color: #9ca3af;
+                transform: translate3d(0, 0, 1px) rotateY(180deg);
+            }
+            85%, 90% {
+                animation-timing-function: ease-in-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(180deg);
+            }
+        }
+        @keyframes pg2 {
+            from, to {
+                animation-timing-function: ease-in;
+                background-color: #9ca3af;
+                transform: translate3d(0, 0, 1px) rotateY(0.3deg);
+            }
+            5%, 10% {
+                animation-timing-function: ease-in-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(0.3deg);
+            }
+            20%, 25% {
+                animation-timing-function: ease-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(179.9deg);
+            }
+            30%, 70% {
+                animation-timing-function: ease-in;
+                background-color: #9ca3af;
+                transform: translate3d(0, 0, 1px) rotateY(179.9deg);
+            }
+            75%, 80% {
+                animation-timing-function: ease-in-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(179.9deg);
+            }
+            90%, 95% {
+                animation-timing-function: ease-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(0.3deg);
+            }
+        }
+        @keyframes pg3 {
+            from, 10%, 90%, to {
+                animation-timing-function: ease-in;
+                background-color: #9ca3af;
+                transform: translate3d(0, 0, 1px) rotateY(0.2deg);
+            }
+            15%, 20% {
+                animation-timing-function: ease-in-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(0.2deg);
+            }
+            30%, 35% {
+                animation-timing-function: ease-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(179.8deg);
+            }
+            40%, 60% {
+                animation-timing-function: ease-in;
+                background-color: #9ca3af;
+                transform: translate3d(0, 0, 1px) rotateY(179.8deg);
+            }
+            65%, 70% {
+                animation-timing-function: ease-in-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(179.8deg);
+            }
+            80%, 85% {
+                animation-timing-function: ease-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(0.2deg);
+            }
+        }
+        @keyframes pg4 {
+            from, 20%, 80%, to {
+                animation-timing-function: ease-in;
+                background-color: #9ca3af;
+                transform: translate3d(0, 0, 1px) rotateY(0.1deg);
+            }
+            25%, 30% {
+                animation-timing-function: ease-in-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(0.1deg);
+            }
+            40%, 45% {
+                animation-timing-function: ease-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(179.7deg);
+            }
+            50% {
+                animation-timing-function: ease-in;
+                background-color: #9ca3af;
+                transform: translate3d(0, 0, 1px) rotateY(179.7deg);
+            }
+            55%, 60% {
+                animation-timing-function: ease-in-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(179.7deg);
+            }
+            70%, 75% {
+                animation-timing-function: ease-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(0.1deg);
+            }
+        }
+        @keyframes pg5 {
+            from, 30%, 70%, to {
+                animation-timing-function: ease-in;
+                background-color: #9ca3af;
+                transform: translate3d(0, 0, 1px) rotateY(0);
+            }
+            35%, 40% {
+                animation-timing-function: ease-in-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(0deg);
+            }
+            50% {
+                animation-timing-function: ease-in-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(179.6deg);
+            }
+            60%, 65% {
+                animation-timing-function: ease-out;
+                background-color: #ffffff;
+                transform: translate3d(0, 0, 1px) rotateY(0);
             }
         }
     </style>
 </head>
-<body class="bg-[#F8FAFC] font-sans text-[#1E293B] min-h-screen flex flex-col antialiased">
+<body class="min-h-screen flex overflow-hidden font-sans">
 
-    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-md w-full" style="z-index:40000000"></div>
+    <div class="loader active" id="workspaceLoader">
+        <div class="book">
+            <div class="book__pg-shadow"></div>
+            <div class="book__pg -small">TUNU PUBLISHERS</div>
+            <div class="book__pg book__pg--2"></div>
+            <div class="book__pg book__pg--3"></div>
+            <div class="book__pg book__pg--4"></div>
+            <div class="book__pg book__pg--5 -small">TUNU PUBLISHERS</div>
+        </div>
+        <h4 id="auth-feedback" class="text-xs font-bold text-magenta mt-6 tracking-widest uppercase">Initializing Executive Area...</h4>
+    </div>
 
-    <header class="bg-brandPurple text-white shadow-sm border-b border-brandPurpleDark/20 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-14">
-                <div class="flex items-center gap-3">
-                    <button id="sidebar-toggle" class="md:hidden text-white focus:outline-none hover:text-brandOrange transition-colors">
-                        <i class="fa-solid fa-bars text-lg"></i>
-                    </button>
-                    <div class="flex items-center gap-2">
-                        <span class="bg-white text-brandPurple font-black px-2.5 py-0.5 text-base tracking-wider">TUNU</span>
-                        <span class="font-bold text-xs tracking-widest text-purple-100 hidden sm:inline-block">ADMINISTRATIVE CORE</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-[10px] uppercase tracking-wider text-purple-200">Session Node</p>
-                        <p class="text-xs font-bold">{{ admin.name }}</p>
-                    </div>
-                    <div class="h-7 w-7 bg-brandOrange flex items-center justify-center font-bold text-xs text-white border border-white/20 shadow-inner">
-                        {{ admin.name[0] | upper }}
-                    </div>
-                    <a href="/staff/logout" class="bg-brandOrange hover:bg-brandOrangeDark text-white px-3 py-1 text-xs font-semibold flex items-center gap-1.5 transition-all border border-brandOrangeDark/40">
-                        <i class="fa-solid fa-power-off text-[10px]"></i>
-                        <span>Logout</span>
-                    </a>
-                </div>
+    <div id="modalOverlay" class="fixed inset-0 bg-black/60 z-[1000] hidden backdrop-blur-sm transition-all" onclick="closeAllModals()"></div>
+
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-lg bg-white rounded-2xl shadow-2xl p-6 md:p-8 z-[1100] hidden max-h-[90vh] overflow-y-auto" id="modalPost">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-3">
+            <h3 class="text-base font-bold text-dark-magenta uppercase tracking-wider">Create New Article</h3>
+            <button onclick="closeAllModals()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-lg"></i></button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Title</label>
+                <input type="text" placeholder="e.g. The Future of African Literature" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
+                <select class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+                    <option>Culture</option>
+                    <option>Tech</option>
+                    <option>Literature</option>
+                    <option>News</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Content Snippet</label>
+                <textarea placeholder="Write a short summary..." class="w-full border border-gray-300 rounded-lg p-3 text-xs h-28 outline-none focus:border-magenta resize-none"></textarea>
+            </div>
+            <button class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold py-3.5 rounded-lg text-xs uppercase tracking-wider" onclick="closeAllModals()">Publish Now</button>
+        </div>
+    </div>
+
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-lg bg-white rounded-2xl shadow-2xl p-6 md:p-8 z-[1100] hidden max-h-[90vh] overflow-y-auto" id="modalStaff">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-3">
+            <h3 class="text-base font-bold text-dark-magenta uppercase tracking-wider">Staff Management</h3>
+            <button onclick="closeAllModals()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-lg"></i></button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
+                <input type="text" id="staffName" placeholder="Staff Name" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email Address</label>
+                <input type="email" id="staffEmail" placeholder="email@tunu.com" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Phone Number</label>
+                <input type="text" id="staffPhone" placeholder="+254..." class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Location</label>
+                <input type="text" id="staffLocation" value="Nairobi" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="staffIsAdmin" class="accent-magenta">
+                <label for="staffIsAdmin" class="text-xs font-semibold text-gray-600">Grant Administrator Privileges</label>
+            </div>
+            <div class="text-[10px] text-gray-500 p-3 bg-gray-50 rounded-lg border border-gray-100 flex gap-2">
+                <i class="fas fa-info-circle text-magenta text-sm shrink-0"></i>
+                <span>New accounts are issued a temporary password and must change it on first login.</span>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button class="flex-1 bg-magenta hover:bg-dark-magenta text-white font-bold py-3.5 rounded-lg text-xs uppercase tracking-wider" onclick="saveStaff()">Save Staff Account</button>
+                <button class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3.5 rounded-lg text-xs uppercase tracking-wider" onclick="closeAllModals()">Discard</button>
             </div>
         </div>
-    </header>
+    </div>
 
-    <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 flex-1 flex flex-col md:flex-row gap-5">
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-lg bg-white rounded-2xl shadow-2xl p-6 md:p-8 z-[1100] hidden max-h-[90vh] overflow-y-auto" id="modalUser">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-3">
+            <h3 class="text-base font-bold text-dark-magenta uppercase tracking-wider">Register New Reader</h3>
+            <button onclick="closeAllModals()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-lg"></i></button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
+                <input type="text" placeholder="First and Last name" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email Address</label>
+                <input type="email" placeholder="email@example.com" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Initial Credits (KES)</label>
+                <input type="number" value="0" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+            </div>
+            <button class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold py-3.5 rounded-lg text-xs uppercase tracking-wider" onclick="closeAllModals()">Create Account</button>
+        </div>
+    </div>
+
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-lg bg-white rounded-2xl shadow-2xl p-6 md:p-8 z-[1100] hidden max-h-[90vh] overflow-y-auto" id="modalBook">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-3">
+            <h3 class="text-base font-bold text-dark-magenta uppercase tracking-wider">Book Details</h3>
+            <button onclick="closeAllModals()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-lg"></i></button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Book Title</label>
+                <input type="text" id="bookTitle" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Book Image File</label>
+                <input type="file" accept="image/png, image/jpeg" id="bookImage" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs outline-none file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-magenta/10 file:text-magenta hover:file:bg-magenta/20">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Author</label>
+                <input type="text" id="bookAuthor" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Old Price</label>
+                    <input type="number" id="bookOldPrice" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">New Price</label>
+                    <input type="number" id="bookNewPrice" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Grade / Audience</label>
+                <input type="text" id="grade" placeholder="e.g. Grade 4, General Audience" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Discount Status</label>
+                <select id="bookDiscounted" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                </select>
+            </div>
+            <button class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold py-3.5 rounded-lg text-xs uppercase tracking-wider" id="saveBook" onclick="saveBook()">Save Book Details</button>
+        </div>
+    </div>
+
+    <aside class="sidebar bg-[#111111] text-white flex flex-col shrink-0 z-[1001] fixed md:relative h-full max-w-[80vw] -translate-x-full md:translate-x-0 overflow-auto" id="sidebar">
+        <div class="p-6 text-center border-b border-white/5 flex flex-col items-center gap-3">
+            <img src="/static/icons/tunu_logo.png" alt="TUNU" class="h-12 w-12 object-contain bg-white rounded-xl p-1" onerror="this.src='https://placehold.co/48x48/8B008B/ffffff?text=T'">
+            <div>
+                <div class="font-extrabold text-sm tracking-widest text-white">TUNU PUBLISHERS</div>
+                <div class="text-[9px] font-bold text-orangered uppercase tracking-widest mt-1">EXECUTIVE PANEL</div>
+            </div>
+        </div>
         
-        <aside id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out z-50 md:z-0 bg-white md:bg-transparent w-64 md:w-52 shrink-0 flex flex-col gap-1 p-4 md:p-0 shadow-lg md:shadow-none border-r border-slate-200 md:border-none">
-            <div class="flex items-center justify-between mb-5 md:hidden">
-                <span class="text-brandPurple font-bold text-sm tracking-wider uppercase">Navigation</span>
-                <button id="sidebar-close" class="text-slate-500 hover:text-black">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+        <nav class="flex-1 py-3 overflow-auto space-y-0.5">
+            <div class="px-5 py-2 text-[10px] uppercase tracking-wider text-gray-500 font-bold">Main Dashboard</div>
+            <a onclick="switchPage('insights', this)" class="nav-item active flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-chart-pie w-4 text-center"></i> Insights Workspace</a>
+            <a onclick="switchPage('orders', this)" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-shopping-bag w-4 text-center"></i> Orders & Logistics</a>
+            
+            <div class="px-5 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-bold">Content & Team</div>
+            <a onclick="switchPage('inventory', this)" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-book w-4 text-center"></i> Book Stock Inventory</a>
+            <a onclick="switchPage('staff', this)" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-users w-4 text-center"></i> Staff Accounts</a>
+            <a onclick="switchPage('blog', this)" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-pen-nib w-4 text-center"></i> Blog Articles</a>
+            <a onclick="switchPage('readers', this)" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-user-graduate w-4 text-center"></i> Reader Directory</a>
+            
+            <div class="px-5 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-bold">Performance Logs</div>
+            <a onclick="switchPage('sales', this)" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-file-invoice-dollar w-4 text-center"></i> Daily Sales Performance</a>
+
+            <a href='/clear-cache' class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-red-400 cursor-pointer"><i class="fas fa-file-invoice-dollar w-4 text-center"></i> Clear Cache</a>
+            
+            <div class="pt-6 pb-4 border-t border-white/5 mt-auto">
+                <a class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-cog w-4 text-center"></i> Panel Settings</a>
+                <a href="/staff/logout" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-red-400 hover:text-red-300 cursor-pointer"><i class="fas fa-sign-out-alt w-4 text-center"></i> Logout Session</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="flex-grow flex flex-col h-screen overflow-hidden bg-gray-50 w-full">
+        <header class="bg-white h-16 md:h-20 shadow-sm flex items-center justify-between px-4 md:px-10 z-[100] shrink-0 border-b border-gray-100 gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <button class="md:hidden text-dark-magenta text-lg p-2 rounded-lg bg-gray-100 shrink-0" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <div id="pageTitle" class="font-extrabold text-xs md:text-lg text-dark-magenta uppercase tracking-wider truncate">Executive Overview</div>
+            </div>
+            
+            <div class="flex items-center gap-3 md:gap-4 shrink-0">
+                <div class="text-right hidden sm:block">
+                    <div class="font-extrabold text-xs text-gray-800 uppercase tracking-wider">{{ admin.name }}</div>
+                    <div class="text-[10px] text-orangered font-bold uppercase tracking-widest mt-0.5">CHIEF ADMINISTRATOR</div>
+                </div>
+                <div class="avatar h-9 w-9 md:h-10 md:w-10 bg-magenta hover:bg-dark-magenta transition-all rounded-full flex items-center justify-center text-white font-extrabold text-xs uppercase shadow shrink-0">
+                    {{ admin.name[:2] }}
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-grow overflow-y-auto p-4 md:p-10" id="mainDashboardScroll">
+            
+            <div id="insights" class="page-content active space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Book Catalog</span>
+                            <span class="text-2xl font-black text-gray-800 block">{{ total_books }}</span>
+                            <span class="text-[10px] text-green-500 font-extrabold uppercase tracking-wide flex items-center gap-1 mt-1"><i class="fas fa-arrow-up"></i> Active Stock</span>
+                        </div>
+                        <div class="h-12 w-12 rounded-xl bg-purple-50 text-magenta flex items-center justify-center text-lg"><i class="fas fa-book"></i></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Total Orders</span>
+                            <span class="text-2xl font-black text-gray-800 block">{{ total_orders }}</span>
+                            <span class="text-[10px] text-green-500 font-extrabold uppercase tracking-wide flex items-center gap-1 mt-1"><i class="fas fa-arrow-up"></i> In System</span>
+                        </div>
+                        <div class="h-12 w-12 rounded-xl bg-orange-50 text-orangered flex items-center justify-center text-lg"><i class="fas fa-shopping-cart"></i></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Executive Team</span>
+                            <span class="text-2xl font-black text-gray-800 block">{{ total_staff }}</span>
+                            <span class="text-[10px] text-indigo-500 font-extrabold uppercase tracking-wide flex items-center gap-1 mt-1"><i class="fas fa-check-circle"></i> Registered staff</span>
+                        </div>
+                        <div class="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg"><i class="fas fa-users"></i></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Monthly Visits</span>
+                            <span class="text-2xl font-black text-gray-800 block">{{ monthly_reports }}</span>
+                            <span class="text-[10px] text-green-500 font-extrabold uppercase tracking-wide flex items-center gap-1 mt-1"><i class="fas fa-arrow-up"></i> Active Reports</span>
+                        </div>
+                        <div class="h-12 w-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-lg"><i class="fas fa-chart-line"></i></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
+                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest mb-6 border-l-2 border-magenta pl-2">Executive Revenue Pipeline</h4>
+                        <div class="h-80 w-full"><canvas id="revenueChart"></canvas></div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:col-span-1">
+                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest mb-6 border-l-2 border-magenta pl-2">Book Category Split</h4>
+                        <div class="h-80 w-full flex items-center justify-center"><canvas id="categoryChart"></canvas></div>
+                    </div>
+                </div>
             </div>
 
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 py-1.5">Management</p>
-            <button onclick="switchTab('overview')" data-tab="overview" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold transition-all bg-brandPurple text-white border-l-2 border-brandOrange">
-                <i class="fa-solid fa-chart-line w-4 text-center text-[13px]"></i>
-                Control Panel
-            </button>
-            <button onclick="switchTab('books')" data-tab="books" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-brandPurple border-l-2 border-transparent">
-                <i class="fa-solid fa-book-open w-4 text-center text-[13px]"></i>
-                Books Inventory
-            </button>
-            <button onclick="switchTab('staff')" data-tab="staff" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-brandPurple border-l-2 border-transparent">
-                <i class="fa-solid fa-user-shield w-4 text-center text-[13px]"></i>
-                Personnel Directory
-            </button>
-            <button onclick="switchTab('submissions')" data-tab="submissions" class="tab-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-brandPurple border-l-2 border-transparent">
-                <i class="fa-solid fa-file-shield w-4 text-center text-[13px]"></i>
-                Field Invoices
-            </button>
+            <div id="orders" class="page-content hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Order Management Console</h4>
+                        <button class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors">Export CSV</button>
+                    </div>
 
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 py-1.5 mt-4">Database Tools</p>
-            <button onclick="triggerReset()" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-red-50 hover:text-red-700 transition-all border-l-2 border-transparent">
-                <i class="fa-solid fa-screwdriver-wrench w-4 text-center text-[13px]"></i>
-                Rebuild Schema
-            </button>
-            <button onclick="triggerDummy()" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-purple-50 hover:text-brandPurple transition-all border-l-2 border-transparent">
-                <i class="fa-solid fa-database w-4 text-center text-[13px]"></i>
-                Seed Dummy Data
-            </button>
-        </aside>
-
-        <main class="flex-1 min-w-0">
-            
-            <section id="tab-overview" class="tab-content space-y-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-white p-4 border border-slate-200 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Field Visits (30D)</p>
-                            <h3 class="text-xl font-black text-brandPurple mt-0.5">
-                                {% if visits_this_month is number %}
-                                    {{ visits_this_month }}
-                                {% else %}
-                                    {{ visits_this_month.count() }}
-                                {% endif %}
-                            </h3>
-                        </div>
-                        <div class="h-9 w-9 bg-slate-50 border border-slate-200 flex items-center justify-center text-brandPurple text-sm">
-                            <i class="fa-solid fa-location-arrow"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white p-4 border border-slate-200 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Reports Logged Today</p>
-                            <h3 class="text-xl font-black text-brandOrange mt-0.5">
-                                {% if reports_today is number %}
-                                    {{ reports_today }}
-                                {% else %}
-                                    {{ reports_today.count() }}
-                                {% endif %}
-                            </h3>
-                        </div>
-                        <div class="h-9 w-9 bg-slate-50 border border-slate-200 flex items-center justify-center text-brandOrange text-sm">
-                            <i class="fa-solid fa-calendar-day"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white p-4 border border-slate-200 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Cataloged Volumes</p>
-                            <h3 class="text-xl font-black text-slate-800 mt-0.5">{{ books | length }}</h3>
-                        </div>
-                        <div class="h-9 w-9 bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 text-sm">
-                            <i class="fa-solid fa-boxes-stacked"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white p-4 border border-slate-200 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Authentication</p>
-                            <div class="mt-1">
-                                {% if admin.is_super_admin %}
-                                <span class="bg-red-50 text-red-700 text-[10px] font-extrabold px-2 py-0.5 border border-red-200 uppercase tracking-wider">Super Administrator</span>
-                                {% else %}
-                                <span class="bg-purple-50 text-brandPurple text-[10px] font-extrabold px-2 py-0.5 border border-purple-200 uppercase tracking-wider">Manager</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="h-9 w-9 bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 text-sm">
-                            <i class="fa-solid fa-key"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                    <div class="bg-white border border-slate-200 shadow-sm lg:col-span-2 flex flex-col">
-                        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
-                            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                                <i class="fa-solid fa-list-check text-brandPurple"></i> Recent Regional Actions
-                            </h4>
-                            <button onclick="switchTab('submissions')" class="text-[10px] font-bold text-brandOrange hover:underline uppercase tracking-wider">Open Directory</button>
-                        </div>
-                        <div class="overflow-x-auto custom-scrollbar flex-1">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="border-b border-slate-200 bg-slate-50 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                                        <th class="py-2 px-4">Entity Name</th>
-                                        <th class="py-2 px-4">Officer</th>
-                                        <th class="py-2 px-4">Classification</th>
-                                        <th class="py-2 px-4 text-right">Date Stamp</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 text-xs">
-                                    {% if recent_submissions %}
-                                        {% for sub in recent_submissions %}
-                                        <tr class="hover:bg-slate-50/50 transition-colors">
-                                            <td class="py-2.5 px-4 font-bold text-slate-800">{{ sub.institution_name }}</td>
-                                            <td class="py-2.5 px-4 text-slate-600">{{ sub.staffName }}</td>
-                                            <td class="py-2.5 px-4">
-                                                <span class="bg-slate-100 text-slate-700 px-1.5 py-0.5 border border-slate-200 font-mono text-[10px] uppercase font-bold">{{ sub.category or 'N/A' }}</span>
-                                            </td>
-                                            <td class="py-2.5 px-4 text-right text-slate-400 font-mono">{{ sub.submitted_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    {% else %}
-                                        <tr>
-                                            <td colspan="4" class="py-6 text-center text-slate-400 font-mono text-[11px]">No active transmissions reported.</td>
-                                        </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
+                    <div class="p-4 border-b border-gray-100">
+                        <div class="relative max-w-sm">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+                            <input type="text" id="ordersSearch" placeholder="Search by name, phone or order ID..." class="w-full border border-gray-300 rounded-full pl-9 pr-4 py-2.5 text-xs outline-none focus:border-magenta">
                         </div>
                     </div>
 
-                    <div class="bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
-                        <div class="px-4 py-3 border-b border-slate-200 bg-slate-50">
-                            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                                <i class="fa-solid fa-terminal text-brandOrange"></i> Console Core
-                            </h4>
-                        </div>
-                        <div class="p-4 flex-1">
-                            <p class="text-xs text-slate-500 leading-relaxed">Integrated core operations for catalog modification, staff verification, role setting, and live reporting auditing pipelines.</p>
-                            <div class="mt-4 p-3 bg-slate-50 border border-slate-100 font-mono text-[10px] text-slate-600 space-y-1">
-                                <p><span class="text-brandPurple font-bold">NODE:</span> production_server_2026</p>
-                                <p><span class="text-brandPurple font-bold">ENGINE:</span> Flask-SQLAlchemy</p>
-                                <p><span class="text-brandPurple font-bold">TIMEZONE:</span> GMT+3 (Nairobi)</p>
-                            </div>
-                        </div>
-                        <div class="p-4 border-t border-slate-200 bg-slate-50 space-y-2">
-                            <button onclick="openBookModal()" class="w-full bg-brandPurple hover:bg-brandPurpleDark text-white font-bold text-xs py-2 px-3 flex items-center justify-between transition-all shadow-sm border border-brandPurpleDark">
-                                <span>ADD BOOK VOLUME</span>
-                                <i class="fa-solid fa-plus text-[10px]"></i>
-                            </button>
-                            <button onclick="openAddStaffModal()" class="w-full bg-brandOrange hover:bg-brandOrangeDark text-white font-bold text-xs py-2 px-3 flex items-center justify-between transition-all shadow-sm border border-brandOrangeDark">
-                                <span>REGISTER STAFF MEMBER</span>
-                                <i class="fa-solid fa-user-plus text-[10px]"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                    <!-- MOBILE CARDS -->
+                    <div class="md:hidden divide-y divide-gray-100" id="ordersMobileList"></div>
 
-            <section id="tab-books" class="tab-content hidden space-y-4">
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 border border-slate-200 shadow-sm">
-                    <div class="relative flex-1">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="book-search" placeholder="Filter inventory catalog by keywords..." class="w-full pl-8 pr-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                    </div>
-                    <button onclick="openBookModal()" class="bg-brandPurple hover:bg-brandPurpleDark text-white px-4 py-1.5 text-xs font-bold flex items-center justify-center gap-2 transition-all border border-brandPurpleDark shadow-sm whitespace-nowrap">
-                        <i class="fa-solid fa-plus"></i> NEW VOLUME
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="books-grid">
-                    {% for book in books %}
-                    <div class="bg-white border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between book-card" data-title="{{ book.title | lower }}" data-authors="{{ book.authors | lower }}">
-                        <div class="p-3 flex gap-3">
-                            <div class="w-16 h-24 bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center overflow-hidden">
-                                <img src="{{ book.image }}" alt="{{ book.title }}" class="w-full h-full object-cover" onerror="this.src='/static/icons/tunu_logo.png'">
-                            </div>
-                            <div class="flex-1 min-w-0 flex flex-col justify-between">
-                                <div>
-                                    <h5 class="font-bold text-xs text-slate-900 leading-tight truncate" title="{{ book.title }}">{{ book.title }}</h5>
-                                    <p class="text-[10px] text-slate-500 truncate mt-0.5">Authors: {{ book.authors or 'Tunu Publishers' }}</p>
-                                    <div class="flex flex-wrap gap-1 mt-1.5">
-                                        {% if book.grade %}
-                                        <span class="bg-purple-50 text-brandPurple text-[9px] font-bold px-1.5 py-0.2 border border-purple-100 uppercase tracking-wide">{{ book.grade }}</span>
-                                        {% endif %}
-                                        {% if book.audience %}
-                                        <span class="bg-orange-50 text-brandOrange text-[9px] font-bold px-1.5 py-0.2 border border-orange-100 uppercase tracking-wide">{{ book.audience }}</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="mt-1">
-                                    <div class="flex items-baseline gap-1.5">
-                                        <span class="text-brandPurple font-black text-xs">Ksh {{ book.newPrice }}</span>
-                                        {% if book.oldPrice and book.oldPrice > 0 %}
-                                        <span class="text-slate-400 line-through text-[9px]">Ksh {{ book.oldPrice }}</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 px-3 py-2 border-t border-slate-200 flex items-center justify-between text-[11px]">
-                            <p class="font-mono text-[9px] text-slate-400">UUID: {{ book.id }}</p>
-                            <div class="flex gap-1.5">
-                                <button onclick="openBookModal({
-                                    id: '{{ book.id }}',
-                                    title: '{{ book.title | escape }}',
-                                    authors: '{{ book.authors | escape }}',
-                                    grade: '{{ book.grade | escape }}',
-                                    audience: '{{ book.audience | escape }}',
-                                    newPrice: '{{ book.newPrice }}',
-                                    oldPrice: '{{ book.oldPrice }}',
-                                    image: '{{ book.image }}'
-                                })" class="text-slate-700 hover:text-brandPurple font-bold bg-white border border-slate-200 px-2 py-0.5 transition-colors text-[10px]">
-                                    Edit
-                                </button>
-                                <button onclick="deleteBook('{{ book.id }}')" class="text-red-700 hover:bg-red-50 font-bold px-2 py-0.5 border border-transparent hover:border-red-200 transition-colors text-[10px]">
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-
-            <section id="tab-staff" class="tab-content hidden space-y-4">
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 border border-slate-200 shadow-sm">
-                    <div class="relative flex-1">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="staff-search" placeholder="Filter staff by name or phone..." class="w-full pl-8 pr-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                    </div>
-                    <button onclick="openAddStaffModal()" class="bg-brandOrange hover:bg-brandOrangeDark text-white px-4 py-1.5 text-xs font-bold flex items-center justify-center gap-2 transition-all border border-brandOrangeDark shadow-sm whitespace-nowrap">
-                        <i class="fa-solid fa-user-plus"></i> REGISTER PERSONNEL
-                    </button>
-                </div>
-
-                <div class="bg-white border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-left border-collapse" id="staff-table">
-                            <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                                    <th class="py-2.5 px-4">System Key</th>
-                                    <th class="py-2.5 px-4">Officer Details</th>
-                                    <th class="py-2.5 px-4">Phone contact</th>
-                                    <th class="py-2.5 px-4">Location Node</th>
-                                    <th class="py-2.5 px-4">Security Level</th>
-                                    <th class="py-2.5 px-4">Operational State</th>
-                                    <th class="py-2.5 px-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 text-xs">
-
-                                {% for s in staff_dict %}
-                                    
-                                    <tr class="hover:bg-slate-50/50 transition-colors staff-row" data-name="{{ s.name | lower }}" data-phone="{{ s.phone }}">
-                                        <td class="py-3 px-4 font-mono text-[10px] font-bold text-slate-500">{{ s.id }}</td>
-                                        <td class="py-3 px-4">
-                                            <div class="flex items-center gap-2.5">
-                                                <div class="h-6 w-6 bg-slate-100 text-brandPurple border border-slate-200 font-bold flex items-center justify-center text-[10px]">
-                                                    {{ s.name[0] | upper }}
-                                                </div>
-                                                <div>
-                                                    <p class="font-bold text-slate-900">{{ s.name }}</p>
-                                                    <p class="text-[10px] text-slate-400">{{ s.email or 'N/A' }}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3 px-4 text-slate-600 font-mono text-[10px]">{{ s.phone }}</td>
-                                        <td class="py-3 px-4 text-slate-500 font-medium">{{ s.location }}</td>
-                                        <td class="py-3 px-4">
-                                            {% if s.is_admin %}
-                                            <span class="bg-purple-100 text-brandPurple border border-purple-200 text-[9px] font-extrabold px-1.5 py-0.2 uppercase tracking-wide">Administrator</span>
-                                            {% else %}
-                                            <span class="bg-slate-100 text-slate-600 border border-slate-200 text-[9px] font-extrabold px-1.5 py-0.2 uppercase tracking-wide">Staff</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="py-3 px-4">
-                                            {% if s.is_active %}
-                                            <span class="inline-flex items-center gap-1 text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.2 uppercase tracking-wide">
-                                                Active
-                                            </span>
-                                            {% else %}
-                                            <span class="inline-flex items-center gap-1 text-[9px] font-bold bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.2 uppercase tracking-wide">
-                                                Disabled
-                                            </span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="py-3 px-4 text-right">
-                                            <div class="inline-flex gap-1">
-                                                <button onclick="openStaffModal({
-                                                    id: '{{ s.id }}',
-                                                    name: '{{ s.name | escape }}',
-                                                    email: '{{ s.email | escape }}',
-                                                    phone: '{{ s.phone | escape }}',
-                                                    location: '{{ s.location | escape }}',
-                                                    is_admin: {{ 'true' if s.is_admin else 'false' }}
-                                                })" class="text-brandPurple hover:text-brandPurpleDark font-bold text-[10px] bg-slate-50 border border-slate-200 hover:bg-slate-100 px-2 py-0.5 transition-all">
-                                                    Edit
-                                                </button>
-                                                <button onclick="toggleStaff('{{ s.id }}')" class="{% if s.is_active %}text-red-700 bg-red-50 hover:bg-red-100 border border-red-200{% else %}text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200{% endif %} font-bold text-[10px] px-2 py-0.5 transition-all">
-                                                    {% if s.is_active %}Deactivate{% else %}Activate{% endif %}
-                                                </button>
-                                                <button onclick="deleteStaff('{{ s.id }}')" class="text-slate-400 hover:text-red-700 font-bold px-1.5 py-0.5 border border-transparent hover:border-red-200 hover:bg-red-50 transition-all text-[10px]">
-                                                    <i class="fa-solid fa-trash-can"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <section id="tab-submissions" class="tab-content hidden space-y-4">
-                <div class="bg-white border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div>
-                            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-700">Institutional Submissions</h4>
-                            <p class="text-[10px] text-slate-400 font-bold mt-0.5 uppercase tracking-wider">Live feeds synchronized with mobile field agents</p>
-                        </div>
-                        <div class="relative w-full sm:w-64">
-                            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" id="report-search" placeholder="Search institutions..." class="w-full pl-8 pr-3 py-1 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-white">
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto custom-scrollbar">
+                    <div class="overflow-x-auto hidden md:block">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                                    <th class="py-2.5 px-4">Log Key</th>
-                                    <th class="py-2.5 px-4">Entity Identity</th>
-                                    <th class="py-2.5 px-4">Principal Contact</th>
-                                    <th class="py-2.5 px-4">Liaison Officer</th>
-                                    <th class="py-2.5 px-4">Core Report Notes</th>
-                                    <th class="py-2.5 px-4 text-right">System Stamp</th>
+                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
+                                    <th class="p-4">Order ID</th>
+                                    <th class="p-4">Customer Details</th>
+                                    <th class="p-4">Grand Total</th>
+                                    <th class="p-4">Status</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100 text-xs" id="report-table-body">
-                                {% if recent_submissions %}
-                                    {% for sub in recent_submissions %}
-                                    <tr class="report-row hover:bg-slate-50/50 transition-colors" data-inst="{{ sub.institution_name | lower }}">
-                                        <td class="py-3 px-4 font-mono text-[10px] font-bold text-slate-400">{{ sub.id }}</td>
-                                        <td class="py-3 px-4">
-                                            <p class="font-bold text-slate-900">{{ sub.institution_name }}</p>
-                                            <span class="bg-orange-50 text-brandOrange border border-orange-100 px-1.5 py-0.2 text-[9px] font-bold mt-0.5 inline-block uppercase tracking-wide">{{ sub.category or 'General' }}</span>
-                                        </td>
-                                        <td class="py-3 px-4">
-                                            <p class="font-bold text-slate-700">{{ sub.contact_person or 'N/A' }}</p>
-                                            <p class="text-[10px] font-mono text-slate-400 mt-0.5">{{ sub.phone or 'N/A' }}</p>
-                                        </td>
-                                        <td class="py-3 px-4 text-slate-600 font-bold">{{ sub.staffName }}</td>
-                                        <td class="py-3 px-4 max-w-xs">
-                                            <div class="space-y-0.5">
-                                                <p class="text-[11px] text-slate-600 line-clamp-2" title="{{ sub.conversation_notes }}"><strong class="text-brandPurple font-bold uppercase tracking-wider text-[9px]">Notes:</strong> {{ sub.conversation_notes or 'No details specified.' }}</p>
-                                                {% if sub.challenges %}
-                                                <p class="text-[11px] text-red-600 line-clamp-2" title="{{ sub.challenges }}"><strong class="font-bold uppercase tracking-wider text-[9px]">Challenges:</strong> {{ sub.challenges }}</p>
-                                                {% endif %}
-                                            </div>
-                                        </td>
-                                        <td class="py-3 px-4 text-right font-mono text-[10px] text-slate-400">
-                                            {{ sub.submitted_at.strftime('%Y-%m-%d') }}<br>
-                                            <span class="text-[9px] text-slate-300">{{ sub.submitted_at.strftime('%H:%M:%S') }}</span>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr>
-                                        <td colspan="6" class="py-12 text-center text-slate-400 font-mono text-xs">No submission records cataloged.</td>
-                                    </tr>
-                                {% endif %}
+                            <tbody class="divide-y divide-gray-100 text-xs" id="ordersTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3" id="ordersPaginationWrap">
+                        <span class="text-[10px] text-gray-400 font-semibold" id="ordersResultCount"></span>
+                        <div class="flex items-center gap-2" id="ordersPagination"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="inventory" class="page-content hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Book Stock Database</h4>
+                        <button class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors" onclick="openBookModalForAdd()">+ Add New Book</button>
+                    </div>
+
+                    <div class="p-4 border-b border-gray-100">
+                        <div class="relative max-w-sm">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+                            <input type="text" id="booksSearch" placeholder="Search by title or author..." class="w-full border border-gray-300 rounded-full pl-9 pr-4 py-2.5 text-xs outline-none focus:border-magenta">
+                        </div>
+                    </div>
+
+                    <!-- MOBILE CARDS -->
+                    <div class="md:hidden divide-y divide-gray-100 booksTableMobile" id="booksMobileList"></div>
+
+                    <div class="overflow-x-auto hidden md:block">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
+                                    <th class="p-4">Book Title</th>
+                                    <th class="p-4">Author(s)</th>
+                                    <th class="p-4">Price Structure</th>
+                                    <th class="p-4 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-xs booksTable" id="booksTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <span class="text-[10px] text-gray-400 font-semibold" id="booksResultCount"></span>
+                        <div class="flex items-center gap-2" id="booksPagination"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="staff" class="page-content hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Executive Team Accounts</h4>
+                        <button class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors" onclick="openModal('modalStaff')">+ Add Staff Member</button>
+                    </div>
+
+                    <div class="p-4 border-b border-gray-100">
+                        <div class="relative max-w-sm">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+                            <input type="text" id="staffSearch" placeholder="Search by name, phone or email..." class="w-full border border-gray-300 rounded-full pl-9 pr-4 py-2.5 text-xs outline-none focus:border-magenta">
+                        </div>
+                    </div>
+
+                    <!-- MOBILE CARDS -->
+                    <div class="md:hidden divide-y divide-gray-100" id="staffMobileList"></div>
+
+                    <div class="overflow-x-auto hidden md:block">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
+                                    <th class="p-4">Staff ID</th>
+                                    <th class="p-4">Name Details</th>
+                                    <th class="p-4">Phone Number</th>
+                                    <th class="p-4">Privilege Role</th>
+                                    <th class="p-4 text-center">Status Control</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-xs" id="staffTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <span class="text-[10px] text-gray-400 font-semibold" id="staffResultCount"></span>
+                        <div class="flex items-center gap-2" id="staffPagination"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="blog" class="page-content hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Published Blog Articles</h4>
+                        <button class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors" onclick="openModal('modalPost')">Write New Post</button>
+                    </div>
+                    <!-- MOBILE CARDS -->
+                    <div class="md:hidden divide-y divide-gray-100">
+                        <div class="p-4 flex flex-col gap-2">
+                            <div class="text-xs font-extrabold text-gray-800">Kenya's Literary Renaissance</div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[10px] font-bold text-gray-500">May 02, 2026</span>
+                                <span class="text-xs font-black text-magenta">1,402 reads</span>
+                            </div>
+                            <button class="self-start px-3 py-1 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 font-bold text-[10px] uppercase tracking-wider">Edit</button>
+                        </div>
+                        <div class="p-4 flex flex-col gap-2">
+                            <div class="text-xs font-extrabold text-gray-800">Why Digital Publishing is Pivotal</div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[10px] font-bold text-gray-500">Apr 28, 2026</span>
+                                <span class="text-xs font-black text-magenta">890 reads</span>
+                            </div>
+                            <button class="self-start px-3 py-1 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 font-bold text-[10px] uppercase tracking-wider">Edit</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto hidden md:block">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
+                                    <th class="p-4">Article Title</th>
+                                    <th class="p-4">Publish Date</th>
+                                    <th class="p-4">Read Count</th>
+                                    <th class="p-4 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-xs">
+                                <tr class="hover:bg-gray-50/50 transition-colors">
+                                    <td class="p-4 font-extrabold text-gray-800">Kenya's Literary Renaissance</td>
+                                    <td class="p-4 font-bold text-gray-500">May 02, 2026</td>
+                                    <td class="p-4 font-black text-magenta">1,402 reads</td>
+                                    <td class="p-4 text-center"><button class="px-3 py-1 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 font-bold">Edit</button></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50/50 transition-colors">
+                                    <td class="p-4 font-extrabold text-gray-800">Why Digital Publishing is Pivotal</td>
+                                    <td class="p-4 font-bold text-gray-500">Apr 28, 2026</td>
+                                    <td class="p-4 font-black text-magenta">890 reads</td>
+                                    <td class="p-4 text-center"><button class="px-3 py-1 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 font-bold">Edit</button></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </section>
-        </main>
-    </div>
-
-    <div id="book-modal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-300 w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[97vh]">
-            <div class="bg-brandPurple p-4 text-white flex items-center justify-between border-b border-brandPurpleDark">
-                <h3 id="book-modal-title" class="font-bold text-sm uppercase tracking-wider">Add New Book</h3>
-                <button onclick="closeBookModal()" class="text-white/80 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
             </div>
-            <form id="book-form" class="p-5 overflow-y-auto custom-scrollbar space-y-3">
-                <input type="hidden" id="book-id">
-                
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Book Title</label>
-                    <input type="text" id="book-form-title" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                </div>
-                
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Authors</label>
-                    <button id="add-author" type="button" onclick="newAuthor()"> <i class="fas fa-plus"></i> Add Author</button>
-                    <div class="authors-div">                   
-                </div>
-                <div class="author-pills"></div>
-                </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Class/Grade</label>
-                        <input type="text" id="book-form-grade" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50" placeholder="e.g. Grade 6, Adult">
+            <div id="readers" class="page-content hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Reader Directory</h4>
+                        <button class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors" onclick="openModal('modalUser')">+ Register New Reader</button>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Audience</label>
-                        <input type="text" id="book-form-audience" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50" placeholder="e.g. General, Students">
+                    <!-- MOBILE CARDS -->
+                    <div class="md:hidden divide-y divide-gray-100">
+                        <div class="p-4 flex flex-col gap-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-extrabold text-gray-800">Kevin Malenya</span>
+                                <span class="status-pill status-success shrink-0">Gold Partner</span>
+                            </div>
+                            <div class="text-[10px] text-gray-500 font-bold">kevin@tunu.com</div>
+                            <div class="text-xs font-black text-magenta">KES 12,400</div>
+                        </div>
+                        <div class="p-4 flex flex-col gap-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-extrabold text-gray-800">Sophy Akinyi</span>
+                                <span class="status-pill status-warning shrink-0">Standard Member</span>
+                            </div>
+                            <div class="text-[10px] text-gray-500 font-bold">sophy@tunu.com</div>
+                            <div class="text-xs font-black text-magenta">KES 2,100</div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto hidden md:block">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
+                                    <th class="p-4">Reader Name</th>
+                                    <th class="p-4">Email Contact</th>
+                                    <th class="p-4">Total Purchases</th>
+                                    <th class="p-4">Premium Membership</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-xs">
+                                <tr class="hover:bg-gray-50/50 transition-colors">
+                                    <td class="p-4 font-extrabold text-gray-800">Kevin Malenya</td>
+                                    <td class="p-4 font-bold text-gray-600">kevin@tunu.com</td>
+                                    <td class="p-4 font-black text-magenta">KES 12,400</td>
+                                    <td class="p-4"><span class="status-pill status-success">Gold Partner</span></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50/50 transition-colors">
+                                    <td class="p-4 font-extrabold text-gray-800">Sophy Akinyi</td>
+                                    <td class="p-4 font-bold text-gray-600">sophy@tunu.com</td>
+                                    <td class="p-4 font-black text-magenta">KES 2,100</td>
+                                    <td class="p-4"><span class="status-pill status-warning">Standard Member</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">New Price (Ksh)</label>
-                        <input type="number" step="0.01" id="book-form-newPrice" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Old Price (Ksh - Optional)</label>
-                        <input type="number" step="0.01" id="book-form-oldPrice" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Upload Cover File (Direct to server OS)</label>
-                    <input type="file" id="book-form-image-file" accept="image/*" class="w-full px-2 py-1 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Or Image Fallback URL</label>
-                    <input type="text" id="book-form-image" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50" placeholder="https://i.ibb.co/.../cover.png">
-                </div>
-
-                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeBookModal()" class="px-4 py-1.5 text-xs font-bold border border-slate-200 text-slate-500 hover:bg-slate-50">Cancel</button>
-                    <button type="submit" class="bg-brandOrange hover:bg-brandOrangeDark text-white px-4 py-1.5 text-xs font-bold transition-all border border-brandOrangeDark shadow-sm">Save Book Volume</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="staff-modal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-300 w-full max-w-sm shadow-2xl overflow-hidden">
-            <div class="bg-brandPurple p-4 text-white flex items-center justify-between border-b border-brandPurpleDark">
-                <h3 id="staff-modal-title" class="font-bold text-sm uppercase tracking-wider">Edit Staff Credentials</h3>
-                <button onclick="closeStaffModal()" class="text-white/80 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
             </div>
-            <form id="staff-form" class="p-5 space-y-3">
-                <input type="hidden" id="staff-id">
-                
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Officer Name</label>
-                    <input type="text" id="staff-form-name" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Node</label>
-                    <input type="email" id="staff-form-email" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                </div>
+            <div id="sales" class="page-content hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100">
+                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Visit Submission Forms & Performance</h4>
+                    </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Node</label>
-                    <input type="text" id="staff-form-phone" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                </div>
+                    <div class="p-4 border-b border-gray-100">
+                        <div class="relative max-w-sm">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+                            <input type="text" id="reportsSearch" placeholder="Search by rep or institution..." class="w-full border border-gray-300 rounded-full pl-9 pr-4 py-2.5 text-xs outline-none focus:border-magenta">
+                        </div>
+                    </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Office Hub</label>
-                    <input type="text" id="staff-form-location" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                </div>
+                    <!-- MOBILE CARDS -->
+                    <div class="md:hidden divide-y divide-gray-100" id="reportsMobileList"></div>
 
-                <div class="flex items-center gap-2 py-1">
-                    <input type="checkbox" id="staff-form-admin" class="h-3.5 w-3.5 text-brandPurple focus:ring-brandPurple border-slate-200">
-                    <label for="staff-form-admin" class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Grant Admin Privileges</label>
-                </div>
+                    <div class="overflow-x-auto hidden md:block">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
+                                    <th class="p-4">Date Submitted</th>
+                                    <th class="p-4">Representative Name</th>
+                                    <th class="p-4">Institution Name</th>
+                                    <th class="p-4">Conversation Notes</th>
+                                    <th class="p-4 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-xs" id="reportsTableBody"></tbody>
 
-                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeStaffModal()" class="px-4 py-1.5 text-xs font-bold border border-slate-200 text-slate-500 hover:bg-slate-50">Cancel</button>
-                    <button type="submit" class="bg-brandOrange hover:bg-brandOrangeDark text-white px-4 py-1.5 text-xs font-bold transition-all border border-brandOrangeDark shadow-sm">Commit Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
+                        </table>
+                    </div>
 
-    <div id="add-staff-modal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-300 w-full max-w-sm shadow-2xl overflow-hidden">
-            <div class="bg-brandPurple p-4 text-white flex items-center justify-between border-b border-brandPurpleDark">
-                <h3 class="font-bold text-sm uppercase tracking-wider">Register Personnel</h3>
-                <button onclick="closeAddStaffModal()" class="text-white/80 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+                    <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <span class="text-[10px] text-gray-400 font-semibold" id="reportsResultCount"></span>
+                        <div class="flex items-center gap-2" id="reportsPagination"></div>
+                    </div>
+                </div>
             </div>
-            <form id="add-staff-form" class="p-5 space-y-3">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Officer Name</label>
-                    <input type="text" id="add-staff-form-name" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Node (Optional)</label>
-                    <input type="email" id="add-staff-form-email" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Node</label>
-                    <input type="text" id="add-staff-form-phone" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50" placeholder="e.g. 07XXXXXXXX">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Temporary Security PIN / Password</label>
-                    <input type="password" id="add-staff-form-password" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                </div>
-
-                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeAddStaffModal()" class="px-4 py-1.5 text-xs font-bold border border-slate-200 text-slate-500 hover:bg-slate-50">Cancel</button>
-                    <button type="submit" class="bg-brandOrange hover:bg-brandOrangeDark text-white px-4 py-1.5 text-xs font-bold transition-all border border-brandOrangeDark shadow-sm">Save Registry</button>
-                </div>
-            </form>
         </div>
-    </div>
-
-    <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
-            <p>&copy; 2026 Tunu Publishers. Security Gateway.</p>
-            <p class="font-mono text-[10px] uppercase">Node Status: Operational // Database Secure</p>
-        </div>
-    </footer>
+    </main>
 
     <script>
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const bgColor = type === 'success' ? 'bg-brandPurple' : 'bg-red-700';
-            const icon = type === 'success' ? 'fa-square-check' : 'fa-triangle-exclamation';
-            
-            toast.className = `${bgColor} text-white px-3.5 py-2.5 shadow-md flex items-center justify-between gap-2.5 transition-all duration-200 text-xs font-bold border-l-4 border-white`;
-            toast.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid ${icon}"></i>
-                    <span>${message}</span>
-                </div>
-                <button class="text-white/80 hover:text-white focus:outline-none">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            `;
-            container.appendChild(toast);
-            const dismiss = () => {
-                toast.classList.add('opacity-0');
-                setTimeout(() => toast.remove(), 200);
-            };
-            toast.querySelector('button').addEventListener('click', dismiss);
-            setTimeout(dismiss, 4500);
-        }
-
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const sidebarClose = document.getElementById('sidebar-close');
-
-        sidebarToggle.addEventListener('click', () => sidebar.classList.remove('-translate-x-full'));
-        sidebarClose.addEventListener('click', () => sidebar.classList.add('-translate-x-full'));
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                if (btn.getAttribute('data-tab') === tabId) {
-                    btn.className = "tab-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold transition-all bg-brandPurple text-white border-l-2 border-brandOrange shadow-sm";
-                } else {
-                    btn.className = "tab-btn w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-brandPurple border-l-2 border-transparent";
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('workspaceLoader');
+                if (loader) {
+                    loader.classList.add('opacity-0');
+                    setTimeout(() => loader.classList.remove('active'), 300);
                 }
-            });
-            sidebar.classList.add('-translate-x-full');
-        }
-
-        const bookSearch = document.getElementById('book-search');
-        if (bookSearch) {
-            bookSearch.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase().trim();
-                document.querySelectorAll('.book-card').forEach(card => {
-                    const title = card.getAttribute('data-title');
-                    const authors = card.getAttribute('data-authors');
-                    if (title.includes(query) || authors.includes(query)) {
-                        card.classList.remove('hidden');
-                    } else {
-                        card.classList.add('hidden');
-                    }
-                });
-            });
-        }
-
-        const staffSearch = document.getElementById('staff-search');
-        if (staffSearch) {
-            staffSearch.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase().trim();
-                document.querySelectorAll('.staff-row').forEach(row => {
-                    const name = row.getAttribute('data-name');
-                    const phone = row.getAttribute('data-phone');
-                    if (name.includes(query) || phone.includes(query)) {
-                        row.classList.remove('hidden');
-                    } else {
-                        row.classList.add('hidden');
-                    }
-                });
-            });
-        }
-
-        const reportSearch = document.getElementById('report-search');
-        if (reportSearch) {
-            reportSearch.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase().trim();
-                document.querySelectorAll('.report-row').forEach(row => {
-                    const inst = row.getAttribute('data-inst');
-                    if (inst.includes(query)) {
-                        row.classList.remove('hidden');
-                    } else {
-                        row.classList.add('hidden');
-                    }
-                });
-            });
-        }
-
-        function newAuthor(){
-            const div = document.querySelector('.authors-div')
-            const inp = document.createElement('input')
-            div.appendChild(inp)
-            inp.id="book-form-authors"
-            inp.setAttribute('timestamp', new Date().getMilliseconds())
-            inp.className="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50" 
-            inp.placeholder="e.g. Dr. John Doe"
-            inp.focus()
-            inp.addEventListener('blur', (e)=>{
-                const val = inp.value
-                if(String(val).length > 2 ){
-                create_author(val)
-                } else{
-                    showToast('Failed to add author')
-                }
-                inp.remove()
-            })
-        }
-
-        function create_author(val){
-            const div = document.createElement('div')
-            div.className = 'author-pill'
-            div.innerHTML = `
-              <div class="text"> ${val}</div> <button id="delete_author"> &times; </button>            
-            `
-            const parent  = document.querySelector('.author-pills')
-            parent.appendChild(div)
-            div.querySelector('button').addEventListener('click', ()=>{
-                div.remove()
-            })
-        }
-
-        const bookModal = document.getElementById('book-modal');
-        function openBookModal(bookData = null) {
-            const titleEl = document.getElementById('book-modal-title');
-            const form = document.getElementById('book-form');
-            form.reset();
-            const aDiv = form.querySelector('.authors-div')
-
-            if (bookData) {
-                titleEl.textContent = "Edit Book Details";
-                document.getElementById('book-id').value = bookData.id || '';
-                document.getElementById('book-form-title').value = bookData.title || '';
-                const authors = bookData.authors?.split(',')
-                const authorsDict = JSON.stringify(authors)
-                console.log(authorsDict)
-                JSON.parse(authorsDict).forEach((a)=>{
-                    create_author(a) 
-                }) 
-                document.getElementById('book-form-grade').value = bookData.grade || '';
-                document.getElementById('book-form-audience').value = bookData.audience || '';
-                document.getElementById('book-form-newPrice').value = bookData.newPrice || '';
-                document.getElementById('book-form-oldPrice').value = bookData.oldPrice || '';
-                document.getElementById('book-form-image').value = bookData.image || '';
-                
-            } else {
-                titleEl.textContent = "Add New Volume";
-                aDiv.innerHTML = ''
-                document.getElementById('book-id').value = '';
-            }
-            bookModal.classList.remove('hidden');
-        }
-
-        function closeBookModal() {
-            bookModal.classList.add('hidden');
-            document.querySelector('.author-pills').innerHTML = ''
-        }
-
-        document.getElementById('book-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('book-id').value;
-            const fileInput = document.getElementById('book-form-image-file');
-            const pills = document.querySelectorAll('.author-pill .text')
-            let authors = []
-            pills.forEach(p=>{ 
-                authors.push(p.textContent.trim().replace('&times;', ''))
-            })
-
-            if (id) {
-                const payload = {
-                    data: {
-                        id: id,
-                        title: document.getElementById('book-form-title').value,
-                        authors:authors,
-                        grade: document.getElementById('book-form-grade').value,
-                        audience: document.getElementById('book-form-audience').value,
-                        newPrice: parseFloat(document.getElementById('book-form-newPrice').value),
-                        oldPrice: document.getElementById('book-form-oldPrice').value ? parseFloat(document.getElementById('book-form-oldPrice').value) : 0,
-                        image: document.getElementById('book-form-image').value
-                    }
-                };
-                executeFetch('/api/admin/edit_book', JSON.stringify(payload), 'application/json');
-            } else {
-                const formData = new FormData();
-                formData.append('title', document.getElementById('book-form-title').value);
-                const pills = document.querySelectorAll('.author-pill .text')
-                let authors = []
-                pills.forEach(p=>{ 
-                    authors.push(p.textContent.trim().replace('&times;', ''))
-                })
-                formData.append('authors', authors);
-                formData.append('grade', document.getElementById('book-form-grade').value);
-                formData.append('audience', document.getElementById('book-form-audience').value);
-                formData.append('newPrice', document.getElementById('book-form-newPrice').value);
-                formData.append('oldPrice', document.getElementById('book-form-oldPrice').value);
-                formData.append('image_fallback', document.getElementById('book-form-image').value);
-                if (fileInput && fileInput.files[0]) {
-                    formData.append('image', fileInput.files[0]);
-                }
-                executeFetch('/api/admin/add_book', formData, null);
-            }
+            }, 1000);
         });
 
-        async function executeFetch(url, bodyData, contentType) {
-            const headers = {};
-            if (contentType) {
-                headers['Content-Type'] = contentType;
-            }
-            try {
-                const res = await fetch(url, { method: 'POST', headers: headers, body: bodyData });
-                const data = await res.json();
-                if (res.ok) {
-                    showToast('Catalog processing finalized successfully!');
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showToast(data.error || 'Server rejected catalog operational values.', 'error');
-                }
-            } catch (err) {
-                showToast('Secure routing channel interrupted.', 'error');
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('modalOverlay');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
             }
         }
 
-        async function deleteBook(id) {
-            const confirmBox = document.createElement('div');
-            confirmBox.className = 'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4';
-            confirmBox.innerHTML = `
-                <div class="bg-white border border-slate-300 p-5 max-w-xs w-full shadow-2xl space-y-3">
-                    <h4 class="font-bold text-slate-900 text-sm uppercase tracking-wider">Remove Book?</h4>
-                    <p class="text-[11px] text-slate-500">Confirming will mark this volume as deleted in the central catalogue directory.</p>
-                    <div class="flex justify-end gap-2 pt-1">
-                        <button id="cancel-del" class="px-3 py-1 border border-slate-200 text-slate-500 text-xs font-bold hover:bg-slate-50">Cancel</button>
-                        <button id="confirm-del" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1 text-xs font-bold">Delete</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(confirmBox);
+        function switchPage(pageId, navElement) {
+            document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
-            const removeConfirm = () => confirmBox.remove();
-            confirmBox.querySelector('#cancel-del').addEventListener('click', removeConfirm);
-            confirmBox.querySelector('#confirm-del').addEventListener('click', async () => {
-                removeConfirm();
+            document.getElementById(pageId).classList.remove('hidden');
+            navElement.classList.add('active');
+
+            const pageTitleElement = document.getElementById('pageTitle');
+            const titles = {
+                'insights': 'Executive Overview',
+                'orders': 'Order Management',
+                'inventory': 'Book Stock Inventory',
+                'staff': 'Team Members Workspace',
+                'blog': 'Published Blog Articles',
+                'readers': 'Reader Directory',
+                'sales': 'Sales Performance Reports'
+            };
+            if (pageTitleElement && titles[pageId]) {
+                pageTitleElement.textContent = titles[pageId];
+            }
+
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                document.getElementById('modalOverlay').classList.add('hidden');
+            }
+
+            loadSectionData(pageId);
+        }
+
+        const sectionLoaded = { orders: false, inventory: false, staff: false, sales: false };
+
+        function loadSectionData(pageId) {
+            if (pageId === 'orders' && !sectionLoaded.orders) { sectionLoaded.orders = true; loadOrders(1, ''); }
+            if (pageId === 'inventory' && !sectionLoaded.inventory) { sectionLoaded.inventory = true; loadBooks(1, ''); }
+            if (pageId === 'staff' && !sectionLoaded.staff) { sectionLoaded.staff = true; loadStaff(1, ''); }
+            if (pageId === 'sales' && !sectionLoaded.sales) { sectionLoaded.sales = true; loadReports(1, ''); }
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+            document.getElementById('modalOverlay').classList.remove('hidden');
+        }
+
+        function closeAllModals() {
+            document.getElementById('modalOverlay').classList.add('hidden');
+            document.getElementById('modalPost').classList.add('hidden');
+            document.getElementById('modalStaff').classList.add('hidden');
+            document.getElementById('modalUser').classList.add('hidden');
+            document.getElementById('modalBook').classList.add('hidden');
+            
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        }
+
+        function openBookModalForAdd() {
+            document.getElementById('bookTitle').value = "";
+            document.getElementById('bookAuthor').value = "";
+            document.getElementById('bookOldPrice').value = "";
+            document.getElementById('bookNewPrice').value = "";
+            document.getElementById('grade').value = "";
+            document.getElementById('bookDiscounted').value = "false";
+            document.getElementById('bookImage').value = "";
+            
+            const saveBtn = document.getElementById('saveBook');
+            saveBtn.textContent = "Create Book";
+            saveBtn.setAttribute('onclick', "saveBook()");
+            
+            openModal('modalBook');
+        }
+
+        async function editBookDetails(id) {
+            try {
+                const res = await fetch(`/api/book/${id}`);
+                if (!res.ok) throw new Error("Could not retrieve book details");
+                const book = await res.json();
+                
+                document.getElementById('bookTitle').value = book.title;
+                document.getElementById('bookAuthor').value = book.authors || "";
+                document.getElementById('bookOldPrice').value = book.oldPrice || 0;
+                document.getElementById('bookNewPrice').value = book.newPrice || 0;
+                document.getElementById('grade').value = book.grade || "";
+                document.getElementById('bookDiscounted').value = book.discounted ? "true" : "false";
+                document.getElementById('bookImage').value = "";
+                
+                const saveBtn = document.getElementById('saveBook');
+                saveBtn.textContent = "Update Book";
+                saveBtn.setAttribute('onclick', `updateBookDetails('${book.id}')`);
+                
+                openModal('modalBook');
+            } catch (err) {
+                alert("Error loading book records. Please try again.");
+            }
+        }
+
+        async function saveBook() {
+            const saveBtn = document.getElementById('saveBook');
+            saveBtn.disabled = true;
+            saveBtn.textContent = "Processing...";
+
+            const title = document.getElementById('bookTitle').value.trim();
+            const authors = document.getElementById('bookAuthor').value.trim();
+            const oldPrice = parseFloat(document.getElementById('bookOldPrice').value) || 0;
+            const newPrice = parseFloat(document.getElementById('bookNewPrice').value) || 0;
+            const grade = document.getElementById('grade').value.trim();
+            const discounted = document.getElementById('bookDiscounted').value === "true";
+            
+            const imageFile = document.getElementById('bookImage').files[0];
+            let imageFilename = "default.png";
+
+            if (imageFile) {
+                const formData = new FormData();
+                formData.append('image', imageFile);
                 try {
-                    const res = await fetch('/api/admin/delete_book', {
+                    const uploadRes = await fetch('/api/upload-image', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id })
+                        body: formData
                     });
-                    const data = await res.json();
-                    if (res.ok) {
-                        showToast('Book deleted successfully.');
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        showToast(data.error || 'Deletion failed.', 'error');
+                    if (uploadRes.ok) {
+                        const uploadData = await uploadRes.json();
+                        imageFilename = uploadData.path;
                     }
                 } catch (err) {
-                    showToast('Failed to contact delete service.', 'error');
+                    console.error("Image transmission failed, matching default.", err);
                 }
-            });
-        }
+            }
 
-        const staffModal = document.getElementById('staff-modal');
-        function openStaffModal(staffData) {
-            document.getElementById('staff-id').value = staffData.id;
-            document.getElementById('staff-form-name').value = staffData.name;
-            document.getElementById('staff-form-email').value = (staffData.email && staffData.email !== 'None') ? staffData.email : '';
-            document.getElementById('staff-form-phone').value = staffData.phone;
-            document.getElementById('staff-form-location').value = staffData.location;
-            document.getElementById('staff-form-admin').checked = staffData.is_admin;
-            staffModal.classList.remove('hidden');
-        }
-
-        function closeStaffModal() {
-            staffModal.classList.add('hidden');
-        }
-
-        document.getElementById('staff-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = {
-                id: document.getElementById('staff-id').value,
-                name: document.getElementById('staff-form-name').value,
-                email: document.getElementById('staff-form-email').value,
-                phone: document.getElementById('staff-form-phone').value,
-                location: document.getElementById('staff-form-location').value,
-                is_admin: document.getElementById('staff-form-admin').checked
-            };
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('authors', authors);
+            formData.append('oldPrice', oldPrice);
+            formData.append('newPrice', newPrice);
+            formData.append('grade', grade);
+            formData.append('discounted', discounted ? "on" : "");
+            formData.append('image', imageFile || "");
 
             try {
-                const res = await fetch('/api/admin/edit/staff', {
+                const response = await fetch('/cp/books/new', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: formData
                 });
-                const data = await res.json();
-                if (res.ok) {
-                    showToast(data.msg || 'Staff credentials updated!');
-                    setTimeout(() => location.reload(), 1500);
+                
+                if (response.redirected) {
+                    window.location.href = response.url;
                 } else {
-                    showToast(data.error || 'Failed to update personnel.', 'error');
+                    location.reload();
                 }
             } catch (err) {
-                showToast('Authorization request failed.', 'error');
+                alert("Error processing transaction. Verify network connection.");
+                saveBtn.disabled = false;
+                saveBtn.textContent = "Create Book";
             }
-        });
-
-        const addStaffModal = document.getElementById('add-staff-modal');
-        function openAddStaffModal() {
-            document.getElementById('add-staff-form').reset();
-            addStaffModal.classList.remove('hidden');
         }
 
-        function closeAddStaffModal() {
-            addStaffModal.classList.add('hidden');
-        }
+        async function updateBookDetails(id) {
+            const saveBtn = document.getElementById('saveBook');
+            saveBtn.disabled = true;
+            saveBtn.textContent = "Processing...";
 
-        document.getElementById('add-staff-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = new URLSearchParams();
-            payload.append('name', document.getElementById('add-staff-form-name').value);
-            payload.append('email', document.getElementById('add-staff-form-email').value);
-            payload.append('phone', document.getElementById('add-staff-form-phone').value);
-            payload.append('password', document.getElementById('add-staff-form-password').value);
+            const title = document.getElementById('bookTitle').value.trim();
+            const authors = document.getElementById('bookAuthor').value.trim();
+            const oldPrice = parseFloat(document.getElementById('bookOldPrice').value) || 0;
+            const newPrice = parseFloat(document.getElementById('bookNewPrice').value) || 0;
+            const grade = document.getElementById('grade').value.trim();
+            const discounted = document.getElementById('bookDiscounted').value === "true";
+            const imageFile = document.getElementById('bookImage').files[0];
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('authors', authors);
+            formData.append('oldPrice', oldPrice);
+            formData.append('newPrice', newPrice);
+            formData.append('grade', grade);
+            formData.append('discounted', discounted ? "on" : "");
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
 
             try {
-                const res = await fetch('/staff/register', {
+                const response = await fetch(`/cp/books/edit/${id}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    location.reload();
+                }
+            } catch (err) {
+                alert("Could not update the book records.");
+                saveBtn.disabled = false;
+                saveBtn.textContent = "Update Book";
+            }
+        }
+
+        async function deleteBookInstance(id) {
+            if (!confirm("Are you sure you want to permanently delete this book record?")) return;
+            
+            try {
+                const response = await fetch('/api/admin/delete_book', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ book_id: id })
+                });
+                
+                if (response.ok) {
+                    const row = document.getElementById(`book-row-${id}`);
+                    if (row) row.remove();
+                    const mobileRow = document.getElementById(`book-row-mobile-${id}`);
+                    if (mobileRow) mobileRow.remove();
+                } else {
+                    alert("Failure updating records.");
+                }
+            } catch (err) {
+                alert("Network error. Try again.");
+            }
+        }
+
+        async function toggleStaffStatus(id) {
+            try {
+                const response = await fetch('/api/admin/toggle_staff', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ staff_id: id })
+                });
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert("Could not alter status profile.");
+                }
+            } catch (err) {
+                alert("Connection failed.");
+            }
+        }
+
+        async function saveStaff() {
+            const name = document.getElementById('staffName').value.trim();
+            const email = document.getElementById('staffEmail').value.trim();
+            const phone = document.getElementById('staffPhone').value.trim();
+            const locationVal = document.getElementById('staffLocation').value.trim();
+            const is_admin = document.getElementById('staffIsAdmin').checked;
+
+            if (!name || !phone) {
+                alert("Please fill in the required Name and Phone details.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/staff/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: payload.toString()
+                    body: new URLSearchParams({
+                        name, email, phone, location: locationVal, is_admin: is_admin ? "on" : ""
+                    })
                 });
-                if (res.redirected || res.ok) {
-                    showToast('Staff member registered successfully!');
-                    setTimeout(() => location.reload(), 1500);
+                if (response.redirected) {
+                    window.location.href = response.url;
                 } else {
-                    showToast('Failed to save staff registry details.', 'error');
+                    location.reload();
                 }
             } catch (err) {
-                showToast('Authentication connection failure.', 'error');
+                alert("Representative registration request failure.");
+            }
+        }
+
+        function debounce(fn, delay) {
+            let t;
+            return (...args) => {
+                clearTimeout(t);
+                t = setTimeout(() => fn(...args), delay);
+            };
+        }
+
+        function renderPagination(containerId, countId, data, onPageClick) {
+            const container = document.getElementById(containerId);
+            const countEl = document.getElementById(countId);
+            if (countEl) countEl.textContent = `${data.total} result${data.total !== 1 ? 's' : ''}`;
+            if (!container) return;
+            container.innerHTML = '';
+            if (data.pages <= 1) return;
+
+            const makeBtn = (label, page, disabled, active) => {
+                const btn = document.createElement('button');
+                btn.textContent = label;
+                btn.disabled = !!disabled;
+                btn.className = active
+                    ? 'w-8 h-8 flex items-center justify-center rounded-lg bg-magenta text-white text-xs font-bold'
+                    : `w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 ${disabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-magenta hover:text-white hover:border-magenta transition-colors'}`;
+                if (!disabled && !active) btn.onclick = () => onPageClick(page);
+                return btn;
+            };
+
+            container.appendChild(makeBtn('‹', data.page - 1, !data.has_prev, false));
+            for (let p = 1; p <= data.pages; p++) {
+                if (p === 1 || p === data.pages || Math.abs(p - data.page) <= 1) {
+                    container.appendChild(makeBtn(String(p), p, false, p === data.page));
+                } else if (Math.abs(p - data.page) === 2) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '…';
+                    dots.className = 'text-gray-300 text-xs px-1';
+                    container.appendChild(dots);
+                }
+            }
+            container.appendChild(makeBtn('›', data.page + 1, !data.has_next, false));
+        }
+
+        async function loadOrders(page, q) {
+            const mobileList = document.getElementById('ordersMobileList');
+            const tableBody = document.getElementById('ordersTableBody');
+            try {
+                const res = await fetch(`/api/admin/orders?page=${page}&q=${encodeURIComponent(q || '')}`);
+                const data = await res.json();
+                const items = data.items || [];
+
+                if (!items.length) {
+                    mobileList.innerHTML = `<div class="p-8 text-center text-gray-400 font-bold text-xs">No orders match your search.</div>`;
+                    tableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">No orders match your search.</td></tr>`;
+                } else {
+                    mobileList.innerHTML = items.map(o => `
+                        <div class="p-4 flex flex-col gap-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-extrabold text-magenta uppercase truncate">${o.id}</span>
+                                <span class="status-pill shrink-0 ${(o.status === 'PAID' || o.status === 'DELIVERED') ? 'status-success' : (o.status === 'FAILED' ? 'status-danger' : 'status-warning')}">${o.status}</span>
+                            </div>
+                            <div class="text-xs font-extrabold text-gray-800">${o.name || ''}</div>
+                            <div class="text-[10px] text-gray-400 font-semibold">${o.phone || ''} | ${o.city || ''}</div>
+                            <div class="text-xs font-black text-gray-800">KES ${Number(o.grand_total || 0).toLocaleString()}</div>
+                        </div>
+                    `).join('');
+
+                    tableBody.innerHTML = items.map(o => `
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="p-4 font-extrabold text-magenta uppercase">${o.id}</td>
+                            <td class="p-4">
+                                <div class="font-extrabold text-gray-800">${o.name || ''}</div>
+                                <div class="text-[10px] text-gray-400 font-semibold mt-0.5">${o.phone || ''} | ${o.city || ''}</div>
+                            </td>
+                            <td class="p-4 font-black text-gray-800">KES ${Number(o.grand_total || 0).toLocaleString()}</td>
+                            <td class="p-4"><span class="status-pill ${(o.status === 'PAID' || o.status === 'DELIVERED') ? 'status-success' : (o.status === 'FAILED' ? 'status-danger' : 'status-warning')}">${o.status}</span></td>
+                        </tr>
+                    `).join('');
+                }
+
+                renderPagination('ordersPagination', 'ordersResultCount', data, (p) => loadOrders(p, q));
+            } catch (err) {
+                console.error('Failed to load orders', err);
+            }
+        }
+
+        async function loadBooks(page, q) {
+            const mobileList = document.getElementById('booksMobileList');
+            const tableBody = document.getElementById('booksTableBody');
+            try {
+                const res = await fetch(`/api/admin/books?page=${page}&q=${encodeURIComponent(q || '')}`);
+                const data = await res.json();
+                const items = data.items || [];
+
+                if (!items.length) {
+                    mobileList.innerHTML = `<div class="p-8 text-center text-gray-400 font-bold text-xs">No books match your search.</div>`;
+                    tableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">No books match your search.</td></tr>`;
+                } else {
+                    mobileList.innerHTML = items.map(b => `
+                        <div class="p-4 flex items-center gap-3" id="book-row-mobile-${b.id}">
+                            <img src="${b.image_url}" alt="${b.title}" class="h-14 w-11 object-contain bg-gray-50 border border-gray-100 p-0.5 rounded shadow-sm shrink-0" onerror="this.src='https://placehold.co/80x100/8B008B/ffffff?text=Book'">
+                            <div class="flex-grow min-w-0">
+                                <div class="font-extrabold text-gray-800 line-clamp-1 leading-snug text-xs">${b.title}</div>
+                                <div class="text-[10px] text-gray-400 font-bold uppercase mt-0.5">${b.grade || 'General'}</div>
+                                <div class="text-[10px] text-gray-500 font-bold mt-0.5">${b.authors || ''}</div>
+                                <div class="font-black text-magenta text-xs mt-1">KES ${Number(b.newPrice || 0).toLocaleString()}</div>
+                            </div>
+                            <div class="flex flex-col gap-2 shrink-0">
+                                <button onclick="editBookDetails('${b.id}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit book details"><i class="fas fa-edit"></i></button>
+                                <button onclick="deleteBookInstance('${b.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete book"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    tableBody.innerHTML = items.map(b => `
+                        <tr class="hover:bg-gray-50/50 transition-colors" id="book-row-${b.id}">
+                            <td class="p-4">
+                                <div class="flex items-center gap-3">
+                                    <img src="${b.image_url}" alt="${b.title}" class="h-10 w-8 object-contain bg-gray-50 border border-gray-100 p-0.5 rounded shadow-sm" onerror="this.src='https://placehold.co/80x100/8B008B/ffffff?text=Book'">
+                                    <div>
+                                        <div class="font-extrabold text-gray-800 line-clamp-1 leading-snug">${b.title}</div>
+                                        <div class="text-[10px] text-gray-400 font-bold uppercase mt-0.5">${b.grade || 'General'}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4 font-bold text-gray-600">${b.authors || ''}</td>
+                            <td class="p-4 font-black text-magenta">KES ${Number(b.newPrice || 0).toLocaleString()}</td>
+                            <td class="p-4">
+                                <div class="flex items-center justify-center gap-3">
+                                    <button onclick="editBookDetails('${b.id}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit book details"><i class="fas fa-edit"></i></button>
+                                    <button onclick="deleteBookInstance('${b.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete book"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+                renderPagination('booksPagination', 'booksResultCount', data, (p) => loadBooks(p, q));
+            } catch (err) {
+                console.error('Failed to load books', err);
+            }
+        }
+
+        async function loadStaff(page, q) {
+            const mobileList = document.getElementById('staffMobileList');
+            const tableBody = document.getElementById('staffTableBody');
+            try {
+                const res = await fetch(`/api/admin/staff-list?page=${page}&q=${encodeURIComponent(q || '')}`);
+                const data = await res.json();
+                const items = data.items || [];
+
+                if (!items.length) {
+                    mobileList.innerHTML = `<div class="p-8 text-center text-gray-400 font-bold text-xs">No staff match your search.</div>`;
+                    tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">No staff match your search.</td></tr>`;
+                } else {
+                    mobileList.innerHTML = items.map(s => `
+                        <div class="p-4 flex flex-col gap-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-extrabold text-gray-800">${s.name}</span>
+                                <span class="text-[10px] font-bold text-magenta shrink-0">${s.id}</span>
+                            </div>
+                            <div class="text-[10px] text-gray-400">${s.email || 'No email'} | ${s.location || ''}</div>
+                            <div class="text-xs font-bold text-gray-600">${s.phone || ''}</div>
+                            <div class="flex items-center justify-between gap-2 flex-wrap">
+                                <span class="status-pill ${s.is_admin ? 'status-success' : 'status-warning'}">${s.is_admin ? 'Administrator' : 'Staff Representative'}</span>
+                                <button onclick="toggleStaffStatus('${s.id}')" class="px-3 py-1.5 rounded-lg border border-gray-200 hover:border-magenta text-[10px] font-bold uppercase tracking-wider text-gray-500 transition-colors">${s.is_active ? 'Deactivate' : 'Activate'}</button>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    tableBody.innerHTML = items.map(s => `
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="p-4 font-bold text-magenta">${s.id}</td>
+                            <td class="p-4">
+                                <div class="font-extrabold text-gray-800">${s.name}</div>
+                                <div class="text-[10px] text-gray-400 mt-0.5">${s.email || 'No email'} | ${s.location || ''}</div>
+                            </td>
+                            <td class="p-4 font-bold text-gray-600">${s.phone || ''}</td>
+                            <td class="p-4"><span class="status-pill ${s.is_admin ? 'status-success' : 'status-warning'}">${s.is_admin ? 'Administrator' : 'Staff Representative'}</span></td>
+                            <td class="p-4 text-center">
+                                <button onclick="toggleStaffStatus('${s.id}')" class="px-3 py-1.5 rounded-lg border border-gray-200 hover:border-magenta text-[10px] font-bold uppercase tracking-wider text-gray-500 transition-colors">${s.is_active ? 'Deactivate' : 'Activate'}</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+                renderPagination('staffPagination', 'staffResultCount', data, (p) => loadStaff(p, q));
+            } catch (err) {
+                console.error('Failed to load staff', err);
+            }
+        }
+
+        async function loadReports(page, q) {
+            const mobileList = document.getElementById('reportsMobileList');
+            const tableBody = document.getElementById('reportsTableBody');
+            try {
+                const res = await fetch(`/api/admin/reports?page=${page}&q=${encodeURIComponent(q || '')}`);
+                const data = await res.json();
+                const items = data.items || [];
+
+                if (!items.length) {
+                    mobileList.innerHTML = `<div class="p-8 text-center text-gray-400 font-bold text-xs">No submissions match your search.</div>`;
+                    tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">No submissions match your search.</td></tr>`;
+                } else {
+                    mobileList.innerHTML = items.map(s => `
+                        <div class="p-4 flex flex-col gap-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[10px] font-bold text-magenta">${s.submitted_at}</span>
+                                <span class="status-pill shrink-0 ${s.isSold ? 'status-success' : 'status-warning'}">${s.isSold ? 'Sale Closed' : 'Pending'}</span>
+                            </div>
+                            <div class="text-xs font-extrabold text-gray-800">${s.staffName || ''}</div>
+                            <div class="text-xs font-bold text-gray-600">${s.institution_name || ''}</div>
+                            <div class="text-[10px] text-gray-400">${s.contact_person || ''} | ${s.phone || ''}</div>
+                            <div class="text-[11px] text-gray-500 line-clamp-2">${s.conversation_notes || ''}</div>
+                        </div>
+                    `).join('');
+
+                    tableBody.innerHTML = items.map(s => `
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="p-4 font-bold text-magenta">${s.submitted_at}</td>
+                            <td class="p-4 font-extrabold text-gray-800">${s.staffName || ''}</td>
+                            <td class="p-4 font-bold text-gray-600">
+                                <div>${s.institution_name || ''}</div>
+                                <div class="text-[10px] text-gray-400 mt-0.5">${s.contact_person || ''} | ${s.phone || ''}</div>
+                            </td>
+                            <td class="p-4 text-gray-500 max-w-xs truncate">${s.conversation_notes || ''}</td>
+                            <td class="p-4 text-center"><span class="status-pill ${s.isSold ? 'status-success' : 'status-warning'}">${s.isSold ? 'Sale Closed' : 'Pending Follow-up'}</span></td>
+                        </tr>
+                    `).join('');
+                }
+
+                renderPagination('reportsPagination', 'reportsResultCount', data, (p) => loadReports(p, q));
+            } catch (err) {
+                console.error('Failed to load reports', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ordersSearch = document.getElementById('ordersSearch');
+            if (ordersSearch) ordersSearch.addEventListener('input', debounce((e) => loadOrders(1, e.target.value.trim()), 350));
+
+            const booksSearch = document.getElementById('booksSearch');
+            if (booksSearch) booksSearch.addEventListener('input', debounce((e) => loadBooks(1, e.target.value.trim()), 350));
+
+            const staffSearch = document.getElementById('staffSearch');
+            if (staffSearch) staffSearch.addEventListener('input', debounce((e) => loadStaff(1, e.target.value.trim()), 350));
+
+            const reportsSearch = document.getElementById('reportsSearch');
+            if (reportsSearch) reportsSearch.addEventListener('input', debounce((e) => loadReports(1, e.target.value.trim()), 350));
+        });
+
+        const revCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Revenue (KES)',
+                    data: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
+                    borderColor: '#8B008B',
+                    backgroundColor: 'rgba(139, 0, 139, 0.05)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#FF4500',
+                    pointHoverRadius: 7
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(0,0,0,0.03)' } },
+                    x: { grid: { display: false } }
+                }
             }
         });
 
-        async function toggleStaff(staffId) {
-            try {
-                const res = await fetch('/api/admin/toggle/staff', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ staff_id: staffId })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    showToast(data.msg || 'Staff record state shifted.');
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showToast(data.error || 'Failed to change state.', 'error');
-                }
-            } catch (err) {
-                showToast('System operational error.', 'error');
+        const catCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Junior School', 'Revision', 'Storybooks', 'Poetry'],
+                datasets: [{
+                    data: [45, 25, 15, 15],
+                    backgroundColor: ['#8B008B', '#FF4500', '#4B004B', '#FFD700'],
+                    borderWidth: 0
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { 
+                        position: 'bottom',
+                        labels: { boxWidth: 12, font: { size: 10, weight: 'bold' } }
+                    } 
+                },
+                cutout: '70%'
             }
-        }
-
-        async function deleteStaff(staffId) {
-            const confirmBox = document.createElement('div');
-            confirmBox.className = 'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4';
-            confirmBox.innerHTML = `
-                <div class="bg-white border border-slate-300 p-5 max-w-xs w-full shadow-2xl space-y-3">
-                    <h4 class="font-bold text-slate-900 text-sm uppercase tracking-wider">Permadelete Staff?</h4>
-                    <p class="text-[11px] text-slate-500">Are you sure you want to permanently disable and soft-remove this employee database node?</p>
-                    <div class="flex justify-end gap-2 pt-1">
-                        <button id="cancel-del-staff" class="px-3 py-1 border border-slate-200 text-slate-500 text-xs font-bold hover:bg-slate-50">Cancel</button>
-                        <button id="confirm-del-staff" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1 text-xs font-bold">Remove</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(confirmBox);
-
-            const removeConfirm = () => confirmBox.remove();
-            confirmBox.querySelector('#cancel-del-staff').addEventListener('click', removeConfirm);
-            confirmBox.querySelector('#confirm-del-staff').addEventListener('click', async () => {
-                removeConfirm();
-                try {
-                    const res = await fetch('/api/admin/toggle/staff', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ staff_id: staffId })
-                    });
-                    const data = await res.json();
-                    if (res.ok) {
-                        showToast('Staff status deactivated successfully.');
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        showToast(data.error || 'Operation failed.', 'error');
-                    }
-                } catch (err) {
-                    showToast('Communication failure with authentication logs.', 'error');
-                }
-            });
-        }
-
-        async function triggerReset() {
-            try {
-                const res = await fetch('/create_db');
-                const data = await res.json();
-                if (res.ok) {
-                    showToast('System schemas rebuilt successfully!');
-                } else {
-                    showToast('Failed to execute schema rebuild.', 'error');
-                }
-            } catch (err) {
-                showToast('Failed to ping DB core.', 'error');
-            }
-        }
-
-        async function triggerDummy() {
-            try {
-                const res = await fetch('/create_dummy');
-                const data = await res.json();
-                if (res.ok) {
-                    showToast('Database populated with dummy books.');
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showToast('Failed to seed DB mock records.', 'error');
-                }
-            } catch (err) {
-                showToast('Failed to coordinate mock seed vectors.', 'error');
-            }
-        }
+        });
     </script>
 </body>
 </html>

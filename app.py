@@ -81,7 +81,7 @@ def log_action(action, status_code=200, staff_id=None):
 
 @app.after_request
 def auto_log(response):
-    # Skip logging system routes or static assets to avoid database bloat
+
     if request.path.startswith(("/static", "/book-cover")):
         return response
     try:
@@ -89,7 +89,7 @@ def auto_log(response):
             action=f"{request.method} {request.path}", method=request.method, endpoint=request.path,
             ip=request.remote_addr, user_agent=request.headers.get("User-Agent"), status_code=response.status_code
         ))
-        db.session.commit()  
+        db.session.commit()  # FIXED: Required to commit the logging entries to the database
     except Exception: 
         db.session.rollback()
     return response
@@ -106,9 +106,8 @@ def initiate_payment(order):
     ts = datetime.now().strftime("%Y%m%d%H%M%S")
     passwd = base64.b64encode(f"{SHORTCODE}{PASSKEY}{ts}".encode()).decode()
     
-
     token = generate_hmac_token({"order_id": order.id})
-    callback_url = f"https://tunupublishers.com/mpesa/callback?order_id={order.id}&token={token}"
+    callback_url = f"https://new.tunupublishers.com/mpesa/callback?order_id={order.id}&token={token}"
     
     payload = {
         "BusinessShortCode": SHORTCODE, "Password": passwd, "Timestamp": ts,
@@ -143,7 +142,7 @@ class Staff(db.Model):
         return {"id": self.id, "name": self.name, "email": self.email, "phone": self.phone, "location": self.location, "joined": self.added_at, "is_admin": self.is_admin, "is_active": self.is_active}
 
 class Book(db.Model):
-    id = db.Column(db.String(20), primary_key=True)
+    id = db.Column(db.String(20), primary_key=True, default=lambda: generate_id("BK"))
     title = db.Column(db.String(512), nullable=False)
     image = db.Column(db.String(1024), default="https://i.ibb.co/CKRYPD4p/image.png")
     slug = db.Column(db.String(120))
@@ -160,8 +159,9 @@ class Book(db.Model):
     is_deleted = db.Column(db.Boolean, default=False)
 
     def set_slug(self):
-        self.slug = re.sub(r"[^a-z0-9]+", "-", self.title.lower()).strip("-") + f"_{self.id}"
+        self.slug = re.sub(r"[^a-z0-9]+", "_", self.title.lower()).strip("_")
 
+    # FIXED: Resolves image references cleanly whether they are remote URLs, asset paths, or raw filenames
     @property
     def image_url(self):
         if self.image.startswith(("http://", "https://", "/static/")):
@@ -231,14 +231,45 @@ def home():
 
 @app.route("/books")
 def books():
-    bks = Book.query.filter_by(is_deleted=False).order_by(Book.added_at.desc()).paginate(page=request.args.get("page", 1, type=int), per_page=12, error_out=False)
-    return render_template("books.html", books=bks.items, pagination=bks)
+    q = Book.query.filter_by(is_deleted=False)
 
-@app.route("/book/<string:slug>")
-def book_detail(slug):
-    book_id = slug.split('_')
-    id = book_id[1]
-    book = Book.query.filter_by(id=id, is_deleted=False).first_or_404()
+    cat = request.args.get("cat", "").strip()
+    if cat:
+        like = f"%{cat}%"
+        q = q.filter(db.or_(Book.grade.ilike(like), Book.audience.ilike(like)))
+
+    search = request.args.get("q", "").strip()
+    if search:
+        like = f"%{search}%"
+        q = q.filter(db.or_(Book.title.ilike(like), Book.authors.ilike(like)))
+
+    min_price = request.args.get("min_price", type=float)
+    if min_price is not None:
+        q = q.filter(Book.newPrice >= min_price)
+
+    max_price = request.args.get("max_price", type=float)
+    if max_price is not None:
+        q = q.filter(Book.newPrice <= max_price)
+
+    sort = request.args.get("sort", "newest")
+    sort_map = {
+        "newest": Book.added_at.desc(),
+        "price_asc": Book.newPrice.asc(),
+        "price_desc": Book.newPrice.desc(),
+        "popular": Book.sold.desc(),
+        "rating": Book.stars.desc(),
+    }
+    q = q.order_by(sort_map.get(sort, Book.added_at.desc()))
+
+    bks = q.paginate(page=request.args.get("page", 1, type=int), per_page=12, error_out=False)
+    return render_template(
+        "books.html", books=bks.items, pagination=bks,
+        cat=cat, search=search, sort=sort, min_price=min_price, max_price=max_price
+    )
+
+@app.route("/book/<string:book_id>")
+def book_detail(book_id):
+    book = Book.query.filter_by(id=book_id, is_deleted=False).first_or_404()
     book.views += 1
     db.session.commit()
     return render_template("book.html", book=book, related=Book.query.filter(Book.id != book.id, Book.is_deleted == False).limit(4).all())
@@ -291,13 +322,9 @@ def create_dummy():
     created = []
     for item in BOOKS_DATA:
         if Book.query.filter_by(title=item["title"]).first(): continue
-        b_id = generate_id("BK")
-        exists = Book.query.filter_by(id=b_id).first()
-        if exists:
-           b_id = generate_id("BK")
-        bk = Book(id=b_id, title=item["title"], image=item["image"], grade=item["grade"], audience=item["audience"], authors=item["authors"], newPrice=item["newPrice"], oldPrice=item["oldPrice"], added_by=admin.id)
-        db.session.add(bk)
+        bk = Book(title=item["title"], image=item["image"], grade=item["grade"], audience=item["audience"], authors=item["authors"], newPrice=item["newPrice"], oldPrice=item["oldPrice"], added_by=admin.id)
         bk.set_slug()
+        db.session.add(bk)
         created.append(bk.title)
     db.session.commit()
     return jsonify({"created": created})
@@ -526,6 +553,74 @@ def edit_book(id):
     log_action(f"Edited book {bk.title}", 200, staff.id)
     return redirect(url_for("books_admin"))
 
+@app.route("/api/admin/books")
+@login_required
+@admin_required
+def admin_api_books():
+    q = Book.query.filter_by(is_deleted=False)
+    search = request.args.get("q", "").strip()
+    if search:
+        like = f"%{search}%"
+        q = q.filter(db.or_(Book.title.ilike(like), Book.authors.ilike(like)))
+    q = q.order_by(Book.added_at.desc())
+    pg = q.paginate(page=request.args.get("page", 1, type=int), per_page=10, error_out=False)
+    return jsonify({
+        "items": [{"id": b.id, "title": b.title, "authors": b.authors, "grade": b.grade, "newPrice": b.newPrice, "image_url": b.image_url} for b in pg.items],
+        "page": pg.page, "pages": pg.pages, "total": pg.total, "has_next": pg.has_next, "has_prev": pg.has_prev
+    })
+
+@app.route("/api/admin/orders")
+@login_required
+@admin_required
+def admin_api_orders():
+    q = Order.query
+    search = request.args.get("q", "").strip()
+    if search:
+        like = f"%{search}%"
+        q = q.filter(db.or_(Order.name.ilike(like), Order.phone.ilike(like), Order.id.ilike(like)))
+    q = q.order_by(Order.created_at.desc())
+    pg = q.paginate(page=request.args.get("page", 1, type=int), per_page=10, error_out=False)
+    return jsonify({
+        "items": [{"id": o.id, "name": o.name, "phone": o.phone, "city": o.city, "grand_total": o.grand_total, "status": o.status} for o in pg.items],
+        "page": pg.page, "pages": pg.pages, "total": pg.total, "has_next": pg.has_next, "has_prev": pg.has_prev
+    })
+
+@app.route("/api/admin/staff-list")
+@login_required
+@admin_required
+def admin_api_staff_list():
+    q = Staff.query.filter_by(is_super_admin=False)
+    search = request.args.get("q", "").strip()
+    if search:
+        like = f"%{search}%"
+        q = q.filter(db.or_(Staff.name.ilike(like), Staff.phone.ilike(like), Staff.email.ilike(like)))
+    q = q.order_by(Staff.added_at.desc())
+    pg = q.paginate(page=request.args.get("page", 1, type=int), per_page=10, error_out=False)
+    return jsonify({
+        "items": [{"id": s.id, "name": s.name, "email": s.email, "phone": s.phone, "location": s.location, "is_admin": s.is_admin, "is_active": s.is_active} for s in pg.items],
+        "page": pg.page, "pages": pg.pages, "total": pg.total, "has_next": pg.has_next, "has_prev": pg.has_prev
+    })
+
+@app.route("/api/admin/reports")
+@login_required
+@admin_required
+def admin_api_reports():
+    q = Submission.query
+    search = request.args.get("q", "").strip()
+    if search:
+        like = f"%{search}%"
+        q = q.filter(db.or_(Submission.staffName.ilike(like), Submission.institution_name.ilike(like), Submission.contact_person.ilike(like)))
+    q = q.order_by(Submission.submitted_at.desc())
+    pg = q.paginate(page=request.args.get("page", 1, type=int), per_page=10, error_out=False)
+    return jsonify({
+        "items": [{
+            "id": s.id, "staffName": s.staffName, "institution_name": s.institution_name,
+            "contact_person": s.contact_person, "phone": s.phone, "conversation_notes": s.conversation_notes,
+            "isSold": s.isSold, "submitted_at": s.submitted_at.strftime("%b %d, %Y") if s.submitted_at else ""
+        } for s in pg.items],
+        "page": pg.page, "pages": pg.pages, "total": pg.total, "has_next": pg.has_next, "has_prev": pg.has_prev
+    })
+
 @app.route("/api/admin/delete_book", methods=["POST"])
 @login_required
 @admin_required
@@ -613,7 +708,6 @@ def pay():
 
 @app.route("/mpesa/callback", methods=["POST"])
 def mpesa_callback():
-    # SECURED: Verify cryptographically that the request originated via Tunu Publishers' STK push transaction
     token = request.args.get("token")
     order_id = request.args.get("order_id")
     if not token or not order_id or not verify_hmac_token({"order_id": order_id}, token):
