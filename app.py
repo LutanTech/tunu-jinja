@@ -700,13 +700,17 @@ def create_order():
 
 @app.route("/api/pay", methods=["POST"])
 def pay():
-    order = db.session.get(Order, request.get_json().get("order_id"))
-    if not order: return jsonify({"error": "Order not found."}), 404
-    if order.status == "PAID": return jsonify({"error": "Order already paid."}), 400
-    res = initiate_payment(order)
-    order.checkout_request_id = res.get("CheckoutRequestID")
-    db.session.commit()
-    return jsonify(res)
+    try:
+        order = db.session.get(Order, request.get_json().get("order_id"))
+        if not order: return jsonify({"error": "Order not found."}), 404
+        if order.status == "PAID": return jsonify({"error": "Order already paid."}), 400
+        res = initiate_payment(order)
+        order.checkout_request_id = res.get("CheckoutRequestID")
+        db.session.commit()
+        return jsonify(res)
+    except Exception as e:
+        print(str(e))
+        return f"error occured: {str(e)}"
 
 @app.route("/mpesa/callback", methods=["POST"])
 def mpesa_callback():
