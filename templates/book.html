@@ -57,7 +57,7 @@
                     -{{ (((book.oldPrice - book.newPrice) / book.oldPrice) * 100) | round | int }}% OFF
                 </span>
                 {% endif %}
-                <button onclick="showAlert('info', 'Your Wishlist is currently empty.')" class="absolute top-4 right-4 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center text-gray-500 hover:text-magenta shadow-md transition-colors" title="Add to Wishlist">
+                <button onclick="addBookToWishlist('{{ book.id }}', '{{ book.newPrice }}', '{{ book.authors }}')" class="absolute top-4 right-4 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center text-gray-500 hover:text-magenta shadow-md transition-colors" title="Add to Wishlist">
                     <i class="far fa-heart text-sm"></i>
                 </button>
             </div>
@@ -175,6 +175,7 @@
                         <button onclick="addToCart('{{ rbook.id }}', '{{ rbook.audience }}')" class="bg-magenta hover:bg-dark-magenta text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0" title="Add to Cart">
                             <i class="fas fa-cart-plus text-xs"></i>
                         </button>
+                        
                     </div>
                 </div>
             </div>
@@ -194,9 +195,13 @@
 {% block extra_js %}
 <script>
 
+    document.addEventListener('DOMContentLoaded', ()=>{
 
-    document.querySelector('#book-blurb').innerHTML =
+    const blurb = document.querySelector('#book-blurb')
+    if(blurb){blurb.innerHTML =
     {{ (book.blurb or 'Not yet added') | tojson }};
+    }
+})
 
     window.booksData = [
         {

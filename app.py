@@ -23,7 +23,7 @@ app.config.update(
     MAIL_USERNAME="info.tunupublishers.com",
     MAIL_PASSWORD=os.getenv("M_P"),
     MAIL_DEFAULT_SENDER=("Tunu Publishers", "info.tunupublishers.com"),
-    UPLOAD_FOLDER=os.path.join(app.root_path, "static")
+    UPLOAD_FOLDER=os.path.join(app.root_path, "static", "resources", "books" ,"covers")
 )
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
@@ -161,9 +161,8 @@ class Book(db.Model):
     
     def set_slug(self):
         title_slug = re.sub(r"[^a-z0-9]+", "-", self.title.lower()).strip("-")
-        self.slug = f"{title_slug}_{self.unique_id}"
+        self.slug = f"{title_slug}_{self.id}"
 
-    # FIXED: Resolves image references cleanly whether they are remote URLs, asset paths, or raw filenames
     @property
     def image_url(self):
         if self.image.startswith(("http://", "https://", "/static/")):
@@ -290,9 +289,8 @@ def search():
 def cart():
     return render_template("cart.html")
 
-@app.route("/checkout")
-def checkout():
-    oid = request.args.get("order")
+@app.route("/checkout/<string:oid>")
+def checkout(oid):
     if not oid: return redirect(url_for("cart"))
     order = db.session.get(Order, oid)
     if not order: return redirect(url_for("cart"))
@@ -522,7 +520,13 @@ def add_book():
     if img and img.filename:
         fn = f"{secrets.token_hex(10)}.{img.filename.rsplit('.', 1)[1].lower()}"
         img.save(os.path.join(app.config["UPLOAD_FOLDER"], fn))
-    bk = Book(id=generate_id('BK'),
+    bid = generate_id('BK')
+    existing = Book.query.filter_by(id=bid).first()
+    
+    if existing:
+        bid = generate_id('BK')
+        
+    bk = Book(id=bid,
         title=request.form.get("title"), authors=request.form.get("authors"), audience=request.form.get("audience"),
         grade=request.form.get("grade"), blurb=request.form.get("blurb"), oldPrice=float(request.form.get("oldPrice") or 0),
         newPrice=float(request.form.get("newPrice") or 0), image=fn, discounted=bool(request.form.get("discounted")), added_by=staff.id
@@ -678,7 +682,7 @@ def upload_image():
     img = request.files["image"]
     ext = img.filename.rsplit(".", 1)[-1].lower() if "." in img.filename else ""
     if ext not in ["jpg", "jpeg", "png", "webp"]: return jsonify({"error": "Unsupported image."}), 400
-    fn = f"{secrets.token_hex(12)}.{ext}"
+    fn = f"{generate_id('IMG')}.{ext}"
     img.save(os.path.join(app.config["UPLOAD_FOLDER"], fn))
     return jsonify({"path": fn, "url": url_for("book_cover", filename=fn)})
 
@@ -698,7 +702,7 @@ def create_order():
     order = Order(name=data["name"], email=data["email"], phone=format_phone(data["phone"]), city=data["city"], address=data["address"], data=items, grand_total=total)
     db.session.add(order)
     db.session.commit()
-    return jsonify({"success": True, "order_id": order.id, "redirect": url_for("checkout", order=order.id)})
+    return jsonify({"success": True, "order_id": order.id, "redirect": f"checkout/{order.id}"})
 
 @app.route("/api/pay", methods=["POST"])
 def pay():
@@ -852,4 +856,4 @@ with app.app_context():
 
 if __name__ == "__main__":
     print('iiiiiiiiiiiii')
-    # app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

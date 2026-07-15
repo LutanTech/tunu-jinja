@@ -245,7 +245,7 @@
 
             <div class="border-t border-gray-100 pt-4 text-center">
                 <p class="text-[10px] text-gray-400 font-medium">
-                    <i class="fas fa-code"></i> Powered by <b>Lutan Solutions</b> | v2.5.0
+                    <i class="fas fa-code"></i> Powered by <b>Lutan Tech</b> | v2.5.0
                 </p>
             </div>
         </div>
@@ -282,7 +282,7 @@
     <div class="fixed bottom-20 right-6 z-40 flex flex-col gap-3">
         <button onclick="openCart()" class="bg-magenta hover:bg-dark-magenta text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110 relative" title="Open Cart">
             <i class="fas fa-shopping-cart text-lg"></i>
-            <span class="absolute -top-1 -right-1 bg-orangered text-white text-[9px] font-bold w-5 h-5 rounded-full flex items-center justify-center float-count">0</span>
+            <span class="absolute -top-1 -right-1 bg-orangered text-white text-[9px] font-bold w-5 h-5 rounded-full flex items-center justify-center float-count" id="float-count">0</span>
         </button>
         
         <a href="https://wa.me/254722682129" target="_blank" class="bg-[#25d366] hover:bg-[#128C7E] text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110" aria-label="WhatsApp Chat">
@@ -489,6 +489,8 @@
             const sbtn = document.querySelector('.search-trigger-btn');
             const mobileSbtn = document.querySelector('#mobile-search-btn');
 
+            updateWishlistCount()
+
             if (inp) {
                 inp.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter' && inp.value.trim() !== '') {
@@ -496,6 +498,9 @@
                     }
                 });
             }
+
+
+
 
             if (sbtn && inp) {
                 sbtn.addEventListener('click', () => {
@@ -540,6 +545,40 @@
                 });
             }
         });
+
+        function updateWishlistCount(){
+            let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+            const ccs = document.querySelectorAll('.float-count')
+            if(ccs){
+                ccs.forEach(c=>{
+                c.textContent = wishlist.length || 0
+                })
+            }
+
+        }
+
+        function addBookToWishlist(id, amount, author) {
+            let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+        
+            const existingBook = wishlist.find(book => book.id === id);
+        
+            if (existingBook) {
+                return showAlert('error', 'Book already in your wishlist');
+            }
+        
+            const newBook = {
+                id: id,
+                amount: amount,
+                author: author
+            };
+        
+            wishlist.push(newBook);
+        
+            localStorage.setItem('wishlist', JSON.stringify(wishlist));
+        
+            updateWishlistCount()
+            showAlert('success', 'Book added to wishlist');
+        }
 
         function showAlert(type, text) {
             const div = document.createElement('div');
