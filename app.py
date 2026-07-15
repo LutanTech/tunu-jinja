@@ -437,11 +437,6 @@ def admin_dashboard():
         monthly_reports=Submission.query.filter(Submission.submitted_at >= datetime.utcnow() - timedelta(days=30)).count()
     )
 
-@app.route("/cp/staff")
-@login_required
-@admin_required
-def staff_page():
-    return render_template("staff.html", staff=Staff.query.filter_by(is_super_admin=False).order_by(Staff.name).all())
 
 @app.route("/api/admin/edit_staff", methods=["POST"])
 @login_required
@@ -473,11 +468,6 @@ def toggle_staff():
     log_action(f"Toggled account {staff.id}", 200, adm.id)
     return jsonify({"msg": "Status updated."})
 
-@app.route("/cp/reports")
-@login_required
-@admin_required
-def reports_page():
-    return render_template("reports.html", reports=Submission.query.order_by(Submission.submitted_at.desc()).all())
 
 @app.route("/cp/orders")
 @login_required
@@ -508,7 +498,18 @@ def logs_page():
 @login_required
 @admin_required
 def books_admin():
-    return render_template("admin/books.html", books=Book.query.filter_by(is_deleted=False).order_by(Book.added_at.desc()).all())
+    q = Book.query.filter_by(is_deleted=False)
+ 
+    search_term = request.args.get("q", "").strip()
+    if search_term:
+        like = f"%{search_term}%"
+        q = q.filter(db.or_(Book.title.ilike(like), Book.authors.ilike(like)))
+ 
+    pagination = q.order_by(Book.added_at.desc()).paginate(
+        page=request.args.get("page", 1, type=int), per_page=10, error_out=False
+    )
+ 
+    return redirect(url_for(''))
 
 @app.route("/cp/books/new", methods=["GET", "POST"])
 @login_required
@@ -718,6 +719,36 @@ def pay():
         print(str(e))
         return f"error occured: {str(e)}"
 
+prefixes = (
+    "/resources/books/covers/",
+    "resources/books/covers/",
+)
+
+
+            
+@app.route("/clear-cache")
+def clear_url_cache():
+    changed = []
+
+    books = Book.query.all()
+
+    for book in books:
+        if book.image:
+            for prefix in prefixes:
+                if book.image.startswith(prefix):
+                    book.image = book.image[len(prefix):]
+                    changed.append(book.title)
+                    break
+
+    db.session.commit()
+
+    return jsonify({
+        "updated": len(changed),
+        "books": changed
+    })
+    
+    
+
 @app.route("/mpesa/callback", methods=["POST"])
 def mpesa_callback():
     token = request.args.get("token")
@@ -856,4 +887,4 @@ with app.app_context():
 
 if __name__ == "__main__":
     print('iiiiiiiiiiiii')
-    # app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

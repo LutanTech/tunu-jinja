@@ -1,0 +1,445 @@
+{% extends 'base.html' %}
+
+{% block title %}Page not Found | TUNU Publishers{% endblock %}
+
+{% block content %}
+    <style>
+        :root {
+            --magenta: #8B008B;
+            --dark-magenta: #4B004B;
+            --orangered: #FF4500;
+            --white: #FFFFFF;
+            --light-bg: #f9f9f9;
+            --gray-text: #666;
+            --border-color: #eee;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            width: 100%;
+        }
+
+        header {
+            background: var(--magenta);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            height: 48px;
+            background: white;
+            padding: 4px;
+            border-radius: 4px;
+            margin-right: 12px;
+        }
+
+        .brand-text { color: white; }
+        .brand-text h1 { font-size: 24px; line-height: 1; }
+        .brand-text p { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; }
+
+        nav { display: none; }
+        @media (min-width: 1024px) {
+            nav { display: flex; gap: 5px; }
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover { background: rgba(255, 69, 0, 0.8); }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .mobile-nav-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: block;
+        }
+
+        @media (min-width: 1024px) {
+            .mobile-nav-toggle {
+                display: none;
+            }
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            z-index: 1500;
+            backdrop-filter: blur(2px);
+        }
+
+        .mobile-drawer {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 280px;
+            height: 100%;
+            background: var(--white);
+            z-index: 2000;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.15);
+            transition: left 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mobile-drawer.open {
+            left: 0;
+        }
+
+        .mobile-drawer-header {
+            padding: 20px;
+            background: var(--magenta);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mobile-drawer-links {
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .mobile-drawer-link {
+            padding: 12px 25px;
+            color: #333;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-drawer-link:hover {
+            background: #f5f5f5;
+            color: var(--magenta);
+            border-left-color: var(--magenta);
+        }
+
+        .error-main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+        }
+
+        .error-card {
+            background: var(--white);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            padding: 20px 10px;
+            box-shadow: 0 20px 40px rgba(139, 0, 139, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(139, 0, 139, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            font-size:small;
+        }
+
+        .error-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(139, 0, 139, 0.12), 0 1px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .error-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--magenta), var(--orangered));
+        }
+
+        .error-icon-container {
+            width: 100px;
+            height: 100px;
+            background: rgba(139, 0, 139, 0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            position: relative;
+            border: 2px dashed rgba(139, 0, 139, 0.2);
+            animation: pulse-ring 3s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(139, 0, 139, 0.2); }
+            70% { box-shadow: 0 0 0 15px rgba(139, 0, 139, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(139, 0, 139, 0); }
+        }
+
+        .error-illustration {
+            font-size: 30px;
+            color: var(--magenta);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .error-illustration i {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .error-illustration .small-icon {
+            font-size: 24px;
+            color: var(--orangered);
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            animation: bounce 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(15deg); }
+        }
+
+        .error-card h2 {
+            font-size: 52px;
+            background: linear-gradient(90deg, var(--magenta), var(--orangered));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: 12px;
+            font-weight: 900;
+            letter-spacing: -2px;
+        }
+
+        .error-card h3 {
+            font-size: 15px;
+            color: #444;
+            margin-bottom: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .error-card p {
+            color: var(--gray-text);
+            font-size: 12px;
+            line-height: 1.7;
+            margin-bottom: 35px;
+            max-width: 460px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            justify-content: center;
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        @media(min-width: 480px) {
+            .button-group {
+                flex-direction: row;
+            }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 5px 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--orangered);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 69, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #e63e00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 69, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--magenta);
+            color: var(--magenta);
+        }
+
+        .btn-secondary:hover {
+            background: var(--magenta);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 0, 139, 0.15);
+        }
+
+        footer {
+            background: #2a002a;
+            color: white;
+            padding: 80px 0 30px;
+            margin-top: auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .footer-col h4 {
+            color: var(--orangered);
+            margin-bottom: 25px;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-left: 4px solid var(--orangered);
+            padding-left: 15px;
+        }
+
+        .footer-links { list-style: none; }
+        .footer-links li { margin-bottom: 12px; }
+        .footer-links a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover { color: var(--white); }
+
+        .footer-contact li {
+            display: flex;
+            gap: 12px;
+            color: #ccc;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .footer-contact i { color: var(--orangered); margin-top: 4px; }
+
+        .social-links { display: flex; gap: 15px; margin-top: 20px; }
+        .social-links a {
+            width: 35px;
+            height: 35px;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        .social-links a:hover { background: var(--orangered); }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 30px;
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+        }
+
+
+        @media (max-width: 768px) {
+            .header-content { padding: 12px 20px; }
+            .error-card { padding: 40px 24px; border-radius: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="error-main">
+        <div class="container" style="display:flex; justify-content:center;">
+            <div class="error-card">
+                <div class="error-icon-container">
+                    <div class="error-illustration">
+                        <i class="fas fa-book-open"></i>
+                        <i class="fas fa-question-circle small-icon"></i>
+                    </div>
+                </div>
+                <h2>405</h2>
+                <h3>Error</h3>
+                <p>The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.</p>
+                <p>ERROR: {{ error }}</p>
+                <div class="button-group">
+                    <a href="/" class="btn btn-primary"><i class="fas fa-home"></i> Go Home</a>
+                    <a href="/books" class="btn btn-secondary"><i class="fas fa-book"></i> View Catalog</a>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}

@@ -5,7 +5,11 @@
 {% block content %}
 
 <script>
-    window.booksDatabase = {{ books|map(attribute='to_dict')|list|tojson }};
+    window.booksDatabase = [
+    {% for b in books %}
+    {{ b.to_dict() | tojson }}{{ "," if not loop.last }}
+    {% endfor %}
+];
 </script>
 
 <div class="bg-white border-b border-gray-100">
@@ -114,7 +118,7 @@
 
                         <div class="flex items-center gap-1 my-3 text-[10px] text-amber-400">
                             {% for i in range(1, 6) %}
-                            <i class="{% if i <= book.stars %}fa-solid{% else %}fa-regular{% endif %} fa-star"></i>
+                            <i class="{% if book.stars and i <= book.stars %}fa-solid{% else %}fa-regular{% endif %} fa-star"></i>
                             {% endfor %}
                             <span class="text-gray-400 text-[9px] font-bold ml-1">({{ book.views }} Views)</span>
                         </div>
