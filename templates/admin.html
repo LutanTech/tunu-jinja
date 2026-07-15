@@ -1401,30 +1401,64 @@
                 }
             }
         });
+        getLabels()
+        function getLabels(){
+            fetch('/api/labels')
+            .then(r=>r.json())
+            .then(data=>{
+                console.log(data[0])
+            })
+        }
 
         const catCtx = document.getElementById('categoryChart').getContext('2d');
-        new Chart(catCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Junior School', 'Revision', 'Storybooks', 'Poetry'],
-                datasets: [{
-                    data: [45, 25, 15, 15],
-                    backgroundColor: ['#8B008B', '#FF4500', '#4B004B', '#FFD700'],
-                    borderWidth: 0
-                }]
-            },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                plugins: { 
-                    legend: { 
-                        position: 'bottom',
-                        labels: { boxWidth: 12, font: { size: 10, weight: 'bold' } }
-                    } 
-                },
-                cutout: '70%'
+
+const categoryChart = new Chart(catCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [],
+        datasets: [{
+            data: [],
+            backgroundColor: [
+                '#8B008B',
+                '#FF4500',
+                '#4B004B',
+                '#FFD700',
+                '#1E90FF',
+                '#32CD32',
+                '#DC143C',
+                '#00CED1'
+            ],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    boxWidth: 12,
+                    font: {
+                        size: 10,
+                        weight: 'bold'
+                    }
+                }
             }
-        });
+        },
+        cutout: '70%'
+    }
+});
+
+fetch('/api/labels')
+    .then(res => res.json())
+    .then(data => {
+        categoryChart.data.labels = data.map(item => item.label);
+        categoryChart.data.datasets[0].data = data.map(item => item.count);
+        categoryChart.update();
+    })
+    .catch(console.error);
+ 
     </script>
 </body>
 </html>

@@ -1,13 +1,32 @@
-import os, re, json, hmac, base64, hashlib, secrets, string
+import base64
 from datetime import datetime, timedelta
 from functools import wraps
-import requests
+import hashlib
+import hmac
+import json
+import os
+import re
+import secrets
+import string
+
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, abort, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+from flask import (
+    Flask,
+    abort,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    session,
+    url_for,
+)
 from flask_mail import Mail, Message
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+import requests
+from sqlalchemy import func
+from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv()
 
@@ -723,6 +742,26 @@ prefixes = (
     "/resources/books/covers/",
     "resources/books/covers/",
 )
+
+
+@app.route("/api/labels")
+def get_labels():
+    labels = (
+        db.session.query(
+            Book.grade,
+            func.count(Book.id)
+        )
+        .group_by(Book.grade)
+        .all()
+    )
+
+    return jsonify([
+        {
+            "label": grade,
+            "count": count
+        }
+        for grade, count in labels
+    ])
 
 
             
