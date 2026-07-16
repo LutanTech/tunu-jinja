@@ -73,7 +73,7 @@
                             
                             {% if order.status == 'PAID' %}
                             <p style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 24px; color: #4A5568; margin: 0;">
-                                We are thrilled to confirm that your payment has been processed successfully. Thank you for choosing TUNU Publishers! Your investment in quality educational resources is highly valued, and we are working quickly to deliver your order.
+                                We are thrilled to confirm that your payment has been processed successfully. Thank you for choosing TUNU Publishers! Your investment in quality educational resources is highly valued and we are working quickly to deliver your order.
                             </p>
                             {% else %}
                             <p style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 24px; color: #4A5568; margin: 0;">
@@ -188,7 +188,7 @@
                                 <tr>
                                     <td style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 13px; color: #9B2C2C; line-height: 22px;padding:9px">
                                         <strong style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; margin-bottom: 4px;">Awaiting Payment Confirmation</strong><br/>
-                                        An M-Pesa STK push prompt has been sent directly to your registered number: <strong>+{{ order.phone }}</strong>. Please check your phone, enter your M-Pesa PIN, and authorize the KSh {{ order.grand_total }} payment to complete the book purchase.<br/><br/>
+                                        An M-Pesa STK push prompt has been sent directly to your registered number: <strong>+{{ order.phone }}</strong>. Please check your phone, enter your M-Pesa PIN and authorize the KSh {{ order.grand_total }} payment to complete the book purchase.<br/><br/>
                                         If the PIN prompt hasn't appeared, you can pay using our Lipa Na M-Pesa Till No. ....
                                     </td>
                                 </tr>

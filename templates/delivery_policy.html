@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Delivery Policy | TUNU Publishers{% endblock %}
+
+{% block head %}
+<meta name="description" content="Read TUNU Publishers' delivery policy — processing times, delivery zones, courier partners, shipping fees and order tracking across Kenya.">
+{% endblock %}
+
+{% block content %}
+
+<!-- BREADCRUMB -->
+<div class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center gap-2 text-[11px] font-semibold text-gray-500">
+        <a href="/" class="hover:text-magenta transition-colors">Home</a>
+        <i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
+        <span class="text-gray-800">Delivery Policy</span>
+    </div>
+</div>
+
+<!-- PAGE BANNER -->
+<section class="relative bg-gradient-to-br from-dark-magenta to-magenta overflow-hidden">
+    <div class="max-w-4xl mx-auto px-4 md:px-6 py-14 md:py-20 text-center">
+        <span class="inline-block bg-orangered text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">Shipping & Logistics</span>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4">Delivery Policy</h1>
+        <p class="text-white/85 text-sm md:text-base max-w-xl mx-auto">
+            Everything you need to know about how, when and where we deliver your books across Kenya.
+        </p>
+    </div>
+</section>
+
+<section class="max-w-4xl mx-auto px-4 md:px-6 py-12 md:py-16">
+
+    <!-- QUICK FACTS -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 text-center">
+            <i class="fas fa-box-open text-2xl text-magenta mb-3 block"></i>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-800 mb-1">Processing Time</h4>
+            <p class="text-xs text-gray-500">1 – 2 business days</p>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 text-center">
+            <i class="fas fa-truck text-2xl text-magenta mb-3 block"></i>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-800 mb-1">Nairobi Delivery</h4>
+            <p class="text-xs text-gray-500">Same day – 2 business days</p>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 text-center">
+            <i class="fas fa-map-marked-alt text-2xl text-magenta mb-3 block"></i>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-800 mb-1">Countrywide</h4>
+            <p class="text-xs text-gray-500">2 – 5 business days</p>
+        </div>
+    </div>
+
+    <div class="prose-sm space-y-10">
+
+        <div>
+            <h2 class="text-lg font-extrabold text-gray-800 mb-3 border-l-2 border-orangered pl-3">1. Order Processing</h2>
+            <p class="text-sm text-gray-600 leading-relaxed">
+                Once your order is placed and payment is confirmed via M-Pesa, our team packages and dispatches your books within <strong class="text-gray-800">1–2 business days</strong>. Orders placed on weekends or public holidays are processed on the next working day. You will receive an SMS or email confirmation once your order has been dispatched.
+            </p>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-extrabold text-gray-800 mb-3 border-l-2 border-orangered pl-3">2. Delivery Zones & Timeframes</h2>
+            <p class="text-sm text-gray-600 leading-relaxed mb-4">
+                We deliver to all 47 counties in Kenya through trusted courier partners. Estimated delivery timeframes after dispatch are as follows:
+            </p>
+            <div class="overflow-x-auto rounded-xl border border-gray-100">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-gray-50 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
+                            <th class="p-3">Zone</th>
+                            <th class="p-3">Estimated Delivery</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr><td class="p-3 font-bold text-gray-700">Nairobi & Environs</td><td class="p-3 text-gray-500">Same day – 2 business days</td></tr>
+                        <tr><td class="p-3 font-bold text-gray-700">Major Towns (Mombasa, Kisumu, Nakuru, Eldoret, etc.)</td><td class="p-3 text-gray-500">2 – 3 business days</td></tr>
+                        <tr><td class="p-3 font-bold text-gray-700">Other Counties & Rural Areas</td><td class="p-3 text-gray-500">3 – 5 business days</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-extrabold text-gray-800 mb-3 border-l-2 border-orangered pl-3">3. Delivery Fees</h2>
+            <p class="text-sm text-gray-600 leading-relaxed">
+                Delivery fees are calculated based on your location and parcel weight and will be confirmed by our team before dispatch. We work with courier and rider partners to keep delivery costs as low as possible and we occasionally run free-delivery promotions for orders above a set value — watch our homepage and newsletter for updates.
+            </p>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-extrabold text-gray-800 mb-3 border-l-2 border-orangered pl-3">4. Order Tracking</h2>
+            <p class="text-sm text-gray-600 leading-relaxed">
+                Once dispatched, you'll receive tracking details via SMS or email where applicable. You can also reach out to us directly on WhatsApp or by phone with your order ID for a status update at any time.
+            </p>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-extrabold text-gray-800 mb-3 border-l-2 border-orangered pl-3">5. Failed or Delayed Deliveries</h2>
+            <p class="text-sm text-gray-600 leading-relaxed">
+                If a delivery attempt fails because you were unavailable or the address provided was incomplete or incorrect, our courier partner will attempt to contact you to reschedule. Please ensure your phone number and delivery address are accurate at checkout — additional delivery attempts may attract extra courier fees.
+            </p>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-extrabold text-gray-800 mb-3 border-l-2 border-orangered pl-3">6. Damaged or Incorrect Items</h2>
+            <p class="text-sm text-gray-600 leading-relaxed">
+                We carefully inspect and package every order before dispatch. If you receive a damaged, defective or incorrect item, please contact us within <strong class="text-gray-800">48 hours</strong> of delivery with your order ID and a photo of the item and we'll arrange a replacement or refund at no extra cost to you.
+            </p>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-extrabold text-gray-800 mb-3 border-l-2 border-orangered pl-3">7. Institutional & Bulk Orders</h2>
+            <p class="text-sm text-gray-600 leading-relaxed">
+                Schools, libraries and institutions ordering in bulk can request custom delivery arrangements, including scheduled deliveries across a term or academic year. Reach out to our sales team to discuss bulk delivery terms.
+            </p>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-extrabold text-gray-800 mb-3 border-l-2 border-orangered pl-3">8. Questions About Your Delivery</h2>
+            <p class="text-sm text-gray-600 leading-relaxed">
+                For any delivery-related questions, reach us at <a href="mailto:info@tunupublishers.com" class="text-magenta font-semibold hover:underline">support@tunupublishers.com</a>, call <a href="tel:+254722682129" class="text-magenta font-semibold hover:underline">+254 722 68 21 29</a> or message us on WhatsApp. We're here Monday – Saturday, 8:00am – 6:00pm.
+            </p>
+        </div>
+
+    </div>
+
+    <!-- CTA -->
+    <div class="mt-14 bg-lightWarm border border-gray-100 rounded-2xl p-6 md:p-8 text-center">
+        <h3 class="font-bold text-sm md:text-base text-gray-800 mb-2">Have more questions?</h3>
+        <p class="text-xs text-gray-500 mb-5">Our team is happy to help with anything related to your order or delivery.</p>
+        <a href="/contact" class="inline-block bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider px-8 py-3.5 rounded-full transition-colors shadow-md">
+            Contact Us
+        </a>
+    </div>
+</section>
+
+{% endblock %}

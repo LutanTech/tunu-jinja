@@ -773,6 +773,21 @@ def get_labels():
         for grade, count in labels
     ])
 
+@app.route("/wishlist")
+def wishlist():
+    return render_template("wishlist.html")
+
+@app.route("/api/books/batch")
+def books_batch():
+    ids = [i.strip() for i in request.args.get("ids", "").split(",") if i.strip()]
+    if not ids:
+        return jsonify({"items": []})
+    books = Book.query.filter(Book.id.in_(ids), Book.is_deleted == False).all()
+    return jsonify({"items": [
+        {"id": b.id, "title": b.title, "image_url": b.image_url, "newPrice": b.newPrice,
+         "oldPrice": b.oldPrice, "audience": b.audience, "authors": b.authors}
+        for b in books
+    ]})
 
             
 @app.route("/clear-cache")
@@ -796,7 +811,9 @@ def clear_url_cache():
         "books": changed
     })
     
-    
+@app.route("/delivery-policy")
+def delivery_policy():
+    return render_template("delivery_policy.html")
 
 @app.route("/mpesa/callback", methods=["POST"])
 def mpesa_callback():
@@ -937,4 +954,4 @@ with app.app_context():
 
 if __name__ == "__main__":
     print('iiiiiiiiiiiii')
-    # app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

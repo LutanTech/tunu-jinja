@@ -51,7 +51,7 @@
         <!-- IMAGE -->
         <div class="md:sticky md:top-24 self-start">
             <div class="relative bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden aspect-[2/2] flex items-center justify-center">
-                <img src="{{ book.image_url }}" alt="{{ book.title }}" id="product-image" class="w-full h-full object-contain p-6 md:p-10" onerror="this.src='https://placehold.co/500x650/8B008B/ffffff?text=Book'">
+                <img src="{{ book.image_url }}" alt="{{ book.title }}" id="product-image" class="w-full h-full object-contain p-6 md:p-10" onerror="this.src='{{ url_for('static', filename='icons/tunu_logo.png') }}'">
                 {% if book.discounted and book.oldPrice and book.oldPrice > book.newPrice %}
                 <span class="absolute top-4 left-4 bg-orangered text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md">
                     -{{ (((book.oldPrice - book.newPrice) / book.oldPrice) * 100) | round | int }}% OFF

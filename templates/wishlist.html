@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Your Wishlist | TUNU Publishers{% endblock %}
+
+{% block content %}
+
+<!-- BREADCRUMB -->
+<div class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center gap-2 text-[11px] font-semibold text-gray-500">
+        <a href="/" class="hover:text-magenta transition-colors">Home</a>
+        <i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
+        <span class="text-gray-800">Wishlist</span>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+    <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800 mb-8">Your Wishlist</h1>
+
+    <!-- LOADING -->
+    <div id="wishlist-loading" class="text-center py-16 text-gray-400 text-xs font-semibold">
+        <i class="fas fa-spinner fa-spin text-2xl text-magenta/30 mb-3 block"></i>
+        Loading your saved books...
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div id="wishlist-empty-state" class="hidden text-center py-16 md:py-24 border border-dashed border-gray-200 rounded-2xl">
+        <i class="far fa-heart text-5xl text-magenta/20 mb-5 block"></i>
+        <h2 class="font-bold text-sm text-gray-700 mb-2">Your wishlist is empty</h2>
+        <p class="text-xs text-gray-400 mb-6">Tap the heart icon on any book to save it here for later.</p>
+        <a href="/books" class="inline-block bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider px-8 py-3.5 rounded-full transition-colors shadow-md">
+            Browse Books
+        </a>
+    </div>
+
+    <!-- WISHLIST GRID -->
+    <div id="wishlist-content-wrapper" class="hidden">
+        <p class="text-xs text-gray-500 font-semibold mb-6"><span id="wishlist-item-count">0</span> saved book(s)</p>
+        <div id="wishlist-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"></div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function renderWishlistPage() {
+        const loading = document.getElementById('wishlist-loading');
+        const emptyState = document.getElementById('wishlist-empty-state');
+        const contentWrapper = document.getElementById('wishlist-content-wrapper');
+        const grid = document.getElementById('wishlist-grid');
+        const countEl = document.getElementById('wishlist-item-count');
+
+        const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+
+        if (!wishlist.length) {
+            loading.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+            contentWrapper.classList.add('hidden');
+            return;
+        }
+
+        try {
+            const ids = wishlist.map(w => w.id).join(',');
+            const res = await fetch(`/api/books/batch?ids=${encodeURIComponent(ids)}`);
+            const data = await res.json();
+            const books = data.items || [];
+
+            // Preserve wishlist order; drop entries for books that no longer exist
+            const orderedBooks = wishlist
+                .map(w => books.find(b => b.id === w.id))
+                .filter(Boolean);
+
+            loading.classList.add('hidden');
+
+            if (!orderedBooks.length) {
+                emptyState.classList.remove('hidden');
+                contentWrapper.classList.add('hidden');
+                return;
+            }
+
+            contentWrapper.classList.remove('hidden');
+            countEl.textContent = orderedBooks.length;
+
+            window.booksData = (window.booksData || []).concat(
+                orderedBooks.map(b => ({
+                    id: b.id, title: b.title, image_url: b.image_url, image: b.image_url,
+                    newPrice: b.newPrice, oldPrice: b.oldPrice, category: b.audience || 'General'
+                }))
+            );
+
+            grid.innerHTML = orderedBooks.map(b => `
+                <div class="group relative bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+                    <a href="/book/${b.id}" class="block relative bg-lightWarm aspect-[3/4] overflow-hidden">
+                        <img src="${b.image_url}" alt="${b.title}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/300x400/8B008B/ffffff?text=Book'">
+                        ${b.oldPrice && b.oldPrice > b.newPrice ? `
+                        <span class="absolute top-2 left-2 bg-orangered text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                            -${Math.round(((b.oldPrice - b.newPrice) / b.oldPrice) * 100)}%
+                        </span>` : ''}
+                        <button onclick="event.preventDefault(); removeFromWishlistPage('${b.id}')" class="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-orangered hover:bg-orangered hover:text-white shadow-sm transition-colors" title="Remove from wishlist">
+                            <i class="fas fa-heart text-xs"></i>
+                        </button>
+                    </a>
+                    <div class="p-3 flex flex-col flex-grow">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">${b.audience || 'General'}</p>
+                        <a href="/book/${b.id}" class="font-bold text-xs text-gray-800 leading-snug line-clamp-2 mb-1 hover:text-magenta transition-colors min-h-[2rem]">${b.title}</a>
+                        <p class="text-[10px] text-gray-400 mb-2 line-clamp-1">${b.authors || 'TUNU Publishers'}</p>
+                        <div class="mt-auto flex items-center justify-between gap-2">
+                            <div class="min-w-0">
+                                ${b.oldPrice && b.oldPrice > b.newPrice ? `<span class="text-[10px] text-gray-400 line-through block">KSh ${Number(b.oldPrice).toLocaleString()}</span>` : ''}
+                                <span class="text-sm font-extrabold text-magenta block truncate">KSh ${Number(b.newPrice).toLocaleString()}</span>
+                            </div>
+                            <button onclick="addToCart('${b.id}', '${b.audience || 'General'}')" class="bg-magenta hover:bg-dark-magenta text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0" title="Add to Cart">
+                                <i class="fas fa-cart-plus text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) {
+            console.error('Failed to load wishlist', err);
+            loading.classList.add('hidden');
+            showAlert('error', 'Could not load your wishlist. Please try again.');
+        }
+    }
+
+    function removeFromWishlistPage(id) {
+        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+        wishlist = wishlist.filter(item => item.id !== id);
+        localStorage.setItem('wishlist', JSON.stringify(wishlist));
+        if (typeof updateWishlistCount === 'function') updateWishlistCount();
+        showAlert('success', 'Removed from wishlist');
+        renderWishlistPage();
+    }
+
+    document.addEventListener('DOMContentLoaded', renderWishlistPage);
+</script>
+{% endblock %}
