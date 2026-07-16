@@ -1,6 +1,7 @@
 import base64
 from datetime import datetime, timedelta
 from functools import wraps
+from functools import wraps
 import hashlib
 import hmac
 import json
@@ -21,6 +22,7 @@ from flask import (
     session,
     url_for,
 )
+from flask import redirect, request, session, url_for
 from flask_mail import Mail, Message
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -78,10 +80,27 @@ def verify_hmac_token(data, token):
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        return redirect(url_for("login", next=request.path)) if not session.get("staff_id") else f(*args, **kwargs)
+        staff_id = session.get("staff_id")
+
+        if not staff_id:
+            return redirect(url_for("login", next=request.path))
+
+        staff = db.session.get(Staff, staff_id)
+
+        if not staff:
+            session.clear()
+            return redirect(url_for("login"))
+
+        if not staff.is_active:
+            session.clear()
+            return redirect(url_for("login"))
+
+        if staff.must_change and request.endpoint != "change_password":
+            return redirect(url_for("change_password"))
+
+        return f(*args, **kwargs)
+
     return wrapper
-
-
 
 def admin_required(f):
     @wraps(f)
@@ -361,19 +380,19 @@ def create_dummy():
 @app.route("/staff/login", methods=["GET", "POST"])
 def login():
     if session.get("staff_id"): return redirect(url_for("dashboard"))
-    if request.method == "GET": return render_template("login.html", next=request.args.get("next"))
+    if request.method == "GET": return render_template("user/login.html", next=request.args.get("next"))
     next_url, user, pwd = request.args.get("next"), request.form.get("username", "").strip(), request.form.get("password", "")
     if not user or not pwd: return render_template("login.html", error="All fields are required.")
     staff = Staff.query.filter((Staff.phone == user) | (Staff.email == user) | (Staff.id == user)).first()
     if not staff:
         log_action("Unknown login attempt", 401)
-        return render_template("login.html", error="Invalid credentials.")
+        return render_template("user/login.html", error="Invalid credentials.")
     if not staff.is_active:
         log_action(f"Disabled account login attempt ({staff.id})", 401, staff.id)
         return render_template("login.html", error="Your account has been disabled.")
     if not check_password_hash(staff.password, pwd):
         log_action(f"Invalid password ({staff.id})", 401, staff.id)
-        return render_template("login.html", error="Invalid credentials.")
+        return render_template("user/login.html", error="Invalid credentials.")
     session.update({"staff_id": staff.id})
     session.permanent = True
     log_action(f"{staff.name} logged in", 200, staff.id)
@@ -388,15 +407,17 @@ def logout():
     session.clear()
     return redirect(url_for("home"))
 
+
 @app.route("/staff/change-password", methods=["GET", "POST"])
 @login_required
 def change_password():
     staff = db.session.get(Staff, session["staff_id"])
-    if request.method == "GET": return render_template("change_password.html")
+    if request.method == "GET": return render_template("user/change_password.html")
     curr, new, conf = request.form.get("current"), request.form.get("new"), request.form.get("confirm")
-    if not check_password_hash(staff.password, curr): return render_template("change_password.html", error="Current password is incorrect.")
-    if len(new) < 6: return render_template("change_password.html", error="Password is too short.")
-    if new != conf: return render_template("change_password.html", error="Passwords do not match.")
+    
+    if not check_password_hash(staff.password, curr): return render_template("user/change_password.html", error="Current password is incorrect.")
+    if len(new) < 6: return render_template("user/change_password.html", error="Password is too short.")
+    if new != conf: return render_template("user/change_password.html", error="Passwords do not match.")
     staff.password, staff.must_change = generate_password_hash(new), False
     staff.edited_at, staff.edited_by = datetime.utcnow() + timedelta(hours=3), staff.id
     db.session.commit()
@@ -408,10 +429,10 @@ def change_password():
 @admin_required
 def register_staff():
     admin = db.session.get(Staff, session["staff_id"])
-    if request.method == "GET": return render_template("register.html")
+    if request.method == "GET": return render_template("user/register.html")
     phone, email = request.form.get("phone"), request.form.get("email")
-    if Staff.query.filter_by(phone=phone).first(): return render_template("register.html", error="Phone number already exists.")
-    if email and Staff.query.filter_by(email=email).first(): return render_template("register.html", error="Email already exists.")
+    if Staff.query.filter_by(phone=phone).first(): return render_template("user/register.html", error="Phone number already exists.")
+    if email and Staff.query.filter_by(email=email).first(): return render_template("user/register.html", error="Email already exists.")
     staff = Staff(name=request.form.get("name"), phone=phone, email=email, location=request.form.get("location"), added_by=admin.id, password=generate_password_hash("#TunuStaff2026"), must_change=True)
     db.session.add(staff)
     db.session.commit()
@@ -423,7 +444,7 @@ def register_staff():
 def dashboard():
     staff = db.session.get(Staff, session["staff_id"])
     return render_template(
-        "dashboard.html", staff=staff,
+        "user/dashboard.html", staff=staff,
         reports=Submission.query.filter_by(staff_id=staff.id).order_by(Submission.submitted_at.desc()).all(),
         reports_today=Submission.query.filter(Submission.staff_id == staff.id, db.func.date(Submission.submitted_at) == datetime.utcnow().date()).count(),
         reports_month=Submission.query.filter(Submission.staff_id == staff.id, Submission.submitted_at >= (datetime.utcnow() - timedelta(days=30))).count(),
@@ -717,7 +738,11 @@ def upload_image():
 
 @app.route("/about", methods=["GET"])
 def about():
-    return render_template('about.html')
+    return render_template('company/about.html')
+
+@app.route("/contact-us", methods=["GET"])
+def contact_us():
+    return render_template('company/contact.html')
 
 @app.route("/api/create-order", methods=["POST"])
 def create_order():
