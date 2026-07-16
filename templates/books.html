@@ -115,7 +115,7 @@
             {% if books %}
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {% for book in books %}
-                <div class="group relative bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+                <div data-aos="flip-left" class="group relative bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
                     <a href="/book/{{ book.slug }}" class="block relative bg-lightWarm aspect-[3/4] overflow-hidden">
                         <img src="{{ book.image_url }}" alt="{{ book.title }}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/300x400/8B008B/ffffff?text=Book'">
                         {% if book.discounted and book.oldPrice and book.oldPrice > book.newPrice %}

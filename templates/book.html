@@ -32,15 +32,15 @@
 <!-- BREADCRUMB -->
 <div class="bg-white border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center gap-2 text-[11px] font-semibold text-gray-500 overflow-x-auto whitespace-nowrap">
-        <a href="/" class="hover:text-magenta transition-colors shrink-0">Home</a>
+        <a  data-aos="fade-up" href="/" class="hover:text-magenta transition-colors shrink-0">Home</a>
         <i class="fas fa-chevron-right text-[8px] text-gray-300 shrink-0"></i>
-        <a href="/books" class="hover:text-magenta transition-colors shrink-0">Books</a>
+        <a  data-aos="fade-down" href="/books" class="hover:text-magenta transition-colors shrink-0">Books</a>
         {% if book.grade or book.audience %}
         <i class="fas fa-chevron-right text-[8px] text-gray-300 shrink-0"></i>
-        <span class="shrink-0">{{ book.grade or book.audience }}</span>
+        <span  data-aos="fade-up" class="shrink-0">{{ book.grade or book.audience }}</span>
         {% endif %}
         <i class="fas fa-chevron-right text-[8px] text-gray-300 shrink-0"></i>
-        <span class="text-gray-800 truncate">{{ book.title }}</span>
+        <span  data-aos="fade-down" class="text-gray-800 truncate">{{ book.title }}</span>
     </div>
 </div>
 
@@ -49,9 +49,9 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
 
         <!-- IMAGE -->
-        <div class="md:sticky md:top-24 self-start">
+        <div data-aos="flip-right" class="md:sticky md:top-24 self-start">
             <div class="relative bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden aspect-[2/2] flex items-center justify-center">
-                <img src="{{ book.image_url }}" alt="{{ book.title }}" id="product-image" class="w-full h-full object-contain p-6 md:p-10" onerror="this.src='{{ url_for('static', filename='icons/tunu_logo.png') }}'">
+                <img  data-aos="flip-right" src="{{ book.image_url }}" alt="{{ book.title }}" id="product-image" class="w-full h-full object-contain p-6 md:p-10" onerror="this.src='{{ url_for('static', filename='icons/tunu_logo.png') }}'">
                 {% if book.discounted and book.oldPrice and book.oldPrice > book.newPrice %}
                 <span class="absolute top-4 left-4 bg-orangered text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md">
                     -{{ (((book.oldPrice - book.newPrice) / book.oldPrice) * 100) | round | int }}% OFF
@@ -70,8 +70,8 @@
                 {% if book.audience %}<span class="bg-lightWarm text-gray-600 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-gray-200">{{ book.audience }}</span>{% endif %}
             </div>
 
-            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800 leading-tight mb-2">{{ book.title }}</h1>
-            <p class="text-xs text-gray-500 font-semibold mb-4">by <span class="text-gray-700">{{ book.authors or 'TUNU Publishers' }}</span></p>
+            <h1  data-aos="fade-up" class="text-2xl md:text-3xl font-extrabold text-gray-800 leading-tight mb-2">{{ book.title }}</h1>
+            <p  data-aos="fade-down" class="text-xs text-gray-500 font-semibold mb-4">by <span class="text-gray-700">{{ book.authors or 'TUNU Publishers' }}</span></p>
 
             <div class="flex items-center gap-4 mb-5 text-xs text-gray-500 font-semibold flex-wrap">
                 <div class="flex items-center gap-1">
@@ -163,7 +163,7 @@
         {% if related %}
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {% for rbook in related %}
-            <div class="group relative bg-lightWarm rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+            <div data-aos="flip-right" class="group relative bg-lightWarm rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
                 <a href="/book/{{ rbook.slug }}" class="block relative bg-white aspect-[3/4] overflow-hidden">
                     <img src="{{ rbook.image_url }}" alt="{{ rbook.title }}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/300x400/8B008B/ffffff?text=Book'">
                 </a>
