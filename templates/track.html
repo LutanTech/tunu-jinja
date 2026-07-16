@@ -1,403 +1,135 @@
 {% extends "base.html" %}
 
-{% block title %}Track Your Order | TUNU Publishers{% endblock %}
-
-{% block head %}
-<style>
-    @keyframes pulse-glow {
-        0% { box-shadow: 0 0 0 0 rgba(139, 0, 139, 0.4); }
-        70% { box-shadow: 0 0 0 8px rgba(139, 0, 139, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(139, 0, 139, 0); }
-    }
-    .pulse-active-step {
-        animation: pulse-glow 2s infinite;
-    }
-    @keyframes mini-bounce {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-3px); }
-    }
-    .hover-bounce:hover i {
-        animation: mini-bounce 1s ease infinite;
-    }
-    @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-    }
-    .shimmer-bg {
-        background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite linear;
-    }
-</style>
+{% block title %}
+    {% if keyword %}Search results for "{{ keyword }}" | TUNU Publishers{% else %}Search | TUNU Publishers{% endif %}
 {% endblock %}
 
 {% block content %}
+
+<!-- BREADCRUMB -->
 <div class="bg-white border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 md:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div class="flex items-center gap-2 text-[11px] font-semibold text-gray-500 w-full sm:w-auto">
-            <a href="/" class="hover:text-magenta transition-colors">Home</a>
-            <i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
-            <span class="text-gray-800">Track Order</span>
-        </div>
-        
-        <div class="text-xs text-gray-400 font-semibold flex items-center gap-1.5">
-            <i class="fas fa-shipping-fast text-magenta"></i>
-            <span>CBC Delivery Nationwide</span>
-        </div>
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center gap-2 text-[11px] font-semibold text-gray-500">
+        <a href="/" class="hover:text-magenta transition-colors">Home</a>
+        <i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
+        <span class="text-gray-800">Search</span>
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-16">
-    {% if not order %}
-    <div class="max-w-xl mx-auto">
-        <div class="bg-white border border-gray-100 rounded-2xl shadow-xl p-6 md:p-10 text-center relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-magenta via-orangered to-magenta"></div>
-            
-            <div class="w-16 h-16 rounded-full bg-magenta/5 text-magenta flex items-center justify-center text-2xl mx-auto mb-6">
-                <i class="fas fa-search-location"></i>
-            </div>
-            
-            <h1 class="text-xl md:text-2xl font-black text-gray-800 tracking-tight">Track Your Book Shipment</h1>
-            <p class="text-xs text-gray-400 mt-2 mb-8 max-w-sm mx-auto leading-relaxed">
-                Enter the unique Order ID (e.g. <span class="font-semibold text-magenta">ORD-XXXXXX</span>) found on your payment receipt or order confirmation message.
-            </p>
+<div class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
 
-            <form onsubmit="handleManualLookup(event)" class="flex flex-col gap-4">
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 pointer-events-none">
-                        <i class="fas fa-receipt text-xs"></i>
-                    </span>
-                    <input type="text" id="lookup-order-id" required placeholder="Enter Order ID (e.g., ORD-A1B2C3)" 
-                           class="w-full bg-gray-50 hover:bg-gray-100/50 focus:bg-white border border-gray-300 rounded-xl pl-10 pr-4 py-4 text-xs font-bold uppercase tracking-wider outline-none focus:border-magenta transition-all">
-                </div>
-
-                <button type="submit" class="w-full bg-magenta hover:bg-dark-magenta text-white font-extrabold text-xs uppercase tracking-wider py-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 hover-bounce">
-                    <span>Retrieve Tracking Details</span> <i class="fas fa-arrow-right"></i>
-                </button>
-            </form>
-
-            <div class="mt-8 border-t border-gray-100 pt-6">
-                <div class="flex items-center justify-center gap-6 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                    <span class="flex items-center gap-1.5"><i class="fas fa-truck text-magenta"></i> Fast Dispatch</span>
-                    <span class="flex items-center gap-1.5"><i class="fas fa-check-circle text-green-500"></i> Verified M-PESA</span>
-                </div>
-            </div>
-        </div>
+    <!-- SEARCH HEADER -->
+    <div class="mb-8">
+        <h1 class="text-xl md:text-2xl font-extrabold text-gray-800 mb-1">
+            {% if keyword %}
+            Search Results for <span class="text-magenta">"{{ keyword }}"</span>
+            {% else %}
+            Search Our Catalog
+            {% endif %}
+        </h1>
+        <p class="text-xs text-gray-500 font-semibold">{{ pagination.total }} book{{ 's' if pagination.total != 1 else '' }} found</p>
     </div>
-    {% else %}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        <div class="lg:col-span-8 flex flex-col gap-6">
-            
-            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <span class="text-[9px] uppercase tracking-widest bg-magenta/10 text-magenta px-3 py-1 rounded-full font-bold">Live Tracker Status</span>
-                    <h2 class="text-lg font-black text-gray-800 mt-2 flex items-center gap-2">
-                        <span>Order #{{ order.id }}</span>
-                    </h2>
-                    <p class="text-[11px] text-gray-400 mt-1 font-semibold">Ordered On: <span class="text-gray-600">{{ order.created_at|datetime }}</span></p>
-                </div>
-                
-                <div class="flex items-center gap-3 w-full md:w-auto">
-                    <button onclick="pollLatestOrderStatus(true)" id="refresh-indicator-btn" class="px-3.5 py-2 border border-gray-200 hover:border-magenta hover:text-magenta text-gray-500 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5">
-                        <i class="fas fa-sync" id="refresh-icon"></i> <span>Sync Status</span>
+
+    <!-- SEARCH BAR -->
+    <form method="GET" action="{{ url_for('search') }}" class="mb-8">
+        <div class="flex border border-gray-300 rounded-full overflow-hidden max-w-lg shadow-sm">
+            <input type="text" name="q" value="{{ keyword or '' }}" placeholder="Search by title, author, or grade..." class="w-full min-w-0 px-5 py-3 text-xs outline-none">
+            <button type="submit" class="bg-magenta hover:bg-dark-magenta text-white px-6 flex items-center justify-center shrink-0 transition-colors">
+                <i class="fas fa-search text-xs"></i>
+            </button>
+        </div>
+    </form>
+
+    <!-- RESULTS GRID -->
+    {% if books %}
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        {% for book in books %}
+        <div class="group relative bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+            <a href="/book/{{ book.id }}" class="block relative bg-lightWarm aspect-[3/4] overflow-hidden">
+                <img src="{{ book.image_url }}" alt="{{ book.title }}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/300x400/8B008B/ffffff?text=Book'">
+                {% if book.discounted and book.oldPrice and book.oldPrice > book.newPrice %}
+                <span class="absolute top-2 left-2 bg-orangered text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                    -{{ (((book.oldPrice - book.newPrice) / book.oldPrice) * 100) | round | int }}%
+                </span>
+                {% endif %}
+                <button onclick="event.preventDefault(); showAlert('info', 'Your Wishlist is currently empty.')" class="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-gray-500 hover:text-magenta shadow-sm transition-colors">
+                    <i class="far fa-heart text-xs"></i>
+                </button>
+            </a>
+            <div class="p-3 flex flex-col flex-grow">
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{{ book.grade or book.audience or 'General' }}</p>
+                <a href="/book/{{ book.id }}" class="font-bold text-xs text-gray-800 leading-snug line-clamp-2 mb-1 hover:text-magenta transition-colors min-h-[2rem]">{{ book.title }}</a>
+                <p class="text-[10px] text-gray-400 mb-2 line-clamp-1">{{ book.authors or 'TUNU Publishers' }}</p>
+                <div class="mt-auto flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                        {% if book.discounted and book.oldPrice and book.oldPrice > book.newPrice %}
+                        <span class="text-[10px] text-gray-400 line-through block">{{ book.oldPrice | currency }}</span>
+                        {% endif %}
+                        <span class="text-sm font-extrabold text-magenta block truncate">{{ book.newPrice | currency }}</span>
+                    </div>
+                    <button onclick="addToCart('{{ book.id }}', '{{ book.audience }}')" class="bg-magenta hover:bg-dark-magenta text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0" title="Add to Cart">
+                        <i class="fas fa-cart-plus text-xs"></i>
                     </button>
-                    
-                    <span id="badge-payment-status" class="px-4 py-2 rounded-full text-xs font-black uppercase text-center shrink-0 tracking-wider">
-                        Checking...
-                    </span>
                 </div>
             </div>
-
-            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 md:p-8">
-                <h3 class="font-extrabold text-xs text-gray-800 uppercase tracking-widest mb-8 border-l-2 border-orangered pl-2">Progress Pipeline</h3>
-                
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
-                    
-                    <div class="flex md:flex-col items-center md:text-center gap-4 md:gap-3 group relative" id="timeline-step-placed">
-                        <div class="timeline-line hidden md:block absolute top-5 left-1/2 w-full h-0.5 bg-gray-200 z-0"></div>
-                        <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center font-bold z-10 transition-all text-sm step-circle">
-                            <i class="fas fa-file-invoice"></i>
-                        </div>
-                        <div class="z-10">
-                            <h4 class="text-xs font-bold text-gray-800 leading-tight">Order Placed</h4>
-                            <p class="text-[10px] text-gray-400 mt-1">Confirmed on server</p>
-                        </div>
-                    </div>
-
-                    <div class="flex md:flex-col items-center md:text-center gap-4 md:gap-3 group relative" id="timeline-step-paid">
-                        <div class="timeline-line hidden md:block absolute top-5 left-1/2 w-full h-0.5 bg-gray-200 z-0"></div>
-                        <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center font-bold z-10 transition-all text-sm step-circle">
-                            <i class="fas fa-wallet"></i>
-                        </div>
-                        <div class="z-10">
-                            <h4 class="text-xs font-bold text-gray-800 leading-tight">Payment Verified</h4>
-                            <p class="text-[10px] text-gray-400 mt-1" id="timeline-step-paid-desc">Waiting for M-Pesa</p>
-                        </div>
-                    </div>
-
-                    <div class="flex md:flex-col items-center md:text-center gap-4 md:gap-3 group relative" id="timeline-step-processing">
-                        <div class="timeline-line hidden md:block absolute top-5 left-1/2 w-full h-0.5 bg-gray-200 z-0"></div>
-                        <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center font-bold z-10 transition-all text-sm step-circle">
-                            <i class="fas fa-box-open"></i>
-                        </div>
-                        <div class="z-10">
-                            <h4 class="text-xs font-bold text-gray-800 leading-tight">Processing</h4>
-                            <p class="text-[10px] text-gray-400 mt-1">Packaging CBC books</p>
-                        </div>
-                    </div>
-
-                    <div class="flex md:flex-col items-center md:text-center gap-4 md:gap-3 group relative" id="timeline-step-dispatched">
-                        <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center font-bold z-10 transition-all text-sm step-circle">
-                            <i class="fas fa-truck-loading"></i>
-                        </div>
-                        <div class="z-10">
-                            <h4 class="text-xs font-bold text-gray-800 leading-tight">Dispatched</h4>
-                            <p class="text-[10px] text-gray-400 mt-1">In transit for delivery</p>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-                <div class="bg-gradient-to-r from-magenta to-dark-magenta px-6 py-4 text-white">
-                    <h3 class="font-bold text-xs uppercase tracking-wider">Itemized Books Breakdown</h3>
-                </div>
-                
-                <div class="p-6 flex flex-col gap-4 divide-y divide-gray-100" id="order-items-grid">
-                    {% for item in order.data %}
-                    <div class="flex items-center gap-4 pt-4 first:pt-0">
-                        <div class="w-12 h-16 bg-lightWarm border border-gray-200 rounded-lg p-1 shrink-0 flex items-center justify-center shadow-sm">
-                            <i class="fas fa-book text-magenta/40 text-lg"></i>
-                        </div>
-                        <div class="flex-grow min-w-0">
-                            <h4 class="text-xs md:text-sm font-bold text-gray-800 line-clamp-1 leading-snug">{{ item.title }}</h4>
-                            <p class="text-[10px] text-gray-400 font-semibold uppercase mt-0.5">Quantity: &times;{{ item.qty }}</p>
-                        </div>
-                        <div class="text-right shrink-0">
-                            <span class="text-xs font-bold text-magenta">KSh {{ item.total|number }}</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                
-                <div class="bg-gray-50 border-t border-gray-100 px-6 py-4 flex justify-between items-baseline">
-                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Paid / Due</span>
-                    <span class="text-lg font-black text-magenta">{{ order.grand_total|currency }}</span>
-                </div>
-            </div>
-
         </div>
-        
-        <div class="lg:col-span-4 flex flex-col gap-6">
-            
-            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-                <h3 class="font-bold text-xs text-gray-800 uppercase tracking-widest mb-5 border-l-2 border-orangered pl-2">Delivery Summary</h3>
-                
-                <div class="flex flex-col gap-4 text-xs">
-                    <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                        <span class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Consignee Recipient</span>
-                        <span class="font-extrabold text-gray-800 flex items-center gap-2"><i class="fas fa-user text-magenta/60"></i> {{ order.name }}</span>
-                    </div>
-                    <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                        <span class="text-[10px] text-gray-400 font-bold uppercase block mb-1">M-Pesa Telephone</span>
-                        <span class="font-extrabold text-gray-800 flex items-center gap-2"><i class="fas fa-phone-alt text-magenta/60"></i> {{ order.phone }}</span>
-                    </div>
-                    <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                        <span class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Delivery Destination</span>
-                        <span class="font-extrabold text-gray-800 flex items-center gap-2"><i class="fas fa-map-marked-alt text-magenta/60"></i> {{ order.city }}, {{ order.address }}</span>
-                    </div>
-                    <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                        <span class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Contact Email</span>
-                        <span class="font-extrabold text-gray-800 flex items-center gap-2"><i class="fas fa-envelope text-magenta/60"></i> {{ order.email }}</span>
-                    </div>
-                </div>
-            </div>
+        {% endfor %}
+    </div>
 
-            <div id="unpaid-action-card" class="hidden bg-orangered/5 border border-orangered/20 rounded-2xl p-6">
-                <h4 class="font-bold text-xs text-orangered uppercase tracking-wider mb-2 flex items-center gap-2">
-                    <i class="fas fa-exclamation-circle text-sm"></i> Payment Is Pending
-                </h4>
-                <p class="text-[11px] text-gray-500 leading-relaxed mb-4">
-                    Our servers are waiting for your M-Pesa PIN validation. If you cancelled the popup or didn't receive it, click below to try paying securely again.
-                </p>
-                <a href="/checkout/{{ order.id }}" class="w-full bg-orangered hover:bg-magenta text-white font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-xl transition-all shadow-md text-center block">
-                    <i class="fas fa-redo mr-1.5"></i> Launch M-Pesa Prompt
-                </a>
-            </div>
+    <!-- PAGINATION -->
+    {% if pagination.pages > 1 %}
+    <div class="flex items-center justify-center gap-2 mt-10">
+        <a href="{{ url_for('search') }}?q={{ keyword | urlencode }}&page={{ pagination.prev_num or 1 }}"
+           class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 text-gray-500 text-xs {{ 'pointer-events-none opacity-40' if not pagination.has_prev else 'hover:bg-magenta hover:text-white hover:border-magenta transition-colors' }}">
+            <i class="fas fa-chevron-left"></i>
+        </a>
 
-            <div class="bg-gradient-to-r from-magenta to-dark-magenta rounded-2xl p-6 text-white text-center">
-                <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-sm mx-auto mb-3">
-                    <i class="fas fa-headset"></i>
-                </div>
-                <h4 class="font-bold text-xs uppercase tracking-wider">Need Delivery Help?</h4>
-                <p class="text-[10px] text-white/70 mt-1 mb-4 leading-relaxed">If you experience delays or want to modify your dispatch instructions, contact the logistics hub.</p>
-                
-                <div class="flex flex-col gap-2">
-                    <a href="tel:+254722682129" class="bg-white/10 hover:bg-white/20 px-4 py-2.5 rounded-xl text-[10px] font-extrabold uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
-                        <i class="fas fa-phone-alt"></i> Call +254 722 682 129
-                    </a>
-                    <a href="https://wa.me/254722682129?text=Hello%20Tunu%20Publishers,%20I%20am%20inquiring%20about%20Order%20ID%20{{ order.id }}" target="_blank" class="bg-[#25d366] hover:bg-[#20ba5a] text-white px-4 py-2.5 rounded-xl text-[10px] font-extrabold uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
-                        <i class="fab fa-whatsapp"></i> Chat on WhatsApp
-                    </a>
-                </div>
-            </div>
+        {% for p in range(1, pagination.pages + 1) %}
+            {% if p == pagination.page %}
+            <span class="w-9 h-9 flex items-center justify-center rounded-full bg-magenta text-white text-xs font-bold">{{ p }}</span>
+            {% elif p == 1 or p == pagination.pages or (p >= pagination.page - 1 and p <= pagination.page + 1) %}
+            <a href="{{ url_for('search') }}?q={{ keyword | urlencode }}&page={{ p }}" class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 text-xs font-semibold hover:bg-magenta hover:text-white hover:border-magenta transition-colors">{{ p }}</a>
+            {% elif p == pagination.page - 2 or p == pagination.page + 2 %}
+            <span class="text-gray-300 text-xs px-1">…</span>
+            {% endif %}
+        {% endfor %}
 
-        </div>
+        <a href="{{ url_for('search') }}?q={{ keyword | urlencode }}&page={{ pagination.next_num or pagination.pages }}"
+           class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 text-gray-500 text-xs {{ 'pointer-events-none opacity-40' if not pagination.has_next else 'hover:bg-magenta hover:text-white hover:border-magenta transition-colors' }}">
+            <i class="fas fa-chevron-right"></i>
+        </a>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-16 md:py-24 text-gray-400 text-xs font-semibold border border-dashed border-gray-200 rounded-xl">
+        <i class="fas fa-search text-4xl text-magenta/20 mb-4 block"></i>
+        {% if keyword %}
+        No books found for "<span class="text-gray-600">{{ keyword }}</span>".
+        <p class="text-[11px] text-gray-400 mt-2 font-normal">Try a different title, author name, or grade.</p>
+        {% else %}
+        Start typing above to search our catalog.
+        {% endif %}
+        <a href="/books" class="block text-magenta font-bold mt-4 hover:underline">Browse All Books</a>
     </div>
     {% endif %}
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    const queryParams = new URLSearchParams(window.location.search);
-    const activeOrderId = queryParams.get('id');
-    let pollingTimer = null;
-
-    function handleManualLookup(event) {
-        event.preventDefault();
-        const orderIdField = document.getElementById('lookup-order-id');
-        const rawId = orderIdField.value.trim();
-        if (rawId) {
-            window.location.href = `/track-order?id=${encodeURIComponent(rawId)}`;
-        }
-    }
-
-    async function pollLatestOrderStatus(showVisualIndicator = false) {
-        if (!activeOrderId) return;
-        
-        const refreshIcon = document.getElementById('refresh-icon');
-        const refreshIndicator = document.getElementById('refresh-indicator-btn');
-        
-        if (showVisualIndicator && refreshIcon) {
-            refreshIcon.classList.add('fa-spin');
-            if (refreshIndicator) refreshIndicator.disabled = true;
-        }
-
-        try {
-            const response = await fetch(`/api/order-status?id=${encodeURIComponent(activeOrderId)}`);
-            if (!response.ok) {
-                throw new Error("Order status query failed");
-            }
-            const data = await response.json();
-            updateTrackerTimelineUI(data);
-        } catch (error) {
-            console.error("Live syncing failed:", error);
-            showAlert('error', "Failed to sync order data. Please check your network.");
-        } finally {
-            if (showVisualIndicator && refreshIcon) {
-                setTimeout(() => {
-                    refreshIcon.classList.remove('fa-spin');
-                    if (refreshIndicator) refreshIndicator.disabled = false;
-                }, 600);
-            }
-        }
-    }
-
-    function updateTrackerTimelineUI(order) {
-        const badgePayment = document.getElementById('badge-payment-status');
-        const unpaidCard = document.getElementById('unpaid-action-card');
-        
-        const stepPlaced = document.getElementById('timeline-step-placed');
-        const stepPaid = document.getElementById('timeline-step-paid');
-        const stepPaidDesc = document.getElementById('timeline-step-paid-desc');
-        const stepProcessing = document.getElementById('timeline-step-processing');
-        const stepDispatched = document.getElementById('timeline-step-dispatched');
-
-        if (!badgePayment) return;
-
-        const steps = [stepPlaced, stepPaid, stepProcessing, stepDispatched];
-        steps.forEach(step => {
-            if (!step) return;
-            const circle = step.querySelector('.step-circle');
-            const lines = step.querySelectorAll('.timeline-line');
-            
-            circle.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold z-10 transition-all text-sm step-circle bg-gray-100 text-gray-400";
-            lines.forEach(line => {
-                line.className = "timeline-line hidden md:block absolute top-5 left-1/2 w-full h-0.5 bg-gray-200 z-0";
-            });
-        });
-
-        const status = order.status ? order.status.toUpperCase() : "PENDING";
-
-        if (status === "PAID") {
-            badgePayment.className = "px-4 py-2 rounded-full text-xs font-black uppercase text-center shrink-0 tracking-wider bg-green-100 text-green-600";
-            badgePayment.innerHTML = `<i class="fas fa-check-circle mr-1"></i> Paid`;
-            if (unpaidCard) unpaidCard.classList.add('hidden');
-            if (stepPaidDesc) stepPaidDesc.textContent = "Payment Cleared Successfully";
-            
-            setStepState(stepPlaced, 'success');
-            setStepState(stepPaid, 'success');
-            setStepState(stepProcessing, 'active');
-        } else if (status === "FAILED" || status === "CANCELLED") {
-            badgePayment.className = "px-4 py-2 rounded-full text-xs font-black uppercase text-center shrink-0 tracking-wider bg-red-100 text-red-600";
-            badgePayment.innerHTML = `<i class="fas fa-times-circle mr-1"></i> Failed`;
-            if (unpaidCard) unpaidCard.classList.remove('hidden');
-            if (stepPaidDesc) stepPaidDesc.textContent = "Transaction Rejected";
-            
-            setStepState(stepPlaced, 'success');
-            setStepState(stepPaid, 'failed');
-        } else if (status === "SHIPPED" || status === "DISPATCHED" || status === "DELIVERED") {
-            badgePayment.className = "px-4 py-2 rounded-full text-xs font-black uppercase text-center shrink-0 tracking-wider bg-green-100 text-green-600";
-            badgePayment.innerHTML = `<i class="fas fa-check-circle mr-1"></i> Paid`;
-            if (unpaidCard) unpaidCard.classList.add('hidden');
-            if (stepPaidDesc) stepPaidDesc.textContent = "Payment Cleared Successfully";
-
-            setStepState(stepPlaced, 'success');
-            setStepState(stepPaid, 'success');
-            setStepState(stepProcessing, 'success');
-            setStepState(stepDispatched, 'success');
-        } else {
-            badgePayment.className = "px-4 py-2 rounded-full text-xs font-black uppercase text-center shrink-0 tracking-wider bg-amber-100 text-amber-600";
-            badgePayment.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> Unpaid (Pending)`;
-            if (unpaidCard) unpaidCard.classList.remove('hidden');
-            if (stepPaidDesc) stepPaidDesc.textContent = "Awaiting PIN Prompt";
-
-            setStepState(stepPlaced, 'success');
-            setStepState(stepPaid, 'active');
-        }
-    }
-
-    function setStepState(stepElement, state) {
-        if (!stepElement) return;
-        const circle = stepElement.querySelector('.step-circle');
-        const lines = stepElement.querySelectorAll('.timeline-line');
-
-        circle.classList.remove('pulse-active-step');
-
-        if (state === 'success') {
-            circle.className = "w-10 h-10 rounded-full bg-[#49B848] text-white flex items-center justify-center font-bold z-10 transition-all text-sm step-circle";
-            circle.innerHTML = `<i class="fas fa-check"></i>`;
-            lines.forEach(line => {
-                line.className = "timeline-line hidden md:block absolute top-5 left-1/2 w-full h-0.5 bg-[#49B848] z-0";
-            });
-        } else if (state === 'active') {
-            circle.className = "w-10 h-10 rounded-full bg-magenta text-white flex items-center justify-center font-bold z-10 transition-all text-sm step-circle pulse-active-step";
-        } else if (state === 'failed') {
-            circle.className = "w-10 h-10 rounded-full bg-red-500 text-white flex items-center justify-center font-bold z-10 transition-all text-sm step-circle";
-            circle.innerHTML = `<i class="fas fa-times"></i>`;
-            lines.forEach(line => {
-                line.className = "timeline-line hidden md:block absolute top-5 left-1/2 w-full h-0.5 bg-red-200 z-0";
-            });
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        if (activeOrderId) {
-            pollLatestOrderStatus(false);
-            
-            pollingTimer = setInterval(() => {
-                pollLatestOrderStatus(false);
-            }, 5000);
-        }
-    });
-
-    window.addEventListener('beforeunload', () => {
-        if (pollingTimer) {
-            clearInterval(pollingTimer);
-        }
-    });
+    window.booksData = [
+        {% for book in books %}
+        {
+            id: {{ book.id | tojson }},
+            title: {{ book.title | tojson }},
+            image_url: {{ book.image_url | tojson }},
+            image: {{ book.image_url | tojson }},
+            newPrice: {{ book.newPrice or 0 }},
+            oldPrice: {{ book.oldPrice or 0 }},
+            category: {{ (book.audience or 'General') | tojson }}
+        },
+        {% endfor %}
+    ];
 </script>
 {% endblock %}

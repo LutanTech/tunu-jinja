@@ -74,7 +74,10 @@
     {% endif %}
 </div>
 <script>
-    window.booksDatabase = {{ results | tojson | safe }};
-    console.log(db);
+    window.booksDatabase = [
+    {% for b in books %}
+    {{ b.to_dict() | tojson }}{{ "," if not loop.last }}
+    {% endfor %}
+];
 </script>
 {% endblock %}

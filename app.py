@@ -286,9 +286,20 @@ def books():
     q = q.order_by(sort_map.get(sort, Book.added_at.desc()))
 
     bks = q.paginate(page=request.args.get("page", 1, type=int), per_page=12, error_out=False)
+    
+    labels = (
+        db.session.query(
+            Book.grade,
+            func.count(Book.id).label("count")
+        )
+        .group_by(Book.grade)
+        .order_by(Book.grade)
+        .all()
+    )
+    
     return render_template(
         "books.html", books=bks.items, pagination=bks,
-        cat=cat, search=search, sort=sort, min_price=min_price, max_price=max_price
+        cat=cat, search=search, sort=sort, min_price=min_price, max_price=max_price, labels=labels
     )
 
 @app.route("/book/<string:book_slug>")
@@ -300,13 +311,6 @@ def book_detail(book_slug):
     db.session.commit()
     return render_template("book.html", book=book, related=Book.query.filter(Book.id != book.id, Book.is_deleted == False).limit(4).all())
 
-@app.route("/search")
-def search():
-    q = request.args.get("q", "").strip()
-    bks = Book.query.filter(Book.is_deleted == False)
-    if q:
-        bks = bks.filter(Book.title.ilike(f"%{q}%") | Book.authors.ilike(f"%{q}%") | Book.grade.ilike(f"%{q}%") | Book.audience.ilike(f"%{q}%"))
-    return render_template("search.html", books=bks.order_by(Book.views.desc()).all(), keyword=q)
 
 @app.route("/cart")
 def cart():
@@ -789,6 +793,10 @@ def books_batch():
         for b in books
     ]})
 
+@app.route("/search")
+def search():
+    query = request.args.get("q", "").strip()
+    return redirect(url_for('books', q=query, sort='newest'))
             
 @app.route("/clear-cache")
 def clear_url_cache():

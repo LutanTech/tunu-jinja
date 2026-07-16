@@ -31,14 +31,24 @@
                 </div>
 
                 <div>
-                    <h3 class="font-bold text-xs uppercase tracking-wider text-gray-800 mb-3 border-l-2 border-orangered pl-2">Categories</h3>
+                    <h3 class="font-bold text-xs uppercase tracking-wider text-gray-800 mb-3 border-l-2 border-orangered pl-2">
+                        Categories
+                    </h3>
+                
                     <div class="flex flex-col gap-1">
-                        <button onclick="setCategory('')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if not cat else 'text-gray-600 hover:bg-lightWarm' }}">All Books</button>
-                        <button onclick="setCategory('primary')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'primary' else 'text-gray-600 hover:bg-lightWarm' }}">Primary</button>
-                        <button onclick="setCategory('junior')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'junior' else 'text-gray-600 hover:bg-lightWarm' }}">Junior Secondary</button>
-                        <button onclick="setCategory('revision')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'revision' else 'text-gray-600 hover:bg-lightWarm' }}">Revision</button>
-                        <button onclick="setCategory('novels')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'novels' else 'text-gray-600 hover:bg-lightWarm' }}">Novels</button>
-                        <button onclick="setCategory('poetry')" class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == 'poetry' else 'text-gray-600 hover:bg-lightWarm' }}">Poetry</button>
+                        <button
+                            onclick="setCategory('')"
+                            class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if not cat else 'text-gray-600 hover:bg-lightWarm' }}">
+                            All Books
+                        </button>
+                
+                        {% for grade, count in labels %}
+                        <button
+                            onclick="setCategory('{{ grade }}')"
+                            class="text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors {{ 'bg-magenta text-white' if cat == grade else 'text-gray-600 hover:bg-lightWarm' }}">
+                            {{ ('Grade ' ~ grade) if grade|length < 3 else grade }} ({{ count }})
+                        </button>
+                        {% endfor %}
                     </div>
                 </div>
 
