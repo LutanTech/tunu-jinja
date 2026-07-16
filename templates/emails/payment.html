@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Your Order Status - Tunu Publishers</title>
+    <style type="text/css">
+        /* Reset Styles */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        table { border-collapse: collapse !important; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #fdfbf9; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+
+        /* iOS Blue Links Override */
+        a[x-apple-data-detectors] {
+            color: inherit !important;
+            text-decoration: none !important;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important;
+        }
+
+        /* Responsive Styles */
+        @media screen and (max-width: 600px) {
+            .email-container { width: 100% !important; max-width: 100% !important; }
+            .mobile-padding { padding: 20px 15px !important; }
+            .mobile-col { display: block !important; width: 100% !important; box-sizing: border-box !important; }
+            .mobile-align-center { text-align: center !important; }
+            .mobile-mb { margin-bottom: 20px !important; }
+            .mobile-border-none { border: none !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0 !important; padding: 0 !important; background-color: #fdfbf9;">
+
+    <div style="display: none; font-size: 1px; color: #fdfbf9; line-height: 1px; font-family: sans-serif; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
+        {% if order.status == 'PAID' %}
+            Your payment was processed successfully! Thank you for purchasing from Tunu Publishers.
+        {% else %}
+            Your order has been received successfully. We are waiting for payment to process shipment.
+        {% endif %}
+    </div>
+
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td align="center" style="background-color: #fdfbf9; padding: 20px 10px;">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" class="email-container" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #eef0f2;">
+                    
+                    <tr>
+                        <td align="center" bgcolor="#8B008B" style="padding: 40px 30px;">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <img src="https://tunupublishers.com/static/icons/tunu_logo.png" width="65" height="65" alt="Tunu Logo" style="display: block; width: 65px; height: 65px; min-width: 65px; background-color:rgb(255, 255, 255); padding: 6px; border-radius: 10px;" onerror="this.src='https://placehold.co/65x65/ffffff/8B008B?text=T';" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-top: 15px;">
+                                        <h1 style="color: #ffffff; font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 26px; font-weight: 700; margin: 0; letter-spacing: 1px; text-transform: uppercase;">TUNU PUBLISHERS</h1>
+                                        <p style="color: rgba(255,255,255,0.85); font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 12px; margin: 4px 0 0 0; letter-spacing: 3px; text-transform: uppercase; font-weight: 600;">Elimu ni Tunu</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td align="left" class="mobile-padding" style="padding: 40px 30px 20px 30px;">
+                            <h2 style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 20px; font-weight: 700; color: #2D2D2D; margin: 0 0 12px 0;">Hello, {{ order.name }}!</h2>
+                            
+                            {% if order.status == 'PAID' %}
+                            <p style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 24px; color: #4A5568; margin: 0;">
+                                We are thrilled to confirm that your payment has been processed successfully. Thank you for choosing TUNU Publishers! Your investment in quality educational resources is highly valued, and we are working quickly to deliver your order.
+                            </p>
+                            {% else %}
+                            <p style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 24px; color: #4A5568; margin: 0;">
+                                Your order has been registered successfully. We are currently awaiting payment confirmation from Safaricom M-Pesa to finalize and dispatch your books.
+                            </p>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    <!-- ORDER TRANSACTION STATUS BADGE -->
+                    <tr>
+                        <td align="left" class="mobile-padding" style="padding: 30px;">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-radius: 8px; border: 1px solid #E2E8F0; background-color: #F8FAFC; padding: 18px;">
+                                <tr style="padding:9px">
+                                    <td align="left" style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 13px; color: #718096; width: 50%;padding:9px">
+                                        <strong>Order Number:</strong><br/>
+                                        <span style="font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 14px; font-weight: bold; color: #2D2D2D; display: inline-block; margin-top: 4px;">{{ order.id }}</span>
+                                    </td>
+                                    <td align="right" style="font-family: 'Poppins', Helvetica, Arial, sans-serif; width: 50%; vertical-align: top; padding:9px">
+                                        <strong>Status:</strong><br/>
+                                        <div style="margin-top: 4px; padding:9px">
+                                            {% if order.status == 'PAID' %}
+                                            <span style="display: inline-block; padding: 4px 12px; background-color: #D1FAE5; color: #065F46; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Paid Successfully</span>
+                                            {% elif order.status == 'PENDING' %}
+                                            <span style="display: inline-block; padding: 4px 12px; background-color: #FEF3C7; color: #92400E; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Awaiting Payment</span>
+                                            {% else %}
+                                            <span style="display: inline-block; padding: 4px 12px; background-color: #FEE2E2; color: #991B1B; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">{{ order.status }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="padding: 12px; border-top: 1px dashed #E2E8F0; margin-top: 12px; font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 12px; color: #718096;">
+                                        <strong>Order Placed:</strong> {{ order.created_at | datetime }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- BASKET DETAILS -->
+                    <tr>
+                        <td align="left" class="mobile-padding" style="padding: 0 30px 30px 30px;">
+                            <h3 style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 700; color: #2D2D2D; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;">Your Book Basket</h3>
+                            
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse; width: 100%;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #E2E8F0;">
+                                        <th align="left" style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 700; color: #718096; padding: 10px 0; text-transform: uppercase;">Book Detail</th>
+                                        <th align="center" style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 700; color: #718096; padding: 10px 5px; text-transform: uppercase; width: 15%;">Qty</th>
+                                        <th align="right" style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 700; color: #718096; padding: 10px 0; text-transform: uppercase; width: 30%;">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.data %}
+                                    <tr style="border-bottom: 1px solid #EDF2F7;">
+                                        <td align="left" style="padding: 12px 0; font-family: 'Poppins', Helvetica, Arial, sans-serif;">
+                                            <span style="font-size: 14px; font-weight: 600; color: #2D2D2D;">{{ item.title }}</span><br/>
+                                            <span style="font-size: 11px; color: #718096;">Price: {{ item.price | currency }}</span>
+                                        </td>
+                                        <td align="center" style="padding: 12px 5px; font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 600; color: #4A5568;">
+                                            {{ item.qty }}
+                                        </td>
+                                        <td align="right" style="padding: 12px 0; font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 700; color: #8B008B;">
+                                            {{ item.total | currency }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    
+                                    <!-- TOTAL PRICE BLOCK -->
+                                    <tr>
+                                        <td colspan="2" align="right" style="padding: 15px 10px 10px 0; font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #4A5568;">
+                                            Grand Total:
+                                        </td>
+                                        <td align="right" style="padding: 15px 0 10px 0; font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 800; color: #FF4500;">
+                                            {{ order.grand_total | currency }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- DELIVERY INFORMATION -->
+                    <tr>
+                        <td align="left" class="mobile-padding" style="padding: 0 30px 30px 30px; border-top: 1px solid #EDF2F7;">
+                            <h3 style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 700; color: #2D2D2D; margin: 20px 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;">Delivery & Contact Details</h3>
+                            
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td class="mobile-col mobile-mb" width="50%" valign="top" style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 13px; color: #4A5568; line-height: 20px; padding-right: 15px;">
+                                        <strong style="color: #2D2D2D; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; display: inline-block; margin-bottom: 4px;">Shipping Address</strong><br/>
+                                        {{ order.name }}<br/>
+                                        {{ order.address }}<br/>
+                                        {{ order.city }}, Kenya
+                                    </td>
+                                    <td class="mobile-col" width="50%" valign="top" style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 13px; color: #4A5568; line-height: 20px;">
+                                        <strong style="color: #2D2D2D; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; display: inline-block; margin-bottom: 4px;">Contact Info</strong><br/>
+                                        <strong>Phone:</strong> +{{ order.phone }}<br/>
+                                        <strong>Email:</strong> {{ order.email }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ACTIONS AND INFO -->
+                    {% if order.status != 'PAID' %}
+                    <tr>
+                        <td align="left" class="mobile-padding" style="padding: 0 30px 30px 30px;">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-radius: 8px; border: 1px solid #FFE3E3; background-color: #FFF5F5; padding: 20px;">
+                                <tr>
+                                    <td style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 13px; color: #9B2C2C; line-height: 22px;padding:9px">
+                                        <strong style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; margin-bottom: 4px;">Awaiting Payment Confirmation</strong><br/>
+                                        An M-Pesa STK push prompt has been sent directly to your registered number: <strong>+{{ order.phone }}</strong>. Please check your phone, enter your M-Pesa PIN, and authorize the KSh {{ order.grand_total }} payment to complete the book purchase.<br/><br/>
+                                        If the PIN prompt hasn't appeared, you can pay using our Lipa Na M-Pesa Till No. ....
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <!-- FOOTER CTA -->
+                    <tr>
+                        <td align="center" class="mobile-padding" style="padding: 10px 30px 40px 30px; text-align: center;">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <a href="https://tunupublishers.com/track-order/{{ order.id }}" target="_blank" style="background-color: #FF4500; color: #ffffff; text-decoration: none; font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 700; padding: 14px 28px; border-radius: 50px; display: inline-block; box-shadow: 0 4px 6px rgba(255, 69, 0, 0.25); text-transform: uppercase; letter-spacing: 1px;">Track Your Delivery</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-top: 20px; font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 12px; color: #718096; line-height: 18px;">
+                                        Need any assistance? Reply to this email or drop us a line at <a href="mailto:info@tunupublishers.com" style="color: #8B008B; text-decoration: none; font-weight: 600;">support@tunupublishers.com</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+        
+        <!-- SYSTEM FOOTER -->
+        <tr>
+            <td align="center" style="padding: 20px 10px;">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" class="email-container" style="text-align: center;">
+                    <tr>
+                        <td align="center" style="font-family: 'Poppins', Helvetica, Arial, sans-serif; font-size: 11px; color: #A0AEC0; line-height: 18px;">
+                            &copy; {{ current_year }} TUNU Publishers Limited. All Rights Reserved.<br/>
+                            Harambee Sacco Shopping Centre, Nairobi, Kenya<br/><br/>
+                            <a href="https://tunupublishers.com/privacy_policy" target="_blank" style="color: #A0AEC0; text-decoration: underline; margin-right: 10px;">Privacy Policy</a> | 
+                            <a href="https://tunupublishers.com/terms_of_service" target="_blank" style="color: #A0AEC0; text-decoration: underline; margin-left: 10px;">Terms of Service</a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

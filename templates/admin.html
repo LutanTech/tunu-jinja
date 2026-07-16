@@ -1401,14 +1401,6 @@
                 }
             }
         });
-        getLabels()
-        function getLabels(){
-            fetch('/api/labels')
-            .then(r=>r.json())
-            .then(data=>{
-                console.log(data[0])
-            })
-        }
 
         const catCtx = document.getElementById('categoryChart').getContext('2d');
 

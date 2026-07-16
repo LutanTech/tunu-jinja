@@ -36,15 +36,17 @@ app.config.update(
     SQLALCHEMY_DATABASE_URI='sqlite:///tunu.db',
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     SEND_FILE_MAX_AGE_DEFAULT=2592000,
-    MAIL_SERVER="smtp.gmail.com",
-    MAIL_PORT=465,
+    MAIL_SERVER="mail.tunupublishers.com",
+    MAIL_PORT= 465,
     MAIL_USE_SSL=True,
-    MAIL_USERNAME="info.tunupublishers.com",
+    MAIL_USERNAME="noreply@tunupublishers.com",
     MAIL_PASSWORD=os.getenv("M_P"),
-    MAIL_DEFAULT_SENDER=("Tunu Publishers", "info.tunupublishers.com"),
+    MAIL_DEFAULT_SENDER=("Tunu Publishers", "noreply@tunupublishers.com"),
     UPLOAD_FOLDER=os.path.join(app.root_path, "static", "resources", "books" ,"covers")
 )
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+
 
 # M-Pesa Configurations
 CONSUMER_KEY = os.getenv("MPESA_CONSUMER_KEY")
@@ -78,6 +80,8 @@ def login_required(f):
     def wrapper(*args, **kwargs):
         return redirect(url_for("login", next=request.path)) if not session.get("staff_id") else f(*args, **kwargs)
     return wrapper
+
+
 
 def admin_required(f):
     @wraps(f)
@@ -706,6 +710,11 @@ def upload_image():
     img.save(os.path.join(app.config["UPLOAD_FOLDER"], fn))
     return jsonify({"path": fn, "url": url_for("book_cover", filename=fn)})
 
+
+@app.route("/about", methods=["GET"])
+def about():
+    return render_template('about.html')
+
 @app.route("/api/create-order", methods=["POST"])
 def create_order():
     data = request.get_json()
@@ -733,6 +742,7 @@ def pay():
         res = initiate_payment(order)
         order.checkout_request_id = res.get("CheckoutRequestID")
         db.session.commit()
+        send_purchase_email(order)
         return jsonify(res)
     except Exception as e:
         print(str(e))
@@ -876,6 +886,7 @@ def weekend():
 @app.route("/api/test-email")
 @login_required
 def test_email():
+    print(os.getenv('M_P'))
     staff = db.session.get(Staff, session["staff_id"])
     if not staff.email: return jsonify({"error": "No email found."}), 400
     send_mail("Email Test", [staff.email], render_template("emails/test.html", staff=staff))
@@ -926,4 +937,4 @@ with app.app_context():
 
 if __name__ == "__main__":
     print('iiiiiiiiiiiii')
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # app.run(host="0.0.0.0", port=5000, debug=True)
