@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TUNU Publishers | Admin CP{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        magenta: '#8B008B',
+                        'dark-magenta': '#6B006B',
+                        orangered: '#FF4500',
+                        lightWarm: '#FCFAF7',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .active-admin-link {
+            background-color: rgba(139, 0, 139, 0.08) !important;
+            color: #8B008B !important;
+            border-left-color: #8B008B !important;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="h-full flex overflow-hidden">
+
+<div id="admin-sidebar" class="hidden md:flex md:flex-col md:w-64 bg-gray-900 text-gray-400 shrink-0 border-r border-gray-800">
+    <div class="h-16 flex items-center gap-2 px-6 border-b border-gray-800">
+        <span class="w-8 h-8 rounded-lg bg-magenta flex items-center justify-center text-white font-black text-sm tracking-wider shadow-md">T</span>
+        <span class="font-black text-lg tracking-tight text-white">TUNU<span class="text-magenta">.</span></span>
+        <span class="text-[9px] font-bold uppercase tracking-widest bg-magenta/20 text-magenta px-2 py-0.5 rounded-full ml-auto">HQ</span>
+    </div>
+    
+    <nav class="flex-grow py-6 flex flex-col gap-1 px-3 overflow-y-auto">
+        <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Management</span>
+        
+        <a href="/cp" class="admin-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+            <i class="fas fa-chart-line text-sm w-5"></i> Control Panel
+        </a>
+        <a href="/cp/coupons" class="admin-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+            <i class="fas fa-tags text-sm w-5"></i> Coupon Codes
+        </a>
+        <a href="/cp/logs" class="admin-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+            <i class="fas fa-history text-sm w-5"></i> System Audit Logs
+        </a>
+
+        <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-6 mb-2 block">Quick Shortcuts</span>
+        
+        <a href="/cp/books/new" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+            <i class="fas fa-plus text-sm w-5"></i> Add New Book
+        </a>
+        <a href="/staff/register" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+            <i class="fas fa-user-plus text-sm w-5"></i> Register Staff
+        </a>
+
+        <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-auto mb-2 block">Public Site</span>
+        
+        <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent text-gray-400">
+            <i class="fas fa-external-link-alt text-sm w-5"></i> View Bookstore
+        </a>
+    </nav>
+    
+    <div class="p-4 border-t border-gray-800 bg-gray-950/40 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-magenta/10 flex items-center justify-center text-magenta font-black text-xs">
+            {{ current_staff.name[:2].upper() if current_staff else 'AD' }}
+        </div>
+        <div class="min-w-0 flex-grow">
+            <p class="text-xs font-bold text-gray-200 leading-tight truncate">{{ current_staff.name if current_staff else 'Administrator' }}</p>
+            <p class="text-[10px] text-gray-500 font-semibold truncate">{{ current_staff.id if current_staff else 'ID: ADM-001' }}</p>
+        </div>
+        <a href="/staff/logout" class="text-gray-500 hover:text-red-500 p-2 rounded-lg transition-colors" title="Log Out">
+            <i class="fas fa-sign-out-alt text-sm"></i>
+        </a>
+    </div>
+</div>
+
+<div id="mobile-sidebar" class="hidden fixed inset-0 z-50 bg-black/50 md:hidden">
+    <div class="bg-gray-900 w-4/5 max-w-xs h-full flex flex-col justify-between shadow-2xl">
+        <div>
+            <div class="h-16 flex items-center justify-between px-6 border-b border-gray-800">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-lg bg-magenta flex items-center justify-center text-white font-black text-sm tracking-wider">T</span>
+                    <span class="font-black text-lg tracking-tight text-white">TUNU<span class="text-magenta">.</span></span>
+                </div>
+                <button onclick="toggleMobileAdminMenu()" class="w-8 h-8 rounded-full hover:bg-gray-800 flex items-center justify-center text-gray-400">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+            
+            <nav class="py-6 flex flex-col gap-1 px-3">
+                <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Management</span>
+                <a href="/cp" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all text-gray-400">
+                    <i class="fas fa-chart-line text-sm w-5"></i> Control Panel
+                </a>
+                <a href="/cp/coupons" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all text-gray-400">
+                    <i class="fas fa-tags text-sm w-5"></i> Coupon Codes
+                </a>
+                <a href="/cp/logs" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all text-gray-400">
+                    <i class="fas fa-history text-sm w-5"></i> System Audit Logs
+                </a>
+                
+                <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-6 mb-2 block">Public Site</span>
+                <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all text-gray-400">
+                    <i class="fas fa-external-link-alt text-sm w-5"></i> View Bookstore
+                </a>
+            </nav>
+        </div>
+        
+        <div class="p-4 border-t border-gray-800 bg-gray-950/40 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-magenta/10 flex items-center justify-center text-magenta font-black text-xs">
+                {{ current_staff.name[:2].upper() if current_staff else 'AD' }}
+            </div>
+            <div class="min-w-0 flex-grow">
+                <p class="text-xs font-bold text-gray-200 leading-tight truncate">{{ current_staff.name if current_staff else 'Administrator' }}</p>
+            </div>
+            <a href="/staff/logout" class="text-gray-500 hover:text-red-500 p-2 rounded-lg" title="Log Out">
+                <i class="fas fa-sign-out-alt text-sm"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="flex-grow flex flex-col min-w-0 overflow-hidden h-full">
+    <header class="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-4 md:px-6 shrink-0 shadow-sm">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleMobileAdminMenu()" class="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors">
+                <i class="fas fa-bars text-base"></i>
+            </button>
+            <div class="hidden sm:block">
+                <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest">TUNU Publishers Operations</h2>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <div class="text-right">
+                <span class="inline-block bg-green-100 text-green-700 text-[9px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                    Active Session
+                </span>
+                <p class="text-xs font-bold text-gray-700 leading-none mt-1">{{ current_staff.name if current_staff else 'Admin' }}</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow overflow-y-auto bg-gray-50">
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<div id="global-alert" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-white border border-gray-100 rounded-2xl p-4 shadow-2xl transform translate-y-10 opacity-0 transition-all duration-300">
+    <div id="alert-icon-wrapper" class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"></div>
+    <div>
+        <p id="alert-message-text" class="text-xs font-extrabold text-gray-800"></p>
+    </div>
+    <button onclick="dismissAlert()" class="text-gray-400 hover:text-gray-600 transition-colors pl-2">
+        <i class="fas fa-times text-xs"></i>
+    </button>
+</div>
+
+<script>
+    function toggleMobileAdminMenu() {
+        const menu = document.getElementById('mobile-sidebar');
+        if (menu) {
+            menu.classList.toggle('hidden');
+        }
+    }
+
+    let alertTimeout = null;
+    function showAlert(type, message) {
+        const alertBox = document.getElementById('global-alert');
+        const iconWrap = document.getElementById('alert-icon-wrapper');
+        const messageEl = document.getElementById('alert-message-text');
+
+        if (!alertBox || !iconWrap || !messageEl) return;
+
+        clearTimeout(alertTimeout);
+
+        if (type === 'success') {
+            iconWrap.className = 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-green-100 text-green-600';
+            iconWrap.innerHTML = '<i class="fas fa-check-circle text-base"></i>';
+        } else {
+            iconWrap.className = 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-red-100 text-red-600';
+            iconWrap.innerHTML = '<i class="fas fa-exclamation-circle text-base"></i>';
+        }
+
+        messageEl.textContent = message;
+
+        alertBox.classList.remove('hidden');
+        setTimeout(() => {
+            alertBox.classList.remove('translate-y-10', 'opacity-0');
+            alertBox.classList.add('translate-y-0', 'opacity-100');
+        }, 10);
+
+        alertTimeout = setTimeout(() => {
+            dismissAlert();
+        }, 4000);
+    }
+
+    function dismissAlert() {
+        const alertBox = document.getElementById('global-alert');
+        if (alertBox) {
+            alertBox.classList.remove('translate-y-0', 'opacity-100');
+            alertBox.classList.add('translate-y-10', 'opacity-0');
+            setTimeout(() => {
+                alertBox.classList.add('hidden');
+            }, 300);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.admin-nav-link');
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active-admin-link');
+            }
+        });
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for cat, msg in messages %}
+                    showAlert('{{ "success" if cat == "success" else "error" }}', '{{ msg }}');
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

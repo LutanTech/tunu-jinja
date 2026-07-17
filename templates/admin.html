@@ -1,1456 +1,873 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TUNU Publishers | Admin Executive Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="{{ url_for('static', filename='assets/tailwind.js')}}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        magenta: '#8B008B',
-                        'dark-magenta': '#4B004B',
-                        orangered: '#FF4500',
-                        lightWarm: '#fdfbf9'
-                    },
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        :root {
-            --magenta: #8B008B;
-            --dark-magenta: #4B004B;
-            --orangered: #FF4500;
-            --white: #FFFFFF;
-            --bg: #f4f7f6;
-            --text: #2d3436;
-            --sidebar-width: 260px;
-            --border: #e0e0e0;
-            --shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
+{% extends "admin_base.html" %}
 
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-        }
+{% block content %}
 
-        .sidebar {
-            width: var(--sidebar-width);
-            transition: transform 0.3s ease;
-        }
-
-        .nav-item {
-            transition: all 0.2s;
-            border-left: 4px solid transparent;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background: var(--dark-magenta);
-            color: white;
-            border-left-color: var(--orangered);
-        }
-
-        .status-pill {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            display: inline-block;
-        }
-        .status-success { background: #dcfce7; color: #15803d; }
-        .status-warning { background: #fef9c3; color: #854d0e; }
-        .status-danger { background: #fee2e2; color: #991b1b; }
-
-        .loader {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 9999;
-            background: rgba(255, 255, 255, 0.95);
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .loader.active {
-            display: flex;
-        }
-
-        .book,
-        .book__pg-shadow,
-        .book__pg {
-            animation: cover 5s ease-in-out infinite;
-        }
-        .book {
-            background-color: #a855f7;
-            border-radius: 0.25em;
-            box-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.3), 0 0 0 0.25em #c084fc inset;
-            padding: 0.25em;
-            perspective: 37.5em;
-            position: relative;
-            width: 8em;
-            height: 6em;
-            transform-style: preserve-3d;
-        }
-        .book__pg-shadow,
-        .book__pg {
-            position: absolute;
-            left: 0.25em;
-            width: calc(50% - 0.25em);
-        }
-        .book__pg-shadow {
-            animation-name: shadow;
-            background-image: linear-gradient(-45deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.3) 50%);
-            filter: blur(0.25em);
-            top: calc(100% - 0.25em);
-            height: 3.75em;
-            transform: scaleY(0);
-            transform-origin: 100% 0%;
-        }
-        .book__pg {
-            animation-name: pg1;
-            background-color: #ffffff;
-            background-image: linear-gradient(90deg, rgba(223,223,223,0) 87.5%, #e5e5e5);
-            height: calc(100% - 0.5em);
-            transform-origin: 100% 50%;
-            justify-content: center;
-            align-items: center;
-            display: flex;
-            font-weight: bolder;
-            color: var(--magenta);
-        }
-        .-small {
-            font-size: 0.5rem;
-            text-align: center;
-        }
-        .book__pg--2,
-        .book__pg--3,
-        .book__pg--4 {
-            background-image: repeating-linear-gradient(#2d3436 0 0.125em, rgba(45,52,54,0) 0.125em 0.5em),
-                              linear-gradient(90deg, rgba(223,223,223,0) 87.5%, #e5e5e5);
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: 2.5em 4.125em, 100% 100%;
-        }
-        .book__pg--2 { animation-name: pg2; }
-        .book__pg--3 { animation-name: pg3; }
-        .book__pg--4 { animation-name: pg4; }
-        .book__pg--5 { animation-name: pg5; }
-
-        @keyframes cover {
-            from, 5%, 45%, 55%, 95%, to {
-                animation-timing-function: ease-out;
-                background-color: #c084fc;
-            }
-            10%, 40%, 60%, 90% {
-                animation-timing-function: ease-in;
-                background-color: #7e22ce;
-            }
-        }
-        @keyframes shadow {
-            from, 10.01%, 20.01%, 30.01%, 40.01% {
-                animation-timing-function: ease-in;
-                transform: translate3d(0, 0, 1px) scaleY(0) rotateY(0);
-            }
-            5%, 15%, 25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% {
-                animation-timing-function: ease-out;
-                transform: translate3d(0, 0, 1px) scaleY(0.2) rotateY(90deg);
-            }
-            10%, 20%, 30%, 40%, 50%, to {
-                animation-timing-function: ease-out;
-                transform: translate3d(0, 0, 1px) scaleY(0) rotateY(180deg);
-            }
-            50.01%, 60.01%, 70.01%, 80.01%, 90.01% {
-                animation-timing-function: ease-in;
-                transform: translate3d(0, 0, 1px) scaleY(0) rotateY(180deg);
-            }
-            60%, 70%, 80%, 90%, to {
-                animation-timing-function: ease-out;
-                transform: translate3d(0, 0, 1px) scaleY(0) rotateY(0);
-            }
-        }
-        @keyframes pg1 {
-            from, to {
-                animation-timing-function: ease-in-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(0.4deg);
-            }
-            10%, 15% {
-                animation-timing-function: ease-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(180deg);
-            }
-            20%, 80% {
-                animation-timing-function: ease-in;
-                background-color: #9ca3af;
-                transform: translate3d(0, 0, 1px) rotateY(180deg);
-            }
-            85%, 90% {
-                animation-timing-function: ease-in-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(180deg);
-            }
-        }
-        @keyframes pg2 {
-            from, to {
-                animation-timing-function: ease-in;
-                background-color: #9ca3af;
-                transform: translate3d(0, 0, 1px) rotateY(0.3deg);
-            }
-            5%, 10% {
-                animation-timing-function: ease-in-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(0.3deg);
-            }
-            20%, 25% {
-                animation-timing-function: ease-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(179.9deg);
-            }
-            30%, 70% {
-                animation-timing-function: ease-in;
-                background-color: #9ca3af;
-                transform: translate3d(0, 0, 1px) rotateY(179.9deg);
-            }
-            75%, 80% {
-                animation-timing-function: ease-in-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(179.9deg);
-            }
-            90%, 95% {
-                animation-timing-function: ease-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(0.3deg);
-            }
-        }
-        @keyframes pg3 {
-            from, 10%, 90%, to {
-                animation-timing-function: ease-in;
-                background-color: #9ca3af;
-                transform: translate3d(0, 0, 1px) rotateY(0.2deg);
-            }
-            15%, 20% {
-                animation-timing-function: ease-in-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(0.2deg);
-            }
-            30%, 35% {
-                animation-timing-function: ease-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(179.8deg);
-            }
-            40%, 60% {
-                animation-timing-function: ease-in;
-                background-color: #9ca3af;
-                transform: translate3d(0, 0, 1px) rotateY(179.8deg);
-            }
-            65%, 70% {
-                animation-timing-function: ease-in-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(179.8deg);
-            }
-            80%, 85% {
-                animation-timing-function: ease-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(0.2deg);
-            }
-        }
-        @keyframes pg4 {
-            from, 20%, 80%, to {
-                animation-timing-function: ease-in;
-                background-color: #9ca3af;
-                transform: translate3d(0, 0, 1px) rotateY(0.1deg);
-            }
-            25%, 30% {
-                animation-timing-function: ease-in-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(0.1deg);
-            }
-            40%, 45% {
-                animation-timing-function: ease-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(179.7deg);
-            }
-            50% {
-                animation-timing-function: ease-in;
-                background-color: #9ca3af;
-                transform: translate3d(0, 0, 1px) rotateY(179.7deg);
-            }
-            55%, 60% {
-                animation-timing-function: ease-in-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(179.7deg);
-            }
-            70%, 75% {
-                animation-timing-function: ease-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(0.1deg);
-            }
-        }
-        @keyframes pg5 {
-            from, 30%, 70%, to {
-                animation-timing-function: ease-in;
-                background-color: #9ca3af;
-                transform: translate3d(0, 0, 1px) rotateY(0);
-            }
-            35%, 40% {
-                animation-timing-function: ease-in-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(0deg);
-            }
-            50% {
-                animation-timing-function: ease-in-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(179.6deg);
-            }
-            60%, 65% {
-                animation-timing-function: ease-out;
-                background-color: #ffffff;
-                transform: translate3d(0, 0, 1px) rotateY(0);
-            }
-        }
-    </style>
-</head>
-<body class="min-h-screen flex overflow-hidden font-sans">
-
-    <div class="loader active" id="workspaceLoader">
-        <div class="book">
-            <div class="book__pg-shadow"></div>
-            <div class="book__pg -small">TUNU PUBLISHERS</div>
-            <div class="book__pg book__pg--2"></div>
-            <div class="book__pg book__pg--3"></div>
-            <div class="book__pg book__pg--4"></div>
-            <div class="book__pg book__pg--5 -small">TUNU PUBLISHERS</div>
+<div class="max-w-7xl mx-auto px-4 md:px-6 py-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+            <span class="inline-block bg-magenta/10 text-magenta text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-2">Management Center</span>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800">Admin Control Panel</h1>
+            <p class="text-xs text-gray-500 mt-1">Logged in as: <span class="font-bold text-gray-700">{{ admin.name }}</span> ({{ admin.id }})</p>
         </div>
-        <h4 id="auth-feedback" class="text-xs font-bold text-magenta mt-6 tracking-widest uppercase">Initializing Executive Area...</h4>
+
     </div>
 
-    <div id="modalOverlay" class="fixed inset-0 bg-black/60 z-[1000] hidden backdrop-blur-sm transition-all" onclick="closeAllModals()"></div>
-
-    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-lg bg-white rounded-2xl shadow-2xl p-6 md:p-8 z-[1100] hidden max-h-[90vh] overflow-y-auto" id="modalPost">
-        <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-3">
-            <h3 class="text-base font-bold text-dark-magenta uppercase tracking-wider">Create New Article</h3>
-            <button onclick="closeAllModals()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-lg"></i></button>
-        </div>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Title</label>
-                <input type="text" placeholder="e.g. The Future of African Literature" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
-                <select class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
-                    <option>Culture</option>
-                    <option>Tech</option>
-                    <option>Literature</option>
-                    <option>News</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Content Snippet</label>
-                <textarea placeholder="Write a short summary..." class="w-full border border-gray-300 rounded-lg p-3 text-xs h-28 outline-none focus:border-magenta resize-none"></textarea>
-            </div>
-            <button class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold py-3.5 rounded-lg text-xs uppercase tracking-wider" onclick="closeAllModals()">Publish Now</button>
-        </div>
+    <div class="flex border-b border-gray-200 overflow-x-auto gap-2 mb-8" style="scrollbar-width: none;">
+        <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn active shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-magenta border-magenta">
+            <i class="fas fa-chart-line mr-1.5"></i> Overview
+        </button>
+        <button onclick="switchTab('books')" id="tab-btn-books" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
+            <i class="fas fa-book mr-1.5"></i> Books Library
+        </button>
+        <button onclick="switchTab('orders')" id="tab-btn-orders" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
+            <i class="fas fa-shopping-cart mr-1.5"></i> M-Pesa Orders
+        </button>
+        <button onclick="switchTab('staff')" id="tab-btn-staff" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
+            <i class="fas fa-users mr-1.5"></i> Field Staff
+        </button>
+        <button onclick="switchTab('reports')" id="tab-btn-reports" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
+            <i class="fas fa-file-invoice mr-1.5"></i> Submissions
+        </button>
     </div>
 
-    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-lg bg-white rounded-2xl shadow-2xl p-6 md:p-8 z-[1100] hidden max-h-[90vh] overflow-y-auto" id="modalStaff">
-        <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-3">
-            <h3 class="text-base font-bold text-dark-magenta uppercase tracking-wider">Staff Management</h3>
-            <button onclick="closeAllModals()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-lg"></i></button>
-        </div>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
-                <input type="text" id="staffName" placeholder="Staff Name" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email Address</label>
-                <input type="email" id="staffEmail" placeholder="email@tunu.com" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Phone Number</label>
-                <input type="text" id="staffPhone" placeholder="+254..." class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Location</label>
-                <input type="text" id="staffLocation" value="Nairobi" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
-            </div>
-            <div class="flex items-center gap-2">
-                <input type="checkbox" id="staffIsAdmin" class="accent-magenta">
-                <label for="staffIsAdmin" class="text-xs font-semibold text-gray-600">Grant Administrator Privileges</label>
-            </div>
-            <div class="text-[10px] text-gray-500 p-3 bg-gray-50 rounded-lg border border-gray-100 flex gap-2">
-                <i class="fas fa-info-circle text-magenta text-sm shrink-0"></i>
-                <span>New accounts are issued a temporary password and must change it on first login.</span>
-            </div>
-            <div class="flex gap-3 pt-2">
-                <button class="flex-1 bg-magenta hover:bg-dark-magenta text-white font-bold py-3.5 rounded-lg text-xs uppercase tracking-wider" onclick="saveStaff()">Save Staff Account</button>
-                <button class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3.5 rounded-lg text-xs uppercase tracking-wider" onclick="closeAllModals()">Discard</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-lg bg-white rounded-2xl shadow-2xl p-6 md:p-8 z-[1100] hidden max-h-[90vh] overflow-y-auto" id="modalUser">
-        <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-3">
-            <h3 class="text-base font-bold text-dark-magenta uppercase tracking-wider">Register New Reader</h3>
-            <button onclick="closeAllModals()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-lg"></i></button>
-        </div>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
-                <input type="text" placeholder="First and Last name" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email Address</label>
-                <input type="email" placeholder="email@example.com" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Initial Credits (KES)</label>
-                <input type="number" value="0" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
-            </div>
-            <button class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold py-3.5 rounded-lg text-xs uppercase tracking-wider" onclick="closeAllModals()">Create Account</button>
-        </div>
-    </div>
-
-    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-lg bg-white rounded-2xl shadow-2xl p-6 md:p-8 z-[1100] hidden max-h-[90vh] overflow-y-auto" id="modalBook">
-        <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-3">
-            <h3 class="text-base font-bold text-dark-magenta uppercase tracking-wider">Book Details</h3>
-            <button onclick="closeAllModals()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-lg"></i></button>
-        </div>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Book Title</label>
-                <input type="text" id="bookTitle" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Book Image File</label>
-                <input type="file" accept="image/png, image/jpeg" id="bookImage" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs outline-none file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-magenta/10 file:text-magenta hover:file:bg-magenta/20">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Author</label>
-                <input type="text" id="bookAuthor" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Old Price</label>
-                    <input type="number" id="bookOldPrice" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+    <div id="tab-content-overview" class="tab-pane block">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-magenta/10 flex items-center justify-center text-magenta">
+                    <i class="fas fa-book text-xl"></i>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">New Price</label>
-                    <input type="number" id="bookNewPrice" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Books</p>
+                    <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_books | number }}</h3>
                 </div>
             </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Grade / Audience</label>
-                <input type="text" id="grade" placeholder="e.g. Grade 4, General Audience" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-orangered/10 flex items-center justify-center text-orangered">
+                    <i class="fas fa-shopping-bag text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Orders</p>
+                    <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_orders | number }}</h3>
+                </div>
             </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Discount Status</label>
-                <select id="bookDiscounted" class="w-full border border-gray-300 rounded-lg p-3 text-xs outline-none focus:border-magenta">
-                    <option value="false">No</option>
-                    <option value="true">Yes</option>
-                </select>
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                    <i class="fas fa-users text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Field Staff</p>
+                    <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_staff | number }}</h3>
+                </div>
             </div>
-            <button class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold py-3.5 rounded-lg text-xs uppercase tracking-wider" id="saveBook" onclick="saveBook()">Save Book Details</button>
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
+                    <i class="fas fa-chart-pie text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Submissions</p>
+                    <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_reports | number }}</h3>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <aside class="sidebar bg-[#111111] text-white flex flex-col shrink-0 z-[1001] fixed md:relative h-full max-w-[80vw] -translate-x-full md:translate-x-0 overflow-auto" id="sidebar">
-        <div class="p-6 text-center border-b border-white/5 flex flex-col items-center gap-3">
-            <img src="/static/icons/tunu_logo.png" alt="TUNU" class="h-12 w-12 object-contain bg-white rounded-xl p-1" onerror="this.src='https://placehold.co/48x48/8B008B/ffffff?text=T'">
-            <div>
-                <div class="font-extrabold text-sm tracking-widest text-white">TUNU PUBLISHERS</div>
-                <div class="text-[9px] font-bold text-orangered uppercase tracking-widest mt-1">EXECUTIVE PANEL</div>
-            </div>
-        </div>
-        
-        <nav class="flex-1 py-3 overflow-auto space-y-0.5">
-            <div class="px-5 py-2 text-[10px] uppercase tracking-wider text-gray-500 font-bold">Main Dashboard</div>
-            <a onclick="switchPage('insights', this)" class="nav-item active flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-chart-pie w-4 text-center"></i> Insights Workspace</a>
-            <a onclick="switchPage('orders', this)" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-shopping-bag w-4 text-center"></i> Orders & Logistics</a>
-            
-            <div class="px-5 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-bold">Content & Team</div>
-            <a onclick="switchPage('inventory', this)" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-book w-4 text-center"></i> Book Stock Inventory</a>
-            <a onclick="switchPage('staff', this)" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-users w-4 text-center"></i> Staff Accounts</a>
-            <a onclick="switchPage('blog', this)" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-pen-nib w-4 text-center"></i> Blog Articles</a>
-            <a onclick="switchPage('readers', this)" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-user-graduate w-4 text-center"></i> Reader Directory</a>
-            
-            <div class="px-5 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-bold">Performance Logs</div>
-            <a onclick="switchPage('sales', this)" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-file-invoice-dollar w-4 text-center"></i> Daily Sales Performance</a>
-
-            <a href='/clear-cache' class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-red-400 cursor-pointer"><i class="fas fa-file-invoice-dollar w-4 text-center"></i> Clear Cache</a>
-            
-            <div class="pt-6 pb-4 border-t border-white/5 mt-auto">
-                <a class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-cog w-4 text-center"></i> Panel Settings</a>
-                <a href="/staff/logout" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-red-400 hover:text-red-300 cursor-pointer"><i class="fas fa-sign-out-alt w-4 text-center"></i> Logout Session</a>
-            </div>
-        </nav>
-    </aside>
-
-    <main class="flex-grow flex flex-col h-screen overflow-hidden bg-gray-50 w-full">
-        <header class="bg-white h-16 md:h-20 shadow-sm flex items-center justify-between px-4 md:px-10 z-[100] shrink-0 border-b border-gray-100 gap-3">
-            <div class="flex items-center gap-3 min-w-0">
-                <button class="md:hidden text-dark-magenta text-lg p-2 rounded-lg bg-gray-100 shrink-0" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-                <div id="pageTitle" class="font-extrabold text-xs md:text-lg text-dark-magenta uppercase tracking-wider truncate">Executive Overview</div>
-            </div>
-            
-            <div class="flex items-center gap-3 md:gap-4 shrink-0">
-                <div class="text-right hidden sm:block">
-                    <div class="font-extrabold text-xs text-gray-800 uppercase tracking-wider">{{ admin.name }}</div>
-                    <div class="text-[10px] text-orangered font-bold uppercase tracking-widest mt-0.5">CHIEF ADMINISTRATOR</div>
-                </div>
-                <div class="avatar h-9 w-9 md:h-10 md:w-10 bg-magenta hover:bg-dark-magenta transition-all rounded-full flex items-center justify-center text-white font-extrabold text-xs uppercase shadow shrink-0">
-                    {{ admin.name[:2] }}
-                </div>
-            </div>
-        </header>
-
-        <div class="flex-grow overflow-y-auto p-4 md:p-10" id="mainDashboardScroll">
-            
-            <div id="insights" class="page-content active space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Book Catalog</span>
-                            <span class="text-2xl font-black text-gray-800 block">{{ total_books }}</span>
-                            <span class="text-[10px] text-green-500 font-extrabold uppercase tracking-wide flex items-center gap-1 mt-1"><i class="fas fa-arrow-up"></i> Active Stock</span>
-                        </div>
-                        <div class="h-12 w-12 rounded-xl bg-purple-50 text-magenta flex items-center justify-center text-lg"><i class="fas fa-book"></i></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-orangered pl-2">Recent Orders</h4>
+                        <button onclick="switchTab('orders')" class="text-[10px] font-bold text-magenta hover:underline uppercase tracking-wider">View All</button>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Total Orders</span>
-                            <span class="text-2xl font-black text-gray-800 block">{{ total_orders }}</span>
-                            <span class="text-[10px] text-green-500 font-extrabold uppercase tracking-wide flex items-center gap-1 mt-1"><i class="fas fa-arrow-up"></i> In System</span>
-                        </div>
-                        <div class="h-12 w-12 rounded-xl bg-orange-50 text-orangered flex items-center justify-center text-lg"><i class="fas fa-shopping-cart"></i></div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Executive Team</span>
-                            <span class="text-2xl font-black text-gray-800 block">{{ total_staff }}</span>
-                            <span class="text-[10px] text-indigo-500 font-extrabold uppercase tracking-wide flex items-center gap-1 mt-1"><i class="fas fa-check-circle"></i> Registered staff</span>
-                        </div>
-                        <div class="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg"><i class="fas fa-users"></i></div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Monthly Visits</span>
-                            <span class="text-2xl font-black text-gray-800 block">{{ monthly_reports }}</span>
-                            <span class="text-[10px] text-green-500 font-extrabold uppercase tracking-wide flex items-center gap-1 mt-1"><i class="fas fa-arrow-up"></i> Active Reports</span>
-                        </div>
-                        <div class="h-12 w-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-lg"><i class="fas fa-chart-line"></i></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
-                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest mb-6 border-l-2 border-magenta pl-2">Executive Revenue Pipeline</h4>
-                        <div class="h-80 w-full"><canvas id="revenueChart"></canvas></div>
-                    </div>
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:col-span-1">
-                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest mb-6 border-l-2 border-magenta pl-2">Book Category Split</h4>
-                        <div class="h-80 w-full flex items-center justify-center"><canvas id="categoryChart"></canvas></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="orders" class="page-content hidden">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Order Management Console</h4>
-                        <button class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors">Export CSV</button>
-                    </div>
-
-                    <div class="p-4 border-b border-gray-100">
-                        <div class="relative max-w-sm">
-                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
-                            <input type="text" id="ordersSearch" placeholder="Search by name, phone or order ID..." class="w-full border border-gray-300 rounded-full pl-9 pr-4 py-2.5 text-xs outline-none focus:border-magenta">
-                        </div>
-                    </div>
-
-                    <!-- MOBILE CARDS -->
-                    <div class="md:hidden divide-y divide-gray-100" id="ordersMobileList"></div>
-
-                    <div class="overflow-x-auto hidden md:block">
-                        <table class="w-full text-left border-collapse">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
                             <thead>
-                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
-                                    <th class="p-4">Order ID</th>
-                                    <th class="p-4">Customer Details</th>
-                                    <th class="p-4">Grand Total</th>
-                                    <th class="p-4">Status</th>
+                                <tr class="bg-lightWarm/60 text-[9px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-50">
+                                    <th class="py-3 px-4">Order ID</th>
+                                    <th class="py-3 px-4">Customer</th>
+                                    <th class="py-3 px-4">Amount</th>
+                                    <th class="py-3 px-4">Status</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100 text-xs" id="ordersTableBody"></tbody>
-                        </table>
-                    </div>
-
-                    <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3" id="ordersPaginationWrap">
-                        <span class="text-[10px] text-gray-400 font-semibold" id="ordersResultCount"></span>
-                        <div class="flex items-center gap-2" id="ordersPagination"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="inventory" class="page-content hidden">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Book Stock Database</h4>
-                        <button class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors" onclick="openBookModalForAdd()">+ Add New Book</button>
-                    </div>
-
-                    <div class="p-4 border-b border-gray-100">
-                        <div class="relative max-w-sm">
-                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
-                            <input type="text" id="booksSearch" placeholder="Search by title or author..." class="w-full border border-gray-300 rounded-full pl-9 pr-4 py-2.5 text-xs outline-none focus:border-magenta">
-                        </div>
-                    </div>
-
-                    <!-- MOBILE CARDS -->
-                    <div class="md:hidden divide-y divide-gray-100 booksTableMobile" id="booksMobileList"></div>
-
-                    <div class="overflow-x-auto hidden md:block">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
-                                    <th class="p-4">Book Title</th>
-                                    <th class="p-4">Author(s)</th>
-                                    <th class="p-4">Price Structure</th>
-                                    <th class="p-4 text-center">Actions</th>
+                            <tbody class="divide-y divide-gray-50">
+                                {% for o in recent_orders %}
+                                <tr class="hover:bg-gray-50/40 transition-colors">
+                                    <td class="py-3 px-4 font-bold text-gray-700 tracking-wider">{{ o.id }}</td>
+                                    <td class="py-3 px-4 text-gray-600">
+                                        <p class="font-semibold">{{ o.name }}</p>
+                                        <p class="text-[10px] text-gray-400">{{ o.city }}</p>
+                                    </td>
+                                    <td class="py-3 px-4 font-bold text-magenta">{{ o.grand_total | currency }}</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-block px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider 
+                                            {% if o.status == 'PAID' %}bg-green-100 text-green-700
+                                            {% elif o.status == 'FAILED' %}bg-red-100 text-red-600
+                                            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                                            {{ o.status }}
+                                        </span>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 text-xs booksTable" id="booksTableBody"></tbody>
-                        </table>
-                    </div>
-
-                    <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <span class="text-[10px] text-gray-400 font-semibold" id="booksResultCount"></span>
-                        <div class="flex items-center gap-2" id="booksPagination"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="staff" class="page-content hidden">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Executive Team Accounts</h4>
-                        <button class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors" onclick="openModal('modalStaff')">+ Add Staff Member</button>
-                    </div>
-
-                    <div class="p-4 border-b border-gray-100">
-                        <div class="relative max-w-sm">
-                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
-                            <input type="text" id="staffSearch" placeholder="Search by name, phone or email..." class="w-full border border-gray-300 rounded-full pl-9 pr-4 py-2.5 text-xs outline-none focus:border-magenta">
-                        </div>
-                    </div>
-
-                    <!-- MOBILE CARDS -->
-                    <div class="md:hidden divide-y divide-gray-100" id="staffMobileList"></div>
-
-                    <div class="overflow-x-auto hidden md:block">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
-                                    <th class="p-4">Staff ID</th>
-                                    <th class="p-4">Name Details</th>
-                                    <th class="p-4">Phone Number</th>
-                                    <th class="p-4">Privilege Role</th>
-                                    <th class="p-4 text-center">Status Control</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 text-xs" id="staffTableBody"></tbody>
-                        </table>
-                    </div>
-
-                    <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <span class="text-[10px] text-gray-400 font-semibold" id="staffResultCount"></span>
-                        <div class="flex items-center gap-2" id="staffPagination"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="blog" class="page-content hidden">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Published Blog Articles</h4>
-                        <button class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors" onclick="openModal('modalPost')">Write New Post</button>
-                    </div>
-                    <!-- MOBILE CARDS -->
-                    <div class="md:hidden divide-y divide-gray-100">
-                        <div class="p-4 flex flex-col gap-2">
-                            <div class="text-xs font-extrabold text-gray-800">Kenya's Literary Renaissance</div>
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-[10px] font-bold text-gray-500">May 02, 2026</span>
-                                <span class="text-xs font-black text-magenta">1,402 reads</span>
-                            </div>
-                            <button class="self-start px-3 py-1 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 font-bold text-[10px] uppercase tracking-wider">Edit</button>
-                        </div>
-                        <div class="p-4 flex flex-col gap-2">
-                            <div class="text-xs font-extrabold text-gray-800">Why Digital Publishing is Pivotal</div>
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-[10px] font-bold text-gray-500">Apr 28, 2026</span>
-                                <span class="text-xs font-black text-magenta">890 reads</span>
-                            </div>
-                            <button class="self-start px-3 py-1 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 font-bold text-[10px] uppercase tracking-wider">Edit</button>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto hidden md:block">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
-                                    <th class="p-4">Article Title</th>
-                                    <th class="p-4">Publish Date</th>
-                                    <th class="p-4">Read Count</th>
-                                    <th class="p-4 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 text-xs">
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="p-4 font-extrabold text-gray-800">Kenya's Literary Renaissance</td>
-                                    <td class="p-4 font-bold text-gray-500">May 02, 2026</td>
-                                    <td class="p-4 font-black text-magenta">1,402 reads</td>
-                                    <td class="p-4 text-center"><button class="px-3 py-1 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 font-bold">Edit</button></td>
-                                </tr>
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="p-4 font-extrabold text-gray-800">Why Digital Publishing is Pivotal</td>
-                                    <td class="p-4 font-bold text-gray-500">Apr 28, 2026</td>
-                                    <td class="p-4 font-black text-magenta">890 reads</td>
-                                    <td class="p-4 text-center"><button class="px-3 py-1 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 font-bold">Edit</button></td>
-                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
 
-            <div id="readers" class="page-content hidden">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Reader Directory</h4>
-                        <button class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors" onclick="openModal('modalUser')">+ Register New Reader</button>
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-orangered pl-2">Recent Submissions</h4>
+                        <button onclick="switchTab('reports')" class="text-[10px] font-bold text-magenta hover:underline uppercase tracking-wider">View All</button>
                     </div>
-                    <!-- MOBILE CARDS -->
-                    <div class="md:hidden divide-y divide-gray-100">
-                        <div class="p-4 flex flex-col gap-2">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-xs font-extrabold text-gray-800">Kevin Malenya</span>
-                                <span class="status-pill status-success shrink-0">Gold Partner</span>
+                    <div class="flex flex-col gap-3">
+                        {% for r in recent_reports %}
+                        <div class="flex items-start gap-4 p-3 hover:bg-lightWarm/40 rounded-xl border border-transparent hover:border-gray-100 transition-all">
+                            <div class="w-8 h-8 rounded-full bg-magenta/10 flex items-center justify-center text-magenta text-xs font-bold shrink-0">
+                                {{ r.staffName[:2].upper() }}
                             </div>
-                            <div class="text-[10px] text-gray-500 font-bold">kevin@tunu.com</div>
-                            <div class="text-xs font-black text-magenta">KES 12,400</div>
-                        </div>
-                        <div class="p-4 flex flex-col gap-2">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-xs font-extrabold text-gray-800">Sophy Akinyi</span>
-                                <span class="status-pill status-warning shrink-0">Standard Member</span>
+                            <div class="flex-grow min-w-0">
+                                <div class="flex items-center justify-between gap-2">
+                                    <h5 class="text-xs font-bold text-gray-800 truncate">{{ r.institution_name }}</h5>
+                                    <span class="text-[9px] font-bold text-gray-400 uppercase shrink-0">{{ r.submitted_at  }}</span>
+                                </div>
+                                <p class="text-[10px] text-gray-500 mt-0.5 truncate">{{ r.conversation_notes }}</p>
                             </div>
-                            <div class="text-[10px] text-gray-500 font-bold">sophy@tunu.com</div>
-                            <div class="text-xs font-black text-magenta">KES 2,100</div>
                         </div>
-                    </div>
-
-                    <div class="overflow-x-auto hidden md:block">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
-                                    <th class="p-4">Reader Name</th>
-                                    <th class="p-4">Email Contact</th>
-                                    <th class="p-4">Total Purchases</th>
-                                    <th class="p-4">Premium Membership</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 text-xs">
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="p-4 font-extrabold text-gray-800">Kevin Malenya</td>
-                                    <td class="p-4 font-bold text-gray-600">kevin@tunu.com</td>
-                                    <td class="p-4 font-black text-magenta">KES 12,400</td>
-                                    <td class="p-4"><span class="status-pill status-success">Gold Partner</span></td>
-                                </tr>
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="p-4 font-extrabold text-gray-800">Sophy Akinyi</td>
-                                    <td class="p-4 font-bold text-gray-600">sophy@tunu.com</td>
-                                    <td class="p-4 font-black text-magenta">KES 2,100</td>
-                                    <td class="p-4"><span class="status-pill status-warning">Standard Member</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
 
-            <div id="sales" class="page-content hidden">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100">
-                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Visit Submission Forms & Performance</h4>
-                    </div>
-
-                    <div class="p-4 border-b border-gray-100">
-                        <div class="relative max-w-sm">
-                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
-                            <input type="text" id="reportsSearch" placeholder="Search by rep or institution..." class="w-full border border-gray-300 rounded-full pl-9 pr-4 py-2.5 text-xs outline-none focus:border-magenta">
+            <div class="flex flex-col gap-6">
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider mb-4 border-l-2 border-orangered pl-2">Active Field Agents</h4>
+                    <div class="flex flex-col gap-4">
+                        {% for s in recent_staff %}
+                        <div class="flex items-center justify-between border-b border-gray-50 pb-3 last:border-0 last:pb-0">
+                            <div>
+                                <p class="text-xs font-bold text-gray-700 leading-tight">{{ s.name }}</p>
+                                <p class="text-[10px] text-gray-400 mt-0.5"><i class="fas fa-map-marker-alt text-orangered"></i> {{ s.location }}</p>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider {% if s.is_active %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+                                {% if s.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
                         </div>
+                        {% endfor %}
                     </div>
+                    <a href="/staff/register" class="w-full inline-block text-center border border-gray-200 hover:border-magenta hover:text-magenta transition-all text-xs font-bold uppercase tracking-wider py-2.5 rounded-xl mt-5">
+                        Add New Staff
+                    </a>
+                </div>
 
-                    <!-- MOBILE CARDS -->
-                    <div class="md:hidden divide-y divide-gray-100" id="reportsMobileList"></div>
-
-                    <div class="overflow-x-auto hidden md:block">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
-                                    <th class="p-4">Date Submitted</th>
-                                    <th class="p-4">Representative Name</th>
-                                    <th class="p-4">Institution Name</th>
-                                    <th class="p-4">Conversation Notes</th>
-                                    <th class="p-4 text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 text-xs" id="reportsTableBody"></tbody>
-
-                        </table>
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider mb-4 border-l-2 border-orangered pl-2">Recent Additions</h4>
+                    <div class="flex flex-col gap-3">
+                        {% for b in recent_books %}
+                        <div class="flex items-center gap-3">
+                            <img src="{{ b.image_url }}" alt="" class="w-10 h-12 object-contain bg-lightWarm rounded p-1 shrink-0 border border-gray-100">
+                            <div class="min-w-0">
+                                <h5 class="text-xs font-bold text-gray-800 leading-snug truncate">{{ b.title }}</h5>
+                                <p class="text-[10px] text-gray-400 mt-0.5">{{ b.newPrice | currency }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
-
-                    <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <span class="text-[10px] text-gray-400 font-semibold" id="reportsResultCount"></span>
-                        <div class="flex items-center gap-2" id="reportsPagination"></div>
-                    </div>
+                    <a href="/cp/books/new" class="w-full inline-block text-center border border-gray-200 hover:border-magenta hover:text-magenta transition-all text-xs font-bold uppercase tracking-wider py-2.5 rounded-xl mt-5">
+                        Add New Book
+                    </a>
                 </div>
             </div>
-
         </div>
-    </main>
+    </div>
 
-    <script>
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const loader = document.getElementById('workspaceLoader');
-                if (loader) {
-                    loader.classList.add('opacity-0');
-                    setTimeout(() => loader.classList.remove('active'), 300);
-                }
-            }, 1000);
+    <div id="tab-content-books" class="tab-pane hidden">
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="relative max-w-md w-full">
+                    <input type="text" id="search-books" oninput="queryBooks()" placeholder="Search library by title or authors..." class="w-full pl-10 pr-4 py-2.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-magenta transition-colors">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-search text-xs"></i>
+                    </div>
+                </div>
+                <a href="/cp/books/new" class="bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm transition-colors text-center shrink-0">
+                    Add Book
+                </a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="py-4 px-6">Image</th>
+                            <th class="py-4 px-6">Book Details</th>
+                            <th class="py-4 px-6">Grade / Target</th>
+                            <th class="py-4 px-6">Selling Price</th>
+                            <th class="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="books-table-body" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+            <div class="p-5 border-t border-gray-100 flex items-center justify-between flex-wrap gap-4">
+                <p id="books-info" class="text-xs text-gray-500 font-semibold"></p>
+                <div id="books-pagination" class="flex items-center gap-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-content-orders" class="tab-pane hidden">
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-100">
+                <div class="relative max-w-md w-full">
+                    <input type="text" id="search-orders" oninput="queryOrders()" placeholder="Search by customer name, phone or ID..." class="w-full pl-10 pr-4 py-2.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-magenta transition-colors">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-search text-xs"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="py-4 px-6">Order ID</th>
+                            <th class="py-4 px-6">Customer Details</th>
+                            <th class="py-4 px-6">City / Town</th>
+                            <th class="py-4 px-6">Total Paid</th>
+                            <th class="py-4 px-6">Payment Status</th>
+                            <th class="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+            <div class="p-5 border-t border-gray-100 flex items-center justify-between flex-wrap gap-4">
+                <p id="orders-info" class="text-xs text-gray-500 font-semibold"></p>
+                <div id="orders-pagination" class="flex items-center gap-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-content-staff" class="tab-pane hidden">
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="relative max-w-md w-full">
+                    <input type="text" id="search-staff" oninput="queryStaff()" placeholder="Search staff names, locations or email..." class="w-full pl-10 pr-4 py-2.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-magenta transition-colors">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-search text-xs"></i>
+                    </div>
+                </div>
+                <a href="/staff/register" class="bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm transition-colors text-center shrink-0">
+                    Register Staff
+                </a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="py-4 px-6">Staff Member</th>
+                            <th class="py-4 px-6">Email / Location</th>
+                            <th class="py-4 px-6">Phone Number</th>
+                            <th class="py-4 px-6">Authority Level</th>
+                            <th class="py-4 px-6">Active Status</th>
+                            <th class="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staff-table-body" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+            <div class="p-5 border-t border-gray-100 flex items-center justify-between flex-wrap gap-4">
+                <p id="staff-info" class="text-xs text-gray-500 font-semibold"></p>
+                <div id="staff-pagination" class="flex items-center gap-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-content-reports" class="tab-pane hidden">
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-100">
+                <div class="relative max-w-md w-full">
+                    <input type="text" id="search-reports" oninput="queryReports()" placeholder="Search field reports by institution..." class="w-full pl-10 pr-4 py-2.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-magenta transition-colors">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-search text-xs"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="py-4 px-6">Institution</th>
+                            <th class="py-4 px-6">Field Agent</th>
+                            <th class="py-4 px-6">Contact Person</th>
+                            <th class="py-4 px-6">Transaction Outcome</th>
+                            <th class="py-4 px-6">Submission Date</th>
+                            <th class="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reports-table-body" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+            <div class="p-5 border-t border-gray-100 flex items-center justify-between flex-wrap gap-4">
+                <p id="reports-info" class="text-xs text-gray-500 font-semibold"></p>
+                <div id="reports-pagination" class="flex items-center gap-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="order-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300" id="order-modal-container">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-orangered pl-2">Modify Order Status</h3>
+            <button onclick="closeOrderModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+        <div class="p-6 flex flex-col gap-4">
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Target Order</p>
+                <p id="modal-order-id" class="text-xs font-black text-gray-800 tracking-wider"></p>
+            </div>
+            <div>
+                <label for="modal-order-status" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Process Stage</label>
+                <select id="modal-order-status" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors bg-white appearance-none text-gray-700">
+                    <option value="PENDING">PENDING</option>
+                    <option value="PAID">PAID</option>
+                    <option value="FAILED">FAILED</option>
+                    <option value="DISPATCHED">DISPATCHED</option>
+                    <option value="DELIVERED">DELIVERED</option>
+                </select>
+            </div>
+            <div class="border-t border-gray-100 pt-4 mt-2 flex justify-end gap-3">
+                <button onclick="closeOrderModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg text-xs font-bold transition-colors">Cancel</button>
+                <button onclick="saveOrderStatus()" class="bg-magenta hover:bg-dark-magenta text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Update Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="report-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300" id="report-modal-container">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-orangered pl-2">Field Agent Submission Details</h3>
+            <button onclick="closeReportModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+        <div class="p-6 flex flex-col gap-4 text-xs">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Institution Name</p>
+                    <p id="rep-inst" class="font-bold text-gray-800 mt-0.5"></p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Representative Agent</p>
+                    <p id="rep-agent" class="font-bold text-gray-800 mt-0.5"></p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Point of Contact</p>
+                    <p id="rep-contact" class="font-bold text-gray-800 mt-0.5"></p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Contact Phone</p>
+                    <p id="rep-phone" class="font-semibold text-gray-800 mt-0.5"></p>
+                </div>
+            </div>
+            <div class="border-t border-gray-100 pt-4">
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Conversation Transcript & Observations</p>
+                <div class="bg-lightWarm p-3 rounded-lg text-gray-700 leading-relaxed max-h-32 overflow-y-auto" id="rep-notes"></div>
+            </div>
+            <div class="border-t border-gray-100 pt-4 mt-2 flex justify-end">
+                <button onclick="closeReportModal()" class="bg-magenta hover:bg-dark-magenta text-white px-6 py-2.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Dismiss</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="staff-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300" id="staff-modal-container">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-orangered pl-2">Modify User Account</h3>
+            <button onclick="closeStaffModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+        <form id="edit-staff-form" onsubmit="saveStaffChanges(event)" class="p-6 flex flex-col gap-4">
+            <input type="hidden" id="staff-edit-id">
+            <div>
+                <label for="staff-edit-name" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Full Name</label>
+                <input type="text" id="staff-edit-name" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="staff-edit-email" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email Address</label>
+                    <input type="email" id="staff-edit-email" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                </div>
+                <div>
+                    <label for="staff-edit-phone" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Phone Number</label>
+                    <input type="tel" id="staff-edit-phone" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="staff-edit-location" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Base Location</label>
+                    <input type="text" id="staff-edit-location" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                </div>
+                <div>
+                    <label for="staff-edit-admin" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Access Authorization</label>
+                    <select id="staff-edit-admin" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors bg-white appearance-none text-gray-700">
+                        <option value="false">Staff Member</option>
+                        <option value="true">Administrator</option>
+                    </select>
+                </div>
+            </div>
+            <div class="border-t border-gray-100 pt-4 mt-2 flex justify-end gap-3">
+                <button type="button" onclick="closeStaffModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg text-xs font-bold transition-colors">Cancel</button>
+                <button type="submit" class="bg-magenta hover:bg-dark-magenta text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Apply Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let activeTab = 'overview';
+    let booksPage = 1, ordersPage = 1, staffPage = 1, reportsPage = 1;
+    let selectedOrderId = null;
+
+    function switchTab(tabId) {
+        activeTab = tabId;
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active', 'text-magenta', 'border-magenta');
+            btn.classList.add('text-gray-400', 'border-transparent');
+        });
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.classList.add('hidden');
+            pane.classList.remove('block');
         });
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('modalOverlay');
-            if (sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-            }
-        }
+        const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+        activeBtn.classList.add('active', 'text-magenta', 'border-magenta');
+        activeBtn.classList.remove('text-gray-400', 'border-transparent');
 
-        function switchPage(pageId, navElement) {
-            document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const activePane = document.getElementById(`tab-content-${tabId}`);
+        activePane.classList.remove('hidden');
+        activePane.classList.add('block');
 
-            document.getElementById(pageId).classList.remove('hidden');
-            navElement.classList.add('active');
+        if (tabId === 'books') queryBooks(1);
+        else if (tabId === 'orders') queryOrders(1);
+        else if (tabId === 'staff') queryStaff(1);
+        else if (tabId === 'reports') queryReports(1);
+    }
 
-            const pageTitleElement = document.getElementById('pageTitle');
-            const titles = {
-                'insights': 'Executive Overview',
-                'orders': 'Order Management',
-                'inventory': 'Book Stock Inventory',
-                'staff': 'Team Members Workspace',
-                'blog': 'Published Blog Articles',
-                'readers': 'Reader Directory',
-                'sales': 'Sales Performance Reports'
-            };
-            if (pageTitleElement && titles[pageId]) {
-                pageTitleElement.textContent = titles[pageId];
-            }
+    async function queryBooks(page = 1) {
+        booksPage = page;
+        const query = document.getElementById('search-books').value.trim();
+        const tbody = document.getElementById('books-table-body');
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400 font-semibold">Loading books catalog...</td></tr>`;
 
-            const sidebar = document.getElementById('sidebar');
-            if (window.innerWidth < 768) {
-                sidebar.classList.add('-translate-x-full');
-                document.getElementById('modalOverlay').classList.add('hidden');
-            }
+        try {
+            const res = await fetch(`/api/admin/books?page=${page}&q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            tbody.innerHTML = '';
 
-            loadSectionData(pageId);
-        }
-
-        const sectionLoaded = { orders: false, inventory: false, staff: false, sales: false };
-
-        function loadSectionData(pageId) {
-            if (pageId === 'orders' && !sectionLoaded.orders) { sectionLoaded.orders = true; loadOrders(1, ''); }
-            if (pageId === 'inventory' && !sectionLoaded.inventory) { sectionLoaded.inventory = true; loadBooks(1, ''); }
-            if (pageId === 'staff' && !sectionLoaded.staff) { sectionLoaded.staff = true; loadStaff(1, ''); }
-            if (pageId === 'sales' && !sectionLoaded.sales) { sectionLoaded.sales = true; loadReports(1, ''); }
-        }
-
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.remove('hidden');
-            document.getElementById('modalOverlay').classList.remove('hidden');
-        }
-
-        function closeAllModals() {
-            document.getElementById('modalOverlay').classList.add('hidden');
-            document.getElementById('modalPost').classList.add('hidden');
-            document.getElementById('modalStaff').classList.add('hidden');
-            document.getElementById('modalUser').classList.add('hidden');
-            document.getElementById('modalBook').classList.add('hidden');
-            
-            const sidebar = document.getElementById('sidebar');
-            if (window.innerWidth < 768) {
-                sidebar.classList.add('-translate-x-full');
-            }
-        }
-
-        function openBookModalForAdd() {
-            document.getElementById('bookTitle').value = "";
-            document.getElementById('bookAuthor').value = "";
-            document.getElementById('bookOldPrice').value = "";
-            document.getElementById('bookNewPrice').value = "";
-            document.getElementById('grade').value = "";
-            document.getElementById('bookDiscounted').value = "false";
-            document.getElementById('bookImage').value = "";
-            
-            const saveBtn = document.getElementById('saveBook');
-            saveBtn.textContent = "Create Book";
-            saveBtn.setAttribute('onclick', "saveBook()");
-            
-            openModal('modalBook');
-        }
-
-        async function editBookDetails(id) {
-            try {
-                const res = await fetch(`/api/book/${id}`);
-                if (!res.ok) throw new Error("Could not retrieve book details");
-                const book = await res.json();
-                
-                document.getElementById('bookTitle').value = book.title;
-                document.getElementById('bookAuthor').value = book.authors || "";
-                document.getElementById('bookOldPrice').value = book.oldPrice || 0;
-                document.getElementById('bookNewPrice').value = book.newPrice || 0;
-                document.getElementById('grade').value = book.grade || "";
-                document.getElementById('bookDiscounted').value = book.discounted ? "true" : "false";
-                document.getElementById('bookImage').value = "";
-                
-                const saveBtn = document.getElementById('saveBook');
-                saveBtn.textContent = "Update Book";
-                saveBtn.setAttribute('onclick', `updateBookDetails('${book.id}')`);
-                
-                openModal('modalBook');
-            } catch (err) {
-                alert("Error loading book records. Please try again.");
-            }
-        }
-
-        async function saveBook() {
-            const saveBtn = document.getElementById('saveBook');
-            saveBtn.disabled = true;
-            saveBtn.textContent = "Processing...";
-
-            const title = document.getElementById('bookTitle').value.trim();
-            const authors = document.getElementById('bookAuthor').value.trim();
-            const oldPrice = parseFloat(document.getElementById('bookOldPrice').value) || 0;
-            const newPrice = parseFloat(document.getElementById('bookNewPrice').value) || 0;
-            const grade = document.getElementById('grade').value.trim();
-            const discounted = document.getElementById('bookDiscounted').value === "true";
-            
-            const imageFile = document.getElementById('bookImage').files[0];
-            let imageFilename = "default.png";
-
-            if (imageFile) {
-                const formData = new FormData();
-                formData.append('image', imageFile);
-                try {
-                    const uploadRes = await fetch('/api/upload-image', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    if (uploadRes.ok) {
-                        const uploadData = await uploadRes.json();
-                        imageFilename = uploadData.path;
-                    }
-                } catch (err) {
-                    console.error("Image transmission failed, matching default.", err);
-                }
-            }
-
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('authors', authors);
-            formData.append('oldPrice', oldPrice);
-            formData.append('newPrice', newPrice);
-            formData.append('grade', grade);
-            formData.append('discounted', discounted ? "on" : "");
-            formData.append('image', imageFile || "");
-
-            try {
-                const response = await fetch('/cp/books/new', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else {
-                    location.reload();
-                }
-            } catch (err) {
-                alert("Error processing transaction. Verify network connection.");
-                saveBtn.disabled = false;
-                saveBtn.textContent = "Create Book";
-            }
-        }
-
-        async function updateBookDetails(id) {
-            const saveBtn = document.getElementById('saveBook');
-            saveBtn.disabled = true;
-            saveBtn.textContent = "Processing...";
-
-            const title = document.getElementById('bookTitle').value.trim();
-            const authors = document.getElementById('bookAuthor').value.trim();
-            const oldPrice = parseFloat(document.getElementById('bookOldPrice').value) || 0;
-            const newPrice = parseFloat(document.getElementById('bookNewPrice').value) || 0;
-            const grade = document.getElementById('grade').value.trim();
-            const discounted = document.getElementById('bookDiscounted').value === "true";
-            const imageFile = document.getElementById('bookImage').files[0];
-
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('authors', authors);
-            formData.append('oldPrice', oldPrice);
-            formData.append('newPrice', newPrice);
-            formData.append('grade', grade);
-            formData.append('discounted', discounted ? "on" : "");
-            if (imageFile) {
-                formData.append('image', imageFile);
-            }
-
-            try {
-                const response = await fetch(`/cp/books/edit/${id}`, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else {
-                    location.reload();
-                }
-            } catch (err) {
-                alert("Could not update the book records.");
-                saveBtn.disabled = false;
-                saveBtn.textContent = "Update Book";
-            }
-        }
-
-        async function deleteBookInstance(id) {
-            if (!confirm("Are you sure you want to permanently delete this book record?")) return;
-            
-            try {
-                const response = await fetch('/api/admin/delete_book', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ book_id: id })
-                });
-                
-                if (response.ok) {
-                    const row = document.getElementById(`book-row-${id}`);
-                    if (row) row.remove();
-                    const mobileRow = document.getElementById(`book-row-mobile-${id}`);
-                    if (mobileRow) mobileRow.remove();
-                } else {
-                    alert("Failure updating records.");
-                }
-            } catch (err) {
-                alert("Network error. Try again.");
-            }
-        }
-
-        async function toggleStaffStatus(id) {
-            try {
-                const response = await fetch('/api/admin/toggle_staff', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ staff_id: id })
-                });
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    alert("Could not alter status profile.");
-                }
-            } catch (err) {
-                alert("Connection failed.");
-            }
-        }
-
-        async function saveStaff() {
-            const name = document.getElementById('staffName').value.trim();
-            const email = document.getElementById('staffEmail').value.trim();
-            const phone = document.getElementById('staffPhone').value.trim();
-            const locationVal = document.getElementById('staffLocation').value.trim();
-            const is_admin = document.getElementById('staffIsAdmin').checked;
-
-            if (!name || !phone) {
-                alert("Please fill in the required Name and Phone details.");
+            if (data.items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400 font-semibold">No books matching search parameters.</td></tr>`;
+                document.getElementById('books-info').textContent = 'Showing 0 results';
+                document.getElementById('books-pagination').innerHTML = '';
                 return;
             }
 
-            try {
-                const response = await fetch('/staff/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({
-                        name, email, phone, location: locationVal, is_admin: is_admin ? "on" : ""
-                    })
-                });
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else {
-                    location.reload();
-                }
-            } catch (err) {
-                alert("Representative registration request failure.");
-            }
-        }
-
-        function debounce(fn, delay) {
-            let t;
-            return (...args) => {
-                clearTimeout(t);
-                t = setTimeout(() => fn(...args), delay);
-            };
-        }
-
-        function renderPagination(containerId, countId, data, onPageClick) {
-            const container = document.getElementById(containerId);
-            const countEl = document.getElementById(countId);
-            if (countEl) countEl.textContent = `${data.total} result${data.total !== 1 ? 's' : ''}`;
-            if (!container) return;
-            container.innerHTML = '';
-            if (data.pages <= 1) return;
-
-            const makeBtn = (label, page, disabled, active) => {
-                const btn = document.createElement('button');
-                btn.textContent = label;
-                btn.disabled = !!disabled;
-                btn.className = active
-                    ? 'w-8 h-8 flex items-center justify-center rounded-lg bg-magenta text-white text-xs font-bold'
-                    : `w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 ${disabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-magenta hover:text-white hover:border-magenta transition-colors'}`;
-                if (!disabled && !active) btn.onclick = () => onPageClick(page);
-                return btn;
-            };
-
-            container.appendChild(makeBtn('‹', data.page - 1, !data.has_prev, false));
-            for (let p = 1; p <= data.pages; p++) {
-                if (p === 1 || p === data.pages || Math.abs(p - data.page) <= 1) {
-                    container.appendChild(makeBtn(String(p), p, false, p === data.page));
-                } else if (Math.abs(p - data.page) === 2) {
-                    const dots = document.createElement('span');
-                    dots.textContent = '…';
-                    dots.className = 'text-gray-300 text-xs px-1';
-                    container.appendChild(dots);
-                }
-            }
-            container.appendChild(makeBtn('›', data.page + 1, !data.has_next, false));
-        }
-
-        async function loadOrders(page, q) {
-            const mobileList = document.getElementById('ordersMobileList');
-            const tableBody = document.getElementById('ordersTableBody');
-            try {
-                const res = await fetch(`/api/admin/orders?page=${page}&q=${encodeURIComponent(q || '')}`);
-                const data = await res.json();
-                const items = data.items || [];
-
-                if (!items.length) {
-                    mobileList.innerHTML = `<div class="p-8 text-center text-gray-400 font-bold text-xs">No orders match your search.</div>`;
-                    tableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">No orders match your search.</td></tr>`;
-                } else {
-                    mobileList.innerHTML = items.map(o => `
-                        <div class="p-4 flex flex-col gap-2">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-xs font-extrabold text-magenta uppercase truncate">${o.id}</span>
-                                <span class="status-pill shrink-0 ${(o.status === 'PAID' || o.status === 'DELIVERED') ? 'status-success' : (o.status === 'FAILED' ? 'status-danger' : 'status-warning')}">${o.status}</span>
-                            </div>
-                            <div class="text-xs font-extrabold text-gray-800">${o.name || ''}</div>
-                            <div class="text-[10px] text-gray-400 font-semibold">${o.phone || ''} | ${o.city || ''}</div>
-                            <div class="text-xs font-black text-gray-800">KES ${Number(o.grand_total || 0).toLocaleString()}</div>
+            data.items.forEach(b => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-4 px-6 shrink-0">
+                        <img src="${b.image_url}" alt="" class="w-8 h-10 object-contain bg-lightWarm rounded p-1 border border-gray-100">
+                    </td>
+                    <td class="py-4 px-6">
+                        <p class="font-bold text-gray-800 leading-tight">${b.title}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">Authors: ${b.authors || 'Tunu Publishers'}</p>
+                    </td>
+                    <td class="py-4 px-6 font-semibold text-gray-500">${b.grade || 'General'}</td>
+                    <td class="py-4 px-6 font-extrabold text-magenta">KSh ${b.newPrice.toLocaleString()}</td>
+                    <td class="py-4 px-6 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="/cp/books/edit/${b.id}" class="text-gray-400 hover:text-magenta p-2 transition-colors" title="Edit book">
+                                <i class="fas fa-edit text-xs"></i>
+                            </a>
+                            <button onclick="deleteBookItem('${b.id}')" class="text-gray-400 hover:text-red-500 p-2 transition-colors" title="Delete book">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
                         </div>
-                    `).join('');
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
 
-                    tableBody.innerHTML = items.map(o => `
-                        <tr class="hover:bg-gray-50/50 transition-colors">
-                            <td class="p-4 font-extrabold text-magenta uppercase">${o.id}</td>
-                            <td class="p-4">
-                                <div class="font-extrabold text-gray-800">${o.name || ''}</div>
-                                <div class="text-[10px] text-gray-400 font-semibold mt-0.5">${o.phone || ''} | ${o.city || ''}</div>
-                            </td>
-                            <td class="p-4 font-black text-gray-800">KES ${Number(o.grand_total || 0).toLocaleString()}</td>
-                            <td class="p-4"><span class="status-pill ${(o.status === 'PAID' || o.status === 'DELIVERED') ? 'status-success' : (o.status === 'FAILED' ? 'status-danger' : 'status-warning')}">${o.status}</span></td>
-                        </tr>
-                    `).join('');
-                }
-
-                renderPagination('ordersPagination', 'ordersResultCount', data, (p) => loadOrders(p, q));
-            } catch (err) {
-                console.error('Failed to load orders', err);
-            }
+            document.getElementById('books-info').textContent = `Page ${data.page} of ${data.pages} (Total: ${data.total})`;
+            renderPager(data, 'books', queryBooks);
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-red-500 font-bold">Error loading books. Please reload.</td></tr>`;
         }
-
-        async function loadBooks(page, q) {
-            const mobileList = document.getElementById('booksMobileList');
-            const tableBody = document.getElementById('booksTableBody');
-            try {
-                const res = await fetch(`/api/admin/books?page=${page}&q=${encodeURIComponent(q || '')}`);
-                const data = await res.json();
-                const items = data.items || [];
-
-                if (!items.length) {
-                    mobileList.innerHTML = `<div class="p-8 text-center text-gray-400 font-bold text-xs">No books match your search.</div>`;
-                    tableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 font-bold">No books match your search.</td></tr>`;
-                } else {
-                    mobileList.innerHTML = items.map(b => `
-                        <div class="p-4 flex items-center gap-3" id="book-row-mobile-${b.id}">
-                            <img src="${b.image_url}" alt="${b.title}" class="h-14 w-11 object-contain bg-gray-50 border border-gray-100 p-0.5 rounded shadow-sm shrink-0" onerror="this.src='https://placehold.co/80x100/8B008B/ffffff?text=Book'">
-                            <div class="flex-grow min-w-0">
-                                <div class="font-extrabold text-gray-800 line-clamp-1 leading-snug text-xs">${b.title}</div>
-                                <div class="text-[10px] text-gray-400 font-bold uppercase mt-0.5">${b.grade || 'General'}</div>
-                                <div class="text-[10px] text-gray-500 font-bold mt-0.5">${b.authors || ''}</div>
-                                <div class="font-black text-magenta text-xs mt-1">KES ${Number(b.newPrice || 0).toLocaleString()}</div>
-                            </div>
-                            <div class="flex flex-col gap-2 shrink-0">
-                                <button onclick="editBookDetails('${b.id}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit book details"><i class="fas fa-edit"></i></button>
-                                <button onclick="deleteBookInstance('${b.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete book"><i class="fas fa-trash-alt"></i></button>
-                            </div>
-                        </div>
-                    `).join('');
-
-                    tableBody.innerHTML = items.map(b => `
-                        <tr class="hover:bg-gray-50/50 transition-colors" id="book-row-${b.id}">
-                            <td class="p-4">
-                                <div class="flex items-center gap-3">
-                                    <img src="${b.image_url}" alt="${b.title}" class="h-10 w-8 object-contain bg-gray-50 border border-gray-100 p-0.5 rounded shadow-sm" onerror="this.src='https://placehold.co/80x100/8B008B/ffffff?text=Book'">
-                                    <div>
-                                        <div class="font-extrabold text-gray-800 line-clamp-1 leading-snug">${b.title}</div>
-                                        <div class="text-[10px] text-gray-400 font-bold uppercase mt-0.5">${b.grade || 'General'}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="p-4 font-bold text-gray-600">${b.authors || ''}</td>
-                            <td class="p-4 font-black text-magenta">KES ${Number(b.newPrice || 0).toLocaleString()}</td>
-                            <td class="p-4">
-                                <div class="flex items-center justify-center gap-3">
-                                    <button onclick="editBookDetails('${b.id}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit book details"><i class="fas fa-edit"></i></button>
-                                    <button onclick="deleteBookInstance('${b.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete book"><i class="fas fa-trash-alt"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
-
-                renderPagination('booksPagination', 'booksResultCount', data, (p) => loadBooks(p, q));
-            } catch (err) {
-                console.error('Failed to load books', err);
-            }
-        }
-
-        async function loadStaff(page, q) {
-            const mobileList = document.getElementById('staffMobileList');
-            const tableBody = document.getElementById('staffTableBody');
-            try {
-                const res = await fetch(`/api/admin/staff-list?page=${page}&q=${encodeURIComponent(q || '')}`);
-                const data = await res.json();
-                const items = data.items || [];
-
-                if (!items.length) {
-                    mobileList.innerHTML = `<div class="p-8 text-center text-gray-400 font-bold text-xs">No staff match your search.</div>`;
-                    tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">No staff match your search.</td></tr>`;
-                } else {
-                    mobileList.innerHTML = items.map(s => `
-                        <div class="p-4 flex flex-col gap-2">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-xs font-extrabold text-gray-800">${s.name}</span>
-                                <span class="text-[10px] font-bold text-magenta shrink-0">${s.id}</span>
-                            </div>
-                            <div class="text-[10px] text-gray-400">${s.email || 'No email'} | ${s.location || ''}</div>
-                            <div class="text-xs font-bold text-gray-600">${s.phone || ''}</div>
-                            <div class="flex items-center justify-between gap-2 flex-wrap">
-                                <span class="status-pill ${s.is_admin ? 'status-success' : 'status-warning'}">${s.is_admin ? 'Administrator' : 'Staff Representative'}</span>
-                                <button onclick="toggleStaffStatus('${s.id}')" class="px-3 py-1.5 rounded-lg border border-gray-200 hover:border-magenta text-[10px] font-bold uppercase tracking-wider text-gray-500 transition-colors">${s.is_active ? 'Deactivate' : 'Activate'}</button>
-                            </div>
-                        </div>
-                    `).join('');
-
-                    tableBody.innerHTML = items.map(s => `
-                        <tr class="hover:bg-gray-50/50 transition-colors">
-                            <td class="p-4 font-bold text-magenta">${s.id}</td>
-                            <td class="p-4">
-                                <div class="font-extrabold text-gray-800">${s.name}</div>
-                                <div class="text-[10px] text-gray-400 mt-0.5">${s.email || 'No email'} | ${s.location || ''}</div>
-                            </td>
-                            <td class="p-4 font-bold text-gray-600">${s.phone || ''}</td>
-                            <td class="p-4"><span class="status-pill ${s.is_admin ? 'status-success' : 'status-warning'}">${s.is_admin ? 'Administrator' : 'Staff Representative'}</span></td>
-                            <td class="p-4 text-center">
-                                <button onclick="toggleStaffStatus('${s.id}')" class="px-3 py-1.5 rounded-lg border border-gray-200 hover:border-magenta text-[10px] font-bold uppercase tracking-wider text-gray-500 transition-colors">${s.is_active ? 'Deactivate' : 'Activate'}</button>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
-
-                renderPagination('staffPagination', 'staffResultCount', data, (p) => loadStaff(p, q));
-            } catch (err) {
-                console.error('Failed to load staff', err);
-            }
-        }
-
-        async function loadReports(page, q) {
-            const mobileList = document.getElementById('reportsMobileList');
-            const tableBody = document.getElementById('reportsTableBody');
-            try {
-                const res = await fetch(`/api/admin/reports?page=${page}&q=${encodeURIComponent(q || '')}`);
-                const data = await res.json();
-                const items = data.items || [];
-
-                if (!items.length) {
-                    mobileList.innerHTML = `<div class="p-8 text-center text-gray-400 font-bold text-xs">No submissions match your search.</div>`;
-                    tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">No submissions match your search.</td></tr>`;
-                } else {
-                    mobileList.innerHTML = items.map(s => `
-                        <div class="p-4 flex flex-col gap-2">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-[10px] font-bold text-magenta">${s.submitted_at}</span>
-                                <span class="status-pill shrink-0 ${s.isSold ? 'status-success' : 'status-warning'}">${s.isSold ? 'Sale Closed' : 'Pending'}</span>
-                            </div>
-                            <div class="text-xs font-extrabold text-gray-800">${s.staffName || ''}</div>
-                            <div class="text-xs font-bold text-gray-600">${s.institution_name || ''}</div>
-                            <div class="text-[10px] text-gray-400">${s.contact_person || ''} | ${s.phone || ''}</div>
-                            <div class="text-[11px] text-gray-500 line-clamp-2">${s.conversation_notes || ''}</div>
-                        </div>
-                    `).join('');
-
-                    tableBody.innerHTML = items.map(s => `
-                        <tr class="hover:bg-gray-50/50 transition-colors">
-                            <td class="p-4 font-bold text-magenta">${s.submitted_at}</td>
-                            <td class="p-4 font-extrabold text-gray-800">${s.staffName || ''}</td>
-                            <td class="p-4 font-bold text-gray-600">
-                                <div>${s.institution_name || ''}</div>
-                                <div class="text-[10px] text-gray-400 mt-0.5">${s.contact_person || ''} | ${s.phone || ''}</div>
-                            </td>
-                            <td class="p-4 text-gray-500 max-w-xs truncate">${s.conversation_notes || ''}</td>
-                            <td class="p-4 text-center"><span class="status-pill ${s.isSold ? 'status-success' : 'status-warning'}">${s.isSold ? 'Sale Closed' : 'Pending Follow-up'}</span></td>
-                        </tr>
-                    `).join('');
-                }
-
-                renderPagination('reportsPagination', 'reportsResultCount', data, (p) => loadReports(p, q));
-            } catch (err) {
-                console.error('Failed to load reports', err);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const ordersSearch = document.getElementById('ordersSearch');
-            if (ordersSearch) ordersSearch.addEventListener('input', debounce((e) => loadOrders(1, e.target.value.trim()), 350));
-
-            const booksSearch = document.getElementById('booksSearch');
-            if (booksSearch) booksSearch.addEventListener('input', debounce((e) => loadBooks(1, e.target.value.trim()), 350));
-
-            const staffSearch = document.getElementById('staffSearch');
-            if (staffSearch) staffSearch.addEventListener('input', debounce((e) => loadStaff(1, e.target.value.trim()), 350));
-
-            const reportsSearch = document.getElementById('reportsSearch');
-            if (reportsSearch) reportsSearch.addEventListener('input', debounce((e) => loadReports(1, e.target.value.trim()), 350));
-        });
-
-        const revCtx = document.getElementById('revenueChart').getContext('2d');
-        new Chart(revCtx, {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Revenue (KES)',
-                    data: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
-                    borderColor: '#8B008B',
-                    backgroundColor: 'rgba(139, 0, 139, 0.05)',
-                    tension: 0.4,
-                    fill: true,
-                    borderWidth: 3,
-                    pointBackgroundColor: '#FF4500',
-                    pointHoverRadius: 7
-                }]
-            },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { grid: { color: 'rgba(0,0,0,0.03)' } },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
-
-        const catCtx = document.getElementById('categoryChart').getContext('2d');
-
-const categoryChart = new Chart(catCtx, {
-    type: 'doughnut',
-    data: {
-        labels: [],
-        datasets: [{
-            data: [],
-            backgroundColor: [
-                '#8B008B',
-                '#FF4500',
-                '#4B004B',
-                '#FFD700',
-                '#1E90FF',
-                '#32CD32',
-                '#DC143C',
-                '#00CED1'
-            ],
-            borderWidth: 0
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    boxWidth: 12,
-                    font: {
-                        size: 10,
-                        weight: 'bold'
-                    }
-                }
-            }
-        },
-        cutout: '70%'
     }
-});
 
-fetch('/api/labels')
-    .then(res => res.json())
-    .then(data => {
-        categoryChart.data.labels = data.map(item => item.label);
-        categoryChart.data.datasets[0].data = data.map(item => item.count);
-        categoryChart.update();
-    })
-    .catch(console.error);
- 
-    </script>
-</body>
-</html>
+    async function queryOrders(page = 1) {
+        ordersPage = page;
+        const query = document.getElementById('search-orders').value.trim();
+        const tbody = document.getElementById('orders-table-body');
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-semibold">Retrieving secure orders...</td></tr>`;
+
+        try {
+            const res = await fetch(`/api/admin/orders?page=${page}&q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            tbody.innerHTML = '';
+
+            if (data.items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-semibold">No orders matching search parameters.</td></tr>`;
+                document.getElementById('orders-info').textContent = 'Showing 0 results';
+                document.getElementById('orders-pagination').innerHTML = '';
+                return;
+            }
+
+            data.items.forEach(o => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors';
+                const statusBadge = o.status === 'PAID' ? 'bg-green-100 text-green-700' : (o.status === 'FAILED' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700');
+                tr.innerHTML = `
+                    <td class="py-4 px-6 font-bold text-gray-800 tracking-wider">${o.id}</td>
+                    <td class="py-4 px-6">
+                        <p class="font-bold text-gray-700 leading-tight">${o.name}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">${o.phone}</p>
+                    </td>
+                    <td class="py-4 px-6 font-semibold text-gray-500">${o.city}</td>
+                    <td class="py-4 px-6 font-extrabold text-magenta">KSh ${o.grand_total.toLocaleString()}</td>
+                    <td class="py-4 px-6">
+                        <span class="inline-block px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${statusBadge}">
+                            ${o.status}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick="openOrderModal('${o.id}', '${o.status}')" class="text-gray-400 hover:text-magenta p-2 transition-colors" title="Change status">
+                                <i class="fas fa-cog text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('orders-info').textContent = `Page ${data.page} of ${data.pages} (Total: ${data.total})`;
+            renderPager(data, 'orders', queryOrders);
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">Error loading orders.</td></tr>`;
+        }
+    }
+
+    async function queryStaff(page = 1) {
+        staffPage = page;
+        const query = document.getElementById('search-staff').value.trim();
+        const tbody = document.getElementById('staff-table-body');
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-semibold">Synchronizing roster...</td></tr>`;
+
+        try {
+            const res = await fetch(`/api/admin/staff-list?page=${page}&q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            tbody.innerHTML = '';
+
+            if (data.items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-semibold">No active matches.</td></tr>`;
+                document.getElementById('staff-info').textContent = 'Showing 0 results';
+                document.getElementById('staff-pagination').innerHTML = '';
+                return;
+            }
+
+            data.items.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors';
+                const statusBadge = s.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400';
+                tr.innerHTML = `
+                    <td class="py-4 px-6">
+                        <p class="font-bold text-gray-800 leading-tight">${s.name}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">ID: ${s.id}</p>
+                    </td>
+                    <td class="py-4 px-6">
+                        <p class="font-semibold text-gray-600">${s.email || 'No email'}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5"><i class="fas fa-map-marker-alt text-orangered"></i> ${s.location}</p>
+                    </td>
+                    <td class="py-4 px-6 font-semibold text-gray-700">${s.phone}</td>
+                    <td class="py-4 px-6">
+                        <span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-magenta/10 text-magenta">
+                            ${s.is_admin ? 'Admin' : 'Field'}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <button onclick="toggleStaffActive('${s.id}')" class="inline-block px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider transition-all ${statusBadge}">
+                            ${s.is_active ? 'Active' : 'Disabled'}
+                        </button>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <button onclick="openStaffModal('${s.id}', '${s.name}', '${s.email}', '${s.phone}', '${s.location}', ${s.is_admin})" class="text-gray-400 hover:text-magenta p-2 transition-colors" title="Edit staff details">
+                            <i class="fas fa-edit text-xs"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('staff-info').textContent = `Page ${data.page} of ${data.pages} (Total: ${data.total})`;
+            renderPager(data, 'staff', queryStaff);
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">Error loading staff list.</td></tr>`;
+        }
+    }
+
+    async function queryReports(page = 1) {
+        reportsPage = page;
+        const query = document.getElementById('search-reports').value.trim();
+        const tbody = document.getElementById('reports-table-body');
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-semibold">Gathering daily submissions...</td></tr>`;
+
+        try {
+            const res = await fetch(`/api/admin/reports?page=${page}&q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            tbody.innerHTML = '';
+
+            if (data.items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-semibold">No submissions on record matching search.</td></tr>`;
+                document.getElementById('reports-info').textContent = 'Showing 0 results';
+                document.getElementById('reports-pagination').innerHTML = '';
+                return;
+            }
+
+            data.items.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors';
+                const dealBadge = r.isSold ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-600';
+                tr.innerHTML = `
+                    <td class="py-4 px-6 font-bold text-gray-800">${r.institution_name}</td>
+                    <td class="py-4 px-6 font-semibold text-gray-600">${r.staffName}</td>
+                    <td class="py-4 px-6">
+                        <p class="font-semibold text-gray-700 leading-tight">${r.contact_person}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">${r.phone}</p>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-block px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${dealBadge}">
+                            ${r.isSold ? 'Closed Deal' : 'Warm Lead'}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-gray-400 font-semibold">${r.submitted_at}</td>
+                    <td class="py-4 px-6 text-right">
+                        <button onclick="openReportModal('${r.institution_name}', '${r.staffName}', '${r.contact_person}', '${r.phone}', \`${r.conversation_notes.replace(/`/g, '\\`').replace(/\n/g, '<br>')}\`)" class="text-gray-400 hover:text-magenta p-2 transition-colors" title="View details">
+                            <i class="fas fa-eye text-xs"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('reports-info').textContent = `Page ${data.page} of ${data.pages} (Total: ${data.total})`;
+            renderPager(data, 'reports', queryReports);
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">Error loading report records.</td></tr>`;
+        }
+    }
+
+    function renderPager(data, scope, clickHandler) {
+        const wrap = document.getElementById(`${scope}-pagination`);
+        wrap.innerHTML = '';
+
+        if (data.pages <= 1) return;
+
+        const prevBtn = document.createElement('button');
+        prevBtn.className = `p-2 rounded-lg border text-xs font-bold transition-all ${data.has_prev ? 'bg-white hover:text-magenta border-gray-300 text-gray-600' : 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed'}`;
+        prevBtn.innerHTML = `<i class="fas fa-chevron-left text-[10px]"></i>`;
+        if (data.has_prev) prevBtn.onclick = () => clickHandler(data.page - 1);
+        wrap.appendChild(prevBtn);
+
+        for (let i = 1; i <= data.pages; i++) {
+            const pageBtn = document.createElement('button');
+            const isActive = i === data.page;
+            pageBtn.className = `w-8 h-8 rounded-lg border text-xs font-bold transition-all ${isActive ? 'bg-magenta text-white border-magenta' : 'bg-white text-gray-600 hover:text-magenta border-gray-300'}`;
+            pageBtn.textContent = i;
+            pageBtn.onclick = () => clickHandler(i);
+            wrap.appendChild(pageBtn);
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = `p-2 rounded-lg border text-xs font-bold transition-all ${data.has_next ? 'bg-white hover:text-magenta border-gray-300 text-gray-600' : 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed'}`;
+        nextBtn.innerHTML = `<i class="fas fa-chevron-right text-[10px]"></i>`;
+        if (data.has_next) nextBtn.onclick = () => clickHandler(data.page + 1);
+        wrap.appendChild(nextBtn);
+    }
+
+    async function toggleStaffActive(staffId) {
+        try {
+            const res = await fetch('/api/admin/toggle_staff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ staff_id: staffId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showAlert('success', data.msg);
+                queryStaff(staffPage);
+            } else {
+                showAlert('error', data.error);
+            }
+        } catch (e) {
+            showAlert('error', 'Communication failure.');
+        }
+    }
+
+    async function deleteBookItem(bookId) {
+        if (!confirm('Are you absolutely sure you want to remove this book from the active catalog?')) return;
+        try {
+            const res = await fetch('/api/admin/delete_book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ book_id: bookId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showAlert('success', data.msg);
+                queryBooks(booksPage);
+            } else {
+                showAlert('error', data.error);
+            }
+        } catch (e) {
+            showAlert('error', 'Communication failure.');
+        }
+    }
+
+    function openOrderModal(oid, currentStatus) {
+        selectedOrderId = oid;
+        document.getElementById('modal-order-id').textContent = oid;
+        document.getElementById('modal-order-status').value = currentStatus;
+
+        const modal = document.getElementById('order-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('order-modal-container').classList.remove('scale-95');
+            document.getElementById('order-modal-container').classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeOrderModal() {
+        const modal = document.getElementById('order-modal');
+        document.getElementById('order-modal-container').classList.remove('scale-100');
+        document.getElementById('order-modal-container').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            selectedOrderId = null;
+        }, 200);
+    }
+
+    async function saveOrderStatus() {
+        const select = document.getElementById('modal-order-status');
+        try {
+            const res = await fetch('/api/admin/order/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: selectedOrderId, status: select.value })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showAlert('success', data.msg);
+                closeOrderModal();
+                queryOrders(ordersPage);
+            } else {
+                showAlert('error', data.error);
+            }
+        } catch (e) {
+            showAlert('error', 'Status modification failed.');
+        }
+    }
+
+    function openReportModal(inst, agent, contact, phone, notes) {
+        document.getElementById('rep-inst').textContent = inst;
+        document.getElementById('rep-agent').textContent = agent;
+        document.getElementById('rep-contact').textContent = contact;
+        document.getElementById('rep-phone').textContent = phone;
+        document.getElementById('rep-notes').innerHTML = notes;
+
+        const modal = document.getElementById('report-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('report-modal-container').classList.remove('scale-95');
+            document.getElementById('report-modal-container').classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeReportModal() {
+        const modal = document.getElementById('report-modal');
+        document.getElementById('report-modal-container').classList.remove('scale-100');
+        document.getElementById('report-modal-container').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 200);
+    }
+
+    function openStaffModal(id, name, email, phone, location, isAdmin) {
+        document.getElementById('staff-edit-id').value = id;
+        document.getElementById('staff-edit-name').value = name;
+        document.getElementById('staff-edit-email').value = email;
+        document.getElementById('staff-edit-phone').value = phone;
+        document.getElementById('staff-edit-location').value = location;
+        document.getElementById('staff-edit-admin').value = isAdmin ? "true" : "false";
+
+        const modal = document.getElementById('staff-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('staff-modal-container').classList.remove('scale-95');
+            document.getElementById('staff-modal-container').classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeStaffModal() {
+        const modal = document.getElementById('staff-modal');
+        document.getElementById('staff-modal-container').classList.remove('scale-100');
+        document.getElementById('staff-modal-container').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.getElementById('edit-staff-form').reset();
+        }, 200);
+    }
+
+    async function saveStaffChanges(e) {
+        e.preventDefault();
+        const id = document.getElementById('staff-edit-id').value;
+        const payload = {
+            id: id,
+            name: document.getElementById('staff-edit-name').value.trim(),
+            email: document.getElementById('staff-edit-email').value.trim(),
+            phone: document.getElementById('staff-edit-phone').value.trim(),
+            location: document.getElementById('staff-edit-location').value.trim(),
+            is_admin: document.getElementById('staff-edit-admin').value === "true"
+        };
+
+        try {
+            const res = await fetch('/api/admin/edit_staff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showAlert('success', data.msg);
+                closeStaffModal();
+                queryStaff(staffPage);
+            } else {
+                showAlert('error', data.error);
+            }
+        } catch (err) {
+            showAlert('error', 'Failed to modify account.');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        switchTab('overview');
+    });
+</script>
+{% endblock %}

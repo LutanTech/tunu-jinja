@@ -1,0 +1,321 @@
+{% extends "admin_base.html" %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto px-4 md:px-6 py-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800">Coupon Management</h1>
+            <p class="text-xs text-gray-500 mt-1">Configure and manage promo codes, fixed value reductions, and active campaign limits.</p>
+        </div>
+        <button onclick="openCreateModal()" class="bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-full shadow-md transition-all flex items-center gap-2 self-start md:self-auto">
+            <i class="fas fa-plus"></i> Create Coupon
+        </button>
+    </div>
+
+    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden mb-8">
+        <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="relative max-w-md w-full">
+                <input type="text" id="search-input" oninput="handleSearch()" placeholder="Search coupons by code..." class="w-full pl-10 pr-4 py-2.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-magenta transition-colors">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <i class="fas fa-search text-xs"></i>
+                </div>
+            </div>
+            <div id="toast-message" class="hidden px-4 py-2 rounded-lg text-xs font-semibold"></div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                        <th class="py-4 px-6">Code</th>
+                        <th class="py-4 px-6">Type</th>
+                        <th class="py-4 px-6">Value</th>
+                        <th class="py-4 px-6">Usage</th>
+                        <th class="py-4 px-6">Expires At</th>
+                        <th class="py-4 px-6">Status</th>
+                        <th class="py-4 px-6 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="coupons-table-body" class="divide-y divide-gray-50 text-xs"></tbody>
+            </table>
+        </div>
+
+        <div class="p-5 border-t border-gray-100 flex items-center justify-between flex-wrap gap-4">
+            <p class="text-xs text-gray-500 font-semibold" id="table-info-label"></p>
+            <div class="flex items-center gap-2" id="pagination-controls"></div>
+        </div>
+    </div>
+</div>
+
+<div id="create-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300" id="modal-container">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="font-bold text-sm text-gray-800 uppercase tracking-wider border-l-2 border-orangered pl-2">Create Promo Coupon</h3>
+            <button onclick="closeCreateModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+        <form id="create-coupon-form" onsubmit="handleCreateCoupon(event)" class="p-6 flex flex-col gap-4">
+            <div>
+                <label for="coupon-code" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Coupon Code</label>
+                <input type="text" id="coupon-code" required placeholder="e.g. SOMABIBLIA" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs uppercase outline-none focus:border-magenta transition-colors">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="discount-type" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Discount Type</label>
+                    <select id="discount-type" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors bg-white appearance-none text-gray-700">
+                        <option value="fixed">Fixed (KSh)</option>
+                        <option value="percentage">Percentage (%)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="discount-value" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Discount Value</label>
+                    <input type="number" id="discount-value" required min="1" step="0.1" placeholder="Value" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="max-uses" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Max Uses Limit</label>
+                    <input type="number" id="max-uses" required min="1" placeholder="1" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                </div>
+                <div>
+                    <label for="expires-at" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Expiry Date & Time</label>
+                    <input type="datetime-local" id="expires-at" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                </div>
+            </div>
+            <div id="modal-error" class="hidden text-red-500 text-[10px] font-bold"></div>
+            <div class="border-t border-gray-100 pt-4 mt-2 flex justify-end gap-3">
+                <button type="button" onclick="closeCreateModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg text-xs font-bold transition-colors">Cancel</button>
+                <button type="submit" class="bg-magenta hover:bg-dark-magenta text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Save Coupon</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="delete-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl border border-gray-100 p-6 flex flex-col items-center text-center">
+        <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 mb-4">
+            <i class="fas fa-exclamation-triangle text-lg"></i>
+        </div>
+        <h4 class="font-bold text-sm text-gray-800 uppercase tracking-wider mb-2">Delete Coupon</h4>
+        <p class="text-xs text-gray-500 mb-6">Are you sure you want to delete this coupon? This action cannot be undone.</p>
+        <div class="flex gap-3 w-full">
+            <button onclick="closeDeleteModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-lg text-xs font-bold transition-colors">Cancel</button>
+            <button id="confirm-delete-btn" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Delete</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentPage = 1;
+    let currentSearch = "";
+    let deleteCouponTargetId = null;
+
+    async function loadCoupons(page = 1) {
+        currentPage = page;
+        const tbody = document.getElementById("coupons-table-body");
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400 font-semibold">Loading promo codes...</td></tr>`;
+        
+        try {
+            const res = await fetch(`/api/admin/coupons?page=${page}&q=${encodeURIComponent(currentSearch)}`);
+            const data = await res.json();
+            
+            if (!res.ok) throw new Error(data.error || "Failed to load coupons");
+            
+            tbody.innerHTML = "";
+            if (data.items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-gray-400 font-semibold border border-dashed border-gray-200 rounded-xl">No coupons found.</td></tr>`;
+                document.getElementById("table-info-label").textContent = "Showing 0 of 0 entries";
+                document.getElementById("pagination-controls").innerHTML = "";
+                return;
+            }
+
+            data.items.forEach(c => {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-gray-50/50 transition-colors";
+                
+                const typeLabel = c.discount_type === "percentage" ? "%" : "KSh";
+                const badgeColor = c.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500";
+                const statusText = c.is_active ? "Active" : "Inactive";
+                
+                tr.innerHTML = `
+                    <td class="py-4 px-6 font-bold text-gray-800 tracking-wider font-mono">${c.code}</td>
+                    <td class="py-4 px-6 font-semibold text-gray-500 uppercase">${c.discount_type}</td>
+                    <td class="py-4 px-6 font-bold text-magenta">${typeLabel} ${c.discount_value.toLocaleString()}</td>
+                    <td class="py-4 px-6 font-semibold text-gray-600">${c.used} / ${c.max_uses}</td>
+                    <td class="py-4 px-6 text-gray-400 font-semibold">${c.expires_at}</td>
+                    <td class="py-4 px-6">
+                        <button onclick="toggleCouponStatus('${c.id}')" class="inline-block px-3 py-1.5 rounded-full text-[10px] font-bold ${badgeColor} transition-all shadow-sm">
+                            ${statusText}
+                        </button>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <button onclick="confirmDeleteCoupon('${c.id}')" class="text-gray-400 hover:text-red-500 p-2 transition-colors">
+                            <i class="fas fa-trash-alt text-sm"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById("table-info-label").textContent = `Showing page ${data.page} of ${data.pages} (${data.total} entries)`;
+            renderPagination(data);
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-red-500 font-bold">${err.message}</td></tr>`;
+        }
+    }
+
+    function renderPagination(data) {
+        const wrapper = document.getElementById("pagination-controls");
+        wrapper.innerHTML = "";
+
+        if (data.pages <= 1) return;
+
+        const prevBtn = document.createElement("button");
+        prevBtn.className = `p-2 rounded-lg border text-xs font-bold transition-all ${data.has_prev ? 'bg-white hover:text-magenta border-gray-300 text-gray-600' : 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed'}`;
+        prevBtn.innerHTML = `<i class="fas fa-chevron-left text-[10px]"></i>`;
+        if (data.has_prev) prevBtn.onclick = () => loadCoupons(data.page - 1);
+        wrapper.appendChild(prevBtn);
+
+        for (let i = 1; i <= data.pages; i++) {
+            const pageBtn = document.createElement("button");
+            const active = i === data.page;
+            pageBtn.className = `w-8 h-8 rounded-lg border text-xs font-bold transition-all ${active ? 'bg-magenta text-white border-magenta' : 'bg-white text-gray-600 hover:text-magenta border-gray-300'}`;
+            pageBtn.textContent = i;
+            pageBtn.onclick = () => loadCoupons(i);
+            wrapper.appendChild(pageBtn);
+        }
+
+        const nextBtn = document.createElement("button");
+        nextBtn.className = `p-2 rounded-lg border text-xs font-bold transition-all ${data.has_next ? 'bg-white hover:text-magenta border-gray-300 text-gray-600' : 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed'}`;
+        nextBtn.innerHTML = `<i class="fas fa-chevron-right text-[10px]"></i>`;
+        if (data.has_next) nextBtn.onclick = () => loadCoupons(data.page + 1);
+        wrapper.appendChild(nextBtn);
+    }
+
+    let searchTimeout;
+    function handleSearch() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentSearch = document.getElementById("search-input").value.trim();
+            loadCoupons(1);
+        }, 300);
+    }
+
+    function openCreateModal() {
+        const modal = document.getElementById("create-modal");
+        modal.classList.remove("hidden");
+        setTimeout(() => {
+            document.getElementById("modal-container").classList.remove("scale-95");
+            document.getElementById("modal-container").classList.add("scale-100");
+        }, 10);
+    }
+
+    function closeCreateModal() {
+        const modal = document.getElementById("create-modal");
+        document.getElementById("modal-container").classList.remove("scale-100");
+        document.getElementById("modal-container").classList.add("scale-95");
+        setTimeout(() => {
+            modal.classList.add("hidden");
+            document.getElementById("create-coupon-form").reset();
+            document.getElementById("modal-error").classList.add("hidden");
+        }, 200);
+    }
+
+    async function handleCreateCoupon(event) {
+        event.preventDefault();
+        const errorDiv = document.getElementById("modal-error");
+        errorDiv.classList.add("hidden");
+
+        const payload = {
+            code: document.getElementById("coupon-code").value.trim().toUpperCase(),
+            discount_type: document.getElementById("discount-type").value,
+            discount_value: parseFloat(document.getElementById("discount-value").value),
+            max_uses: parseInt(document.getElementById("max-uses").value),
+            expires_at: document.getElementById("expires-at").value
+        };
+
+        try {
+            const res = await fetch("/api/admin/coupon/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || "Submission failure");
+            
+            showToast("success", data.msg);
+            closeCreateModal();
+            loadCoupons(1);
+        } catch (err) {
+            errorDiv.textContent = err.message;
+            errorDiv.classList.remove("hidden");
+        }
+    }
+
+    async function toggleCouponStatus(couponId) {
+        try {
+            const res = await fetch("/api/admin/coupon/toggle", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ coupon_id: couponId })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Toggle failure");
+            
+            showToast("success", data.msg);
+            loadCoupons(currentPage);
+        } catch (err) {
+            showToast("error", err.message);
+        }
+    }
+
+    function confirmDeleteCoupon(couponId) {
+        deleteCouponTargetId = couponId;
+        document.getElementById("delete-modal").classList.remove("hidden");
+    }
+
+    function closeDeleteModal() {
+        document.getElementById("delete-modal").classList.add("hidden");
+        deleteCouponTargetId = null;
+    }
+
+    async function executeDeleteCoupon() {
+        if (!deleteCouponTargetId) return;
+        try {
+            const res = await fetch("/api/admin/coupon/delete", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ coupon_id: deleteCouponTargetId })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Deletion failure");
+            
+            showToast("success", data.msg);
+            closeDeleteModal();
+            loadCoupons(currentPage);
+        } catch (err) {
+            showToast("error", err.message);
+            closeDeleteModal();
+        }
+    }
+
+    function showToast(type, message) {
+        const toast = document.getElementById("toast-message");
+        toast.className = `inline-block px-4 py-2.5 rounded-lg text-xs font-bold transition-all shadow-md ${type === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-600 border border-red-200'}`;
+        toast.textContent = message;
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("hidden"), 4000);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadCoupons(1);
+        document.getElementById("confirm-delete-btn").onclick = executeDeleteCoupon;
+    });
+</script>
+{% endblock %}

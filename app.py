@@ -1,5 +1,6 @@
 import base64
 from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 from functools import wraps
 from functools import wraps
 import hashlib
@@ -9,7 +10,8 @@ import os
 import re
 import secrets
 import string
-
+import traceback
+import json
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -242,16 +244,110 @@ class Log(db.Model):
 
 class Order(db.Model):
     id = db.Column(db.String(50), primary_key=True, default=lambda: generate_id("ORD", 10))
-    temp_id, data = db.Column(db.String(255)), db.Column(db.JSON)
-    name, city, address = db.Column(db.String(255)), db.Column(db.String(255)), db.Column(db.String(500))
-    email, phone = db.Column(db.String(255)), db.Column(db.String(20))
-    grand_total = db.Column(db.Float, default=0)
-    checkout_request_id = db.Column(db.String(120))
-    status = db.Column(db.String(40), default="PENDING")
-    created_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(hours=3))
 
-    def to_dict(self):
-        return {"id": self.id, "name": self.name, "phone": self.phone, "email": self.email, "city": self.city, "address": self.address, "grand_total": self.grand_total, "status": self.status, "created": self.created_at, "items": self.data}
+    temp_id = db.Column(db.String(255))
+    data = db.Column(db.JSON)
+
+    name = db.Column(db.String(255))
+    email = db.Column(db.String(255))
+    phone = db.Column(db.String(20))
+
+    county = db.Column(db.String(100))
+    city = db.Column(db.String(255))
+    address = db.Column(db.String(500))
+
+    subtotal = db.Column(db.Float, default=0)
+    discount = db.Column(db.Float, default=0)
+    delivery_fee = db.Column(db.Float, default=0)
+    grand_total = db.Column(db.Float, default=0)
+
+    coupon_code = db.Column(db.String(50))
+
+    checkout_request_id = db.Column(db.String(120))
+    mpesa_receipt = db.Column(db.String(50))
+
+    status = db.Column(
+        db.String(40),
+        default="PENDING"
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.utcnow() + timedelta(hours=3)
+    )
+    
+class Coupon(db.Model):
+    id = db.Column(db.String(50), primary_key=True, default=lambda: generate_id("CP", 10))
+    code = db.Column(db.String(50), unique=True, nullable=False)
+
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.utcnow() + timedelta(hours=3)
+    )
+
+    expires_at = db.Column(db.DateTime, nullable=False)
+
+    created_by = db.Column(db.String(20), db.ForeignKey("staff.id"))
+
+    discount_type = db.Column(db.String(20), default="fixed")  
+    discount_value = db.Column(db.Float, nullable=False)
+
+    used = db.Column(db.Integer, default=0)
+    max_uses = db.Column(db.Integer, default=1)
+
+    used_orders = db.Column(db.Text)
+
+    is_active = db.Column(db.Boolean, default=True)
+    
+NEAR_NAIROBI = {
+    "Nairobi",
+    "Kiambu",
+    "Machakos",
+    "Kajiado",
+    "Muranga",
+    "Kirinyaga",
+    "Nyandarua",
+    "Nyeri",
+}
+
+FAR = {
+    "Nakuru",
+    "Narok",
+    "Laikipia",
+    "Meru",
+    "Embu",
+    "Tharaka Nithi",
+    "Makueni",
+    "Kitui",
+    "Bomet",
+    "Kericho",
+    "Nandi",
+    "Uasin Gishu",
+    "Elgeyo Marakwet",
+    "Baringo",
+    "Trans Nzoia",
+    "Kakamega",
+    "Bungoma",
+    "Busia",
+    "Kisumu",
+    "Siaya",
+    "Vihiga",
+    "Homa Bay",
+    "Migori",
+    "Kisii",
+    "Nyamira",
+}
+
+def get_delivery_fee(county):
+    county = county.strip()
+
+    if county in NEAR_NAIROBI:
+        return 200
+
+    if county in FAR:
+        return 300
+
+    return 400
 
 BOOKS_DATA = [
     {"title": "Fundo la Moyoni", "newPrice": 500, "oldPrice": 550, "image": "/static/books/fundo.jpeg", "audience": "General", "grade": "Adult", "authors": "Tunu Publishers"},
@@ -358,7 +454,40 @@ def book_cover(filename):
 def base():
     return render_template('base.html')
 
+@app.route("/api/coupons/active")
+def active_coupons():
+    now = datetime.utcnow() + timedelta(hours=3)
+    coupons = Coupon.query.filter(
+        Coupon.is_active == True,
+        Coupon.expires_at > now,
+        Coupon.used < Coupon.max_uses
+    ).all()
+    return jsonify({
+        "coupons": [{
+            "code": c.code,
+            "discount_type": c.discount_type,
+            "discount_value": c.discount_value
+        } for c in coupons]
+    })
 
+@app.route("/api/validate-coupon")
+def validate_coupon():
+    code = request.args.get("code", "").strip().upper()
+    if not code:
+        return jsonify({"valid": False, "error": "No coupon code provided."}), 400
+    coupon = Coupon.query.filter_by(code=code, is_active=True).first()
+    if not coupon:
+        return jsonify({"valid": False, "error": "Invalid coupon code."})
+    if coupon.expires_at < datetime.utcnow() + timedelta(hours=3):
+        return jsonify({"valid": False, "error": "Coupon has expired."})
+    if coupon.used >= coupon.max_uses:
+        return jsonify({"valid": False, "error": "Coupon usage limit reached."})
+    return jsonify({
+        "valid": True,
+        "code": coupon.code,
+        "discount_type": coupon.discount_type,
+        "discount_value": coupon.discount_value
+    })
 
 @app.route("/create_dummy")
 def create_dummy():
@@ -536,11 +665,115 @@ def update_order_status():
     log_action(f"Updated order {order.id} status", 200, adm.id)
     return jsonify({"msg": "Order updated."})
 
+
 @app.route("/cp/logs")
 @login_required
 @admin_required
 def logs_page():
-    return render_template("logs.html", logs=Log.query.order_by(Log.timestamp.desc()).limit(1000).all())
+    return render_template("system/logs.html", logs=Log.query.order_by(Log.timestamp.desc()).limit(1000).all())
+
+@app.route("/cp/coupons")
+@login_required
+@admin_required
+def coupons_page():
+    return render_template("admin/coupons.html")
+
+@app.route("/api/admin/coupons")
+@login_required
+@admin_required
+def admin_api_coupons():
+    q = Coupon.query
+    search = request.args.get("q", "").strip()
+    if search:
+        q = q.filter(Coupon.code.ilike(f"%{search}%"))
+    q = q.order_by(Coupon.created_at.desc())
+    pg = q.paginate(page=request.args.get("page", 1, type=int), per_page=10, error_out=False)
+    return jsonify({
+        "items": [{
+            "id": c.id,
+            "code": c.code,
+            "discount_type": c.discount_type,
+            "discount_value": c.discount_value,
+            "used": c.used,
+            "max_uses": c.max_uses,
+            "is_active": c.is_active,
+            "expires_at": c.expires_at.strftime("%Y-%m-%d %H:%M") if c.expires_at else ""
+        } for c in pg.items],
+        "page": pg.page,
+        "pages": pg.pages,
+        "total": pg.total,
+        "has_next": pg.has_next,
+        "has_prev": pg.has_prev
+    })
+
+@app.route("/api/admin/coupon/create", methods=["POST"])
+@login_required
+@admin_required
+def create_coupon():
+    staff = db.session.get(Staff, session["staff_id"])
+    data = request.get_json() or {}
+    code = data.get("code", "").strip().upper()
+    dtype = data.get("discount_type", "fixed")
+    dval = float(data.get("discount_value") or 0)
+    max_u = int(data.get("max_uses") or 1)
+    expiry_str = data.get("expires_at", "")
+    
+    if not code or dval <= 0 or not expiry_str:
+        return jsonify({"error": "Missing or invalid fields."}), 400
+        
+    if Coupon.query.filter_by(code=code).first():
+        return jsonify({"error": "Coupon code already exists."}), 400
+        
+    try:
+        expires_at = datetime.strptime(expiry_str, "%Y-%m-%dT%H:%M")
+    except ValueError:
+        try:
+            expires_at = datetime.strptime(expiry_str, "%Y-%m-%d")
+        except ValueError:
+            return jsonify({"error": "Invalid expiry date format."}), 400
+            
+    c = Coupon(
+        id=generate_id("CP", 10),
+        code=code,
+        discount_type=dtype,
+        discount_value=dval,
+        max_uses=max_u,
+        expires_at=expires_at,
+        created_by=staff.id,
+        is_active=True
+    )
+    db.session.add(c)
+    db.session.commit()
+    log_action(f"Created coupon {code}", 200, staff.id)
+    return jsonify({"msg": "Coupon created successfully."})
+
+@app.route("/api/admin/coupon/toggle", methods=["POST"])
+@login_required
+@admin_required
+def toggle_coupon():
+    staff = db.session.get(Staff, session["staff_id"])
+    data = request.get_json() or {}
+    c = db.session.get(Coupon, data.get("coupon_id"))
+    if not c:
+        return jsonify({"error": "Coupon not found."}), 404
+    c.is_active = not c.is_active
+    db.session.commit()
+    log_action(f"Toggled coupon {c.code}", 200, staff.id)
+    return jsonify({"msg": "Coupon status updated.", "is_active": c.is_active})
+
+@app.route("/api/admin/coupon/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_coupon():
+    staff = db.session.get(Staff, session["staff_id"])
+    data = request.get_json() or {}
+    c = db.session.get(Coupon, data.get("coupon_id"))
+    if not c:
+        return jsonify({"error": "Coupon not found."}), 404
+    db.session.delete(c)
+    db.session.commit()
+    log_action(f"Deleted coupon {c.code}", 200, staff.id)
+    return jsonify({"msg": "Coupon deleted successfully."})
 
 @app.route("/cp/books")
 @login_required
@@ -564,7 +797,7 @@ def books_admin():
 @admin_required
 def add_book():
     staff = db.session.get(Staff, session["staff_id"])
-    if request.method == "GET": return render_template("add_book.html")
+    if request.method == "GET": return render_template("book/add_book.html")
     img, fn = request.files.get("image"), "default.png"
     if img and img.filename:
         fn = f"{secrets.token_hex(10)}.{img.filename.rsplit('.', 1)[1].lower()}"
@@ -592,7 +825,7 @@ def add_book():
 def edit_book(id):
     staff = db.session.get(Staff, session["staff_id"])
     bk = Book.query.get_or_404(id)
-    if request.method == "GET": return render_template("edit_book.html", book=bk)
+    if request.method == "GET": return render_template("book/edit_book.html", book=bk)
     for fld in ["title", "authors", "grade", "audience", "blurb"]:
         setattr(bk, fld, request.form.get(fld))
     bk.oldPrice, bk.newPrice, bk.discounted = float(request.form.get("oldPrice") or 0), float(request.form.get("newPrice") or 0), bool(request.form.get("discounted"))
@@ -744,24 +977,139 @@ def about():
 def contact_us():
     return render_template('company/contact.html')
 
-@app.route("/api/create-order", methods=["POST"])
-def create_order():
-    data = request.get_json()
-    cart, items, total = data.get("cart", []), [], 0
-    if not cart: return jsonify({"error": "Your cart is empty."}), 400
-    for item in cart:
-        bk = Book.query.filter_by(id=item["id"], is_deleted=False).first()
-        if not bk: continue
-        qty = max(int(item.get("qty", 1)), 1)
-        amt = qty * bk.newPrice
-        total += amt
-        items.append({"id": bk.id, "title": bk.title, "qty": qty, "price": bk.newPrice, "total": amt})
-    if not items: return jsonify({"error": "No valid books."}), 400
-    order = Order(name=data["name"], email=data["email"], phone=format_phone(data["phone"]), city=data["city"], address=data["address"], data=items, grand_total=total)
-    db.session.add(order)
-    db.session.commit()
-    return jsonify({"success": True, "order_id": order.id, "redirect": f"checkout/{order.id}"})
 
+
+@app.post("/api/create-order")
+def create_order():
+    data = request.get_json(silent=True) or {}
+
+    cart = data.get("cart", [])
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip().lower()
+    phone = data.get("phone", "").strip()
+    county = data.get("county", "").strip()
+    city = data.get("city", "").strip()
+    address = data.get("address", "").strip()
+    coupon_code = (data.get("coupon") or "").strip().upper()
+
+    if not cart:
+        return jsonify(success=False, error="Your cart is empty."), 400
+
+    if not all([name, email, phone, county, city, address]):
+        return jsonify(success=False, error="Please fill in all shipping details."), 400
+
+    near = {
+        "Nairobi", "Kiambu", "Machakos", "Kajiado",
+        "Muranga", "Kirinyaga", "Nyandarua", "Nyeri"
+    }
+
+    far = {
+        "Nakuru", "Narok", "Laikipia", "Meru", "Embu",
+        "Tharaka Nithi", "Makueni", "Kitui",
+        "Bomet", "Kericho", "Nandi",
+        "Uasin Gishu", "Elgeyo Marakwet",
+        "Baringo", "Trans Nzoia",
+        "Kakamega", "Bungoma", "Busia",
+        "Kisumu", "Siaya", "Vihiga",
+        "Homa Bay", "Migori", "Kisii",
+        "Nyamira"
+    }
+
+    if county in near:
+        delivery_fee = 200
+    elif county in far:
+        delivery_fee = 300
+    else:
+        delivery_fee = 400
+
+    subtotal = 0
+    items = []
+
+    for entry in cart:
+        book = db.session.get(Book, entry.get("id"))
+
+        if not book or book.is_deleted:
+            return jsonify(
+                success=False,
+                error="One or more selected books no longer exist."
+            ), 400
+
+        qty = max(1, int(entry.get("qty", 1)))
+
+        line_total = qty * book.newPrice
+
+        subtotal += line_total
+
+        items.append({
+            "id": book.id,
+            "title": book.title,
+            "image": book.image_url,
+            "price": book.newPrice,
+            "qty": qty,
+            "subtotal": line_total
+        })
+
+    coupon = None
+    discount = 0
+
+    if coupon_code:
+        coupon = Coupon.query.filter_by(
+            code=coupon_code,
+            is_active=True
+        ).first()
+
+        if not coupon:
+            return jsonify(success=False, error="Invalid coupon."), 400
+
+        if coupon.expires_at < datetime.utcnow() + timedelta(hours=3):
+            return jsonify(success=False, error="Coupon has expired."), 400
+
+        if coupon.used >= coupon.max_uses:
+            return jsonify(success=False, error="Coupon usage limit reached."), 400
+
+        if coupon.discount_type == "percentage":
+            discount = subtotal * (coupon.discount_value / 100)
+        else:
+            discount = coupon.discount_value
+
+        discount = min(discount, subtotal)
+
+    grand_total = subtotal - discount + delivery_fee
+
+    order = Order(
+        temp_id=generate_id("TMP", 8),
+        data=items,
+        name=name,
+        email=email,
+        phone=phone,
+        city=city,
+        address=address,
+        subtotal=subtotal,
+        discount=discount,
+        delivery_fee=delivery_fee,
+        grand_total=grand_total,
+        coupon_code=coupon.code if coupon else None,
+        status="PENDING"
+    )
+
+    db.session.add(order)
+    db.session.flush()
+
+    if coupon:
+        coupon.used += 1
+
+        used_orders = json.loads(coupon.used_orders or "[]")
+        used_orders.append(order.id)
+        coupon.used_orders = json.dumps(used_orders)
+
+    db.session.commit()
+
+    return jsonify(
+        success=True,
+        order_id=order.id,
+        redirect=url_for("checkout", oid=order.id)
+    )
+    
 @app.route("/api/pay", methods=["POST"])
 def pay():
     try:
@@ -774,6 +1122,7 @@ def pay():
         send_purchase_email(order)
         return jsonify(res)
     except Exception as e:
+        traceback.print_exc()
         print(str(e))
         return f"error occured: {str(e)}"
 

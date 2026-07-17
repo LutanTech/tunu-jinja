@@ -4,7 +4,6 @@
 
 {% block content %}
 
-<!-- BREADCRUMB -->
 <div class="bg-white border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center gap-2 text-[11px] font-semibold text-gray-500">
         <a href="/" class="hover:text-magenta transition-colors">Home</a>
@@ -16,7 +15,6 @@
 <div class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
     <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800 mb-8">Your Cart</h1>
 
-    <!-- EMPTY STATE -->
     <div id="cart-empty-state" class="hidden text-center py-16 md:py-24 border border-dashed border-gray-200 rounded-2xl">
         <i class="fas fa-shopping-basket text-5xl text-magenta/20 mb-5 block"></i>
         <h2 class="font-bold text-sm text-gray-700 mb-2">Your cart is empty</h2>
@@ -26,10 +24,8 @@
         </a>
     </div>
 
-    <!-- CART CONTENT -->
     <div id="cart-content-wrapper" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        <!-- ITEMS -->
         <div class="lg:col-span-2">
             <div class="flex items-center justify-between mb-4">
                 <p class="text-xs font-semibold text-gray-500"><span id="cart-item-count">0</span> item(s) in your bag</p>
@@ -44,37 +40,129 @@
             </a>
         </div>
 
-        <!-- SUMMARY + SHIPPING -->
         <div class="lg:col-span-1">
-            <div class="sticky top-24 bg-white border border-gray-100 rounded-2xl shadow-sm p-5 md:p-6">
-                <h3 class="font-bold text-sm text-gray-800 uppercase tracking-wider mb-4 border-l-2 border-orangered pl-2">Order Summary</h3>
+            <div class="sticky top-24 bg-white border border-gray-100 rounded-2xl shadow-sm p-5 md:p-6 flex flex-col gap-5">
+                
+                <div>
+                    <h3 class="font-bold text-sm text-gray-800 uppercase tracking-wider mb-4 border-l-2 border-orangered pl-2">Order Summary</h3>
 
-                <div class="flex justify-between items-center text-xs font-semibold text-gray-500 mb-2">
-                    <span>Subtotal</span>
-                    <span id="summary-subtotal" class="text-gray-700">KSh 0</span>
+                    <div class="flex justify-between items-center text-xs font-semibold text-gray-500 mb-2">
+                        <span>Subtotal</span>
+                        <span id="summary-subtotal" class="text-gray-700">KSh 0</span>
+                    </div>
+
+                    <div id="coupon-row" class="hidden flex justify-between items-center text-xs font-semibold text-green-600 mb-2">
+                        <span class="flex items-center gap-1">
+                            Discount (<span id="coupon-code-label"></span>)
+                            <button onclick="removeCoupon()" class="text-gray-400 hover:text-red-500 text-[10px] ml-1" title="Remove Coupon">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </span>
+                        <span id="summary-discount">- KSh 0</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-xs font-semibold text-gray-500 mb-2">
+                        <span>Delivery Fee</span>
+                        <span id="summary-delivery" class="text-gray-700">Select county</span>
+                    </div>
+
+                    <p id="delivery-info" class="text-[10px] text-gray-400 mb-4">Delivery fee is calculated and confirmed dynamically based on county selection.</p>
+
+                    <div class="flex justify-between items-baseline border-t border-gray-100 pt-4">
+                        <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Total</span>
+                        <span id="summary-total" class="text-xl font-extrabold text-magenta">KSh 0</span>
+                    </div>
                 </div>
-                <p class="text-[10px] text-gray-400 mb-4">Delivery fee is calculated and confirmed at dispatch.</p>
 
-                <div class="flex justify-between items-baseline border-t border-gray-100 pt-4 mb-6">
-                    <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Total</span>
-                    <span id="summary-total" class="text-xl font-extrabold text-magenta">KSh 0</span>
+                <div class="border-t border-gray-100 pt-4">
+                    <label for="coupon-input" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Have a coupon or promo code?</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="coupon-input" placeholder="e.g. TUNUFREE" class="flex-grow border border-gray-300 rounded-lg px-3 py-2 text-xs uppercase outline-none focus:border-magenta transition-colors">
+                        <button type="button" onclick="applyCoupon()" class="bg-gray-100 hover:bg-magenta hover:text-white text-gray-700 transition-colors px-4 py-2 rounded-lg text-xs font-bold">
+                            Apply
+                        </button>
+                    </div>
+                    <p id="coupon-feedback" class="text-[10px] font-semibold mt-1 hidden"></p>
+                    
+                    <div id="available-coupons-section" class="hidden mt-3">
+                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Available Offers:</p>
+                        <div id="available-coupons-list" class="flex flex-wrap gap-1.5"></div>
+                    </div>
                 </div>
 
-                <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider mb-3 border-l-2 border-orangered pl-2">Shipping Details</h4>
+                <div class="border-t border-gray-100 pt-4">
+                    <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider mb-3 border-l-2 border-orangered pl-2">Shipping Details</h4>
 
-                <form id="checkout-form" class="flex flex-col gap-3">
-                    <input type="text" id="cf-name" required placeholder="Full Name" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
-                    <input type="email" id="cf-email" required placeholder="Email Address" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
-                    <input type="tel" id="cf-phone" required placeholder="Phone Number (e.g. 0722 682 129)" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
-                    <input type="text" id="cf-city" required placeholder="City / Town" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
-                    <textarea id="cf-address" required placeholder="Delivery Address" rows="2" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors resize-none"></textarea>
+                    <form id="checkout-form" class="flex flex-col gap-3">
+                        <input type="text" id="cf-name" required placeholder="Full Name" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                        <input type="email" id="cf-email" required placeholder="Email Address" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                        <input type="tel" id="cf-phone" required placeholder="Phone Number (e.g. 0722 682 129)" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                        
+                        <div class="relative">
+                            <select id="cf-county" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors bg-white appearance-none text-gray-700">
+                                <option value="" disabled selected>Select Delivery County</option>
+                                <option value="Baringo">Baringo</option>
+                                <option value="Bomet">Bomet</option>
+                                <option value="Bungoma">Bungoma</option>
+                                <option value="Busia">Busia</option>
+                                <option value="Elgeyo Marakwet">Elgeyo Marakwet</option>
+                                <option value="Embu">Embu</option>
+                                <option value="Garissa">Garissa</option>
+                                <option value="Homa Bay">Homa Bay</option>
+                                <option value="Isiolo">Isiolo</option>
+                                <option value="Kajiado">Kajiado</option>
+                                <option value="Kakamega">Kakamega</option>
+                                <option value="Kericho">Kericho</option>
+                                <option value="Kiambu">Kiambu</option>
+                                <option value="Kilifi">Kilifi</option>
+                                <option value="Kirinyaga">Kirinyaga</option>
+                                <option value="Kisii">Kisii</option>
+                                <option value="Kisumu">Kisumu</option>
+                                <option value="Kitui">Kitui</option>
+                                <option value="Kwale">Kwale</option>
+                                <option value="Laikipia">Laikipia</option>
+                                <option value="Lamu">Lamu</option>
+                                <option value="Machakos">Machakos</option>
+                                <option value="Makueni">Makueni</option>
+                                <option value="Mandera">Mandera</option>
+                                <option value="Marsabit">Marsabit</option>
+                                <option value="Meru">Meru</option>
+                                <option value="Migori">Migori</option>
+                                <option value="Mombasa">Mombasa</option>
+                                <option value="Muranga">Murang'a</option>
+                                <option value="Nairobi">Nairobi</option>
+                                <option value="Nakuru">Nakuru</option>
+                                <option value="Nandi">Nandi</option>
+                                <option value="Nyamira">Nyamira</option>
+                                <option value="Nyandarua">Nyandarua</option>
+                                <option value="Nyeri">Nyeri</option>
+                                <option value="Samburu">Samburu</option>
+                                <option value="Siaya">Siaya</option>
+                                <option value="Taita Taveta">Taita Taveta</option>
+                                <option value="Tana River">Tana River</option>
+                                <option value="Tharaka Nithi">Tharaka Nithi</option>
+                                <option value="Trans Nzoia">Trans Nzoia</option>
+                                <option value="Turkana">Turkana</option>
+                                <option value="Uasin Gishu">Uasin Gishu</option>
+                                <option value="Vihiga">Vihiga</option>
+                                <option value="Wajir">Wajir</option>
+                                <option value="West Pokot">West Pokot</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </div>
+                        </div>
 
-                    <button type="submit" id="place-order-btn" class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider py-3.5 rounded-full transition-colors shadow-md flex items-center justify-center gap-2 mt-2">
-                        <i class="fas fa-lock"></i> <span id="place-order-btn-text">Place Order</span>
-                    </button>
-                </form>
+                        <input type="text" id="cf-city" required placeholder="City / Town (e.g. Westlands, CBD, Eldoret CBD)" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                        <textarea id="cf-address" required placeholder="Delivery Location Details (e.g. Building, Apartment, Office Number)" rows="2" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors resize-none"></textarea>
 
-                <div class="flex items-center justify-center gap-4 mt-5 pt-5 border-t border-gray-100">
+                        <button type="submit" id="place-order-btn" class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider py-3.5 rounded-full transition-colors shadow-md flex items-center justify-center gap-2 mt-2">
+                            <i class="fas fa-lock"></i> <span id="place-order-btn-text">Place Order</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="flex items-center justify-center gap-4 mt-2 pt-4 border-t border-gray-100">
                     <span class="text-[10px] text-gray-400 font-semibold flex items-center gap-1"><i class="fas fa-shield-alt text-magenta"></i> Secure Checkout</span>
                     <span class="text-[10px] text-gray-400 font-semibold flex items-center gap-1"><i class="fas fa-mobile-alt text-magenta"></i> M-Pesa STK Push</span>
                 </div>
@@ -87,6 +175,31 @@
 
 {% block extra_js %}
 <script>
+    let activeCoupon = null;
+
+    const NEAR_NAIROBI = new Set([
+        "Nairobi", "Kiambu", "Machakos", "Kajiado", "Muranga", "Kirinyaga", "Nyandarua", "Nyeri"
+    ]);
+
+    const FAR = new Set([
+        "Nakuru", "Narok", "Laikipia", "Meru", "Embu", "Tharaka Nithi", "Makueni", "Kitui",
+        "Bomet", "Kericho", "Nandi", "Uasin Gishu", "Elgeyo Marakwet", "Baringo", "Trans Nzoia",
+        "Kakamega", "Bungoma", "Busia", "Kisumu", "Siaya", "Vihiga", "Homa Bay", "Migori",
+        "Kisii", "Nyamira"
+    ]);
+
+    function getDeliveryFee(county) {
+        if (!county) return 0;
+        const cleaned = county.trim();
+        if (NEAR_NAIROBI.has(cleaned)) {
+            return 200;
+        }
+        if (FAR.has(cleaned)) {
+            return 300;
+        }
+        return 400;
+    }
+
     function renderCartPage() {
         const itemsContainer = document.getElementById('cart-page-items');
         const emptyState = document.getElementById('cart-empty-state');
@@ -144,9 +257,137 @@
             itemsContainer.appendChild(row);
         });
 
+        let discount = 0;
+        if (activeCoupon) {
+            if (activeCoupon.discountType === 'percentage') {
+                discount = (activeCoupon.value / 100) * subtotal;
+            } else if (activeCoupon.discountType === 'fixed') {
+                discount = Math.min(activeCoupon.value, subtotal);
+            }
+        }
+
+        const countySelect = document.getElementById('cf-county');
+        const selectedCounty = countySelect ? countySelect.value : '';
+        const deliveryFee = getDeliveryFee(selectedCounty);
+
+        const deliveryEl = document.getElementById('summary-delivery');
+        const deliveryInfoEl = document.getElementById('delivery-info');
+        if (deliveryEl) {
+            if (selectedCounty) {
+                deliveryEl.textContent = `KSh ${deliveryFee.toLocaleString()}`;
+                if (deliveryInfoEl) {
+                    let zoneName = "Remote Zone";
+                    if (deliveryFee === 200) zoneName = "Near Nairobi";
+                    else if (deliveryFee === 300) zoneName = "Far Zone";
+                    deliveryInfoEl.textContent = `Shipping to ${selectedCounty} County (${zoneName}).`;
+                }
+            } else {
+                deliveryEl.textContent = 'Select county';
+                if (deliveryInfoEl) {
+                    deliveryInfoEl.textContent = 'Delivery fee will be calculated based on county selection.';
+                }
+            }
+        }
+
+        const totalCost = Math.max(0, subtotal - discount + deliveryFee);
+
         if (itemCountEl) itemCountEl.textContent = totalQty;
         if (subtotalEl) subtotalEl.textContent = `KSh ${subtotal.toLocaleString()}`;
-        if (totalEl) totalEl.textContent = `KSh ${subtotal.toLocaleString()}`;
+        
+        const couponRow = document.getElementById('coupon-row');
+        if (couponRow) {
+            if (discount > 0) {
+                couponRow.classList.remove('hidden');
+                document.getElementById('coupon-code-label').textContent = activeCoupon.code;
+                document.getElementById('summary-discount').textContent = `- KSh ${discount.toLocaleString()}`;
+            } else {
+                couponRow.classList.add('hidden');
+            }
+        }
+
+        if (totalEl) totalEl.textContent = `KSh ${totalCost.toLocaleString()}`;
+    }
+
+    async function applyCoupon() {
+        const input = document.getElementById('coupon-input');
+        const feedback = document.getElementById('coupon-feedback');
+        if (!input || !feedback) return;
+
+        const typedCode = input.value.trim().toUpperCase();
+        feedback.classList.remove('hidden', 'text-green-600', 'text-red-500');
+
+        if (!typedCode) {
+            feedback.textContent = 'Please enter a coupon code.';
+            feedback.classList.add('text-red-500');
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/validate-coupon?code=${encodeURIComponent(typedCode)}`);
+            const data = await res.json();
+
+            if (res.ok && data.valid) {
+                activeCoupon = {
+                    code: data.code,
+                    discountType: data.discount_type,
+                    value: data.discount_value
+                };
+                feedback.textContent = `Success! Code "${data.code}" has been applied.`;
+                feedback.classList.add('text-green-600');
+                renderCartPage();
+            } else {
+                feedback.textContent = data.error || 'Invalid coupon code. Please check and try again.';
+                feedback.classList.add('text-red-500');
+            }
+        } catch (err) {
+            feedback.textContent = 'Error validating coupon. Please try again.';
+            feedback.classList.add('text-red-500');
+        }
+    }
+
+    async function fetchAvailableCoupons() {
+        try {
+            const res = await fetch('/api/coupons/active');
+            const data = await res.json();
+            const section = document.getElementById('available-coupons-section');
+            const list = document.getElementById('available-coupons-list');
+            
+            if (data.coupons && data.coupons.length > 0 && section && list) {
+                list.innerHTML = '';
+                data.coupons.forEach(c => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    const discountDesc = c.discount_type === 'percentage' ? `${c.discount_value}% Off` : `KSh ${c.discount_value.toLocaleString()} Off`;
+                    btn.className = 'bg-lightWarm hover:bg-magenta/10 hover:text-magenta text-gray-600 transition-colors px-2.5 py-1 rounded-md text-[10px] font-bold border border-gray-200/60 flex items-center gap-1';
+                    btn.innerHTML = `<i class="fas fa-tag text-[8px]"></i> <span>${c.code}</span> <span class="text-magenta font-extrabold font-mono text-[9px]">(${discountDesc})</span>`;
+                    btn.onclick = () => {
+                        const input = document.getElementById('coupon-input');
+                        if (input) {
+                            input.value = c.code;
+                            applyCoupon();
+                        }
+                    };
+                    list.appendChild(btn);
+                });
+                section.classList.remove('hidden');
+            } else if (section) {
+                section.classList.add('hidden');
+            }
+        } catch (err) {
+            console.error('Failed to fetch active coupons', err);
+        }
+    }
+
+    function removeCoupon() {
+        activeCoupon = null;
+        const input = document.getElementById('coupon-input');
+        const feedback = document.getElementById('coupon-feedback');
+        if (input) input.value = '';
+        if (feedback) {
+            feedback.classList.add('hidden');
+            feedback.textContent = '';
+        }
+        renderCartPage();
     }
 
     function updateCartQty(index, delta) {
@@ -174,6 +415,14 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         renderCartPage();
+        fetchAvailableCoupons();
+
+        const countySelect = document.getElementById('cf-county');
+        if (countySelect) {
+            countySelect.addEventListener('change', () => {
+                renderCartPage();
+            });
+        }
 
         const form = document.getElementById('checkout-form');
         if (form) {
@@ -188,10 +437,11 @@
                 const name = document.getElementById('cf-name').value.trim();
                 const email = document.getElementById('cf-email').value.trim();
                 const phone = document.getElementById('cf-phone').value.trim();
+                const county = document.getElementById('cf-county').value;
                 const city = document.getElementById('cf-city').value.trim();
                 const address = document.getElementById('cf-address').value.trim();
 
-                if (!name || !email || !phone || !city || !address) {
+                if (!name || !email || !phone || !county || !city || !address) {
                     showAlert('error', 'Please fill in all shipping details.');
                     return;
                 }
@@ -208,7 +458,13 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             cart: cart.map(item => ({ id: item.id, qty: parseInt(item.quantity || 1, 10) })),
-                            name, email, phone, city, address
+                            name, 
+                            email, 
+                            phone, 
+                            county,
+                            city, 
+                            address,
+                            coupon: activeCoupon ? activeCoupon.code : null
                         })
                     });
 

@@ -107,9 +107,13 @@
                         <span>Items Subtotal</span>
                         <span>KSh {{ subtotal|number }}</span>
                     </div>
-                    <div class="flex justify-between text-[10px] text-gray-400 mb-4 border-b border-magenta/10 pb-2.5">
+                    <div class="flex justify-between text-[10px] text-gray-400 mb-2">
                         <span>Delivery Fee</span>
-                        <span class="text-green-600 font-bold uppercase">To Be Paid on Delivery</span>
+                        <span class="text-red-600 font-bold uppercase"> Ksh. {{order.delivery_fee }}</span>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-gray-400 mb-4 border-b border-magenta/10 pb-2.5">
+                        <span>Discount</span>
+                        <span class="text-green-600 font-bold uppercase"> Ksh. {{order.discount }}</span>
                     </div>
                     <div class="flex justify-between items-baseline">
                         <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Grand Total</span>

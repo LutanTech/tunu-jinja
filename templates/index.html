@@ -114,6 +114,109 @@
     {% endif %}
 </section>
 
+<!-- SPECIAL OFFERS -->
+<section class="bg-lightWarm border-y border-gray-100 py-10 md:py-14">
+    <div class="max-w-7xl mx-auto px-4 md:px-6">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-3">
+            <div>
+                <span class="inline-block bg-orangered/10 text-orangered text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full mb-2">Limited Time Deals</span>
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800">Special Offers & Bundles</h2>
+                <p class="text-xs text-gray-500 mt-1">Get more value for less with custom packages and curriculum discount options</p>
+            </div>
+            <a href="/books?discount=true" class="text-xs font-bold text-magenta hover:text-dark-magenta uppercase tracking-wider flex items-center gap-1 shrink-0">
+                View All Deals <i class="fas fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+
+        <!-- Banner Promo Blocks -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+            <!-- Promo 1: CBC Bundles -->
+            <div data-aos="fade-up" class="relative overflow-hidden rounded-xl bg-gradient-to-r from-magenta to-dark-magenta text-white p-6 md:p-8 flex flex-col justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow">
+                <div class="absolute right-0 bottom-0 translate-x-10 translate-y-10 opacity-10 pointer-events-none">
+                    <i class="fas fa-graduation-cap text-[180px]"></i>
+                </div>
+                <div>
+                    <span class="bg-orangered text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Primary & Junior Set Deals</span>
+                    <h3 class="text-xl md:text-2xl font-extrabold mt-3 max-w-sm leading-tight">Complete CBC Subject Bundles</h3>
+                    <p class="text-white/80 text-xs mt-2 max-w-xs">Equip your learner perfectly. Save up to <span class="text-orangered font-bold">15% off</span> when buying the full syllabus subject sets.</p>
+                </div>
+                <div class="mt-6">
+                    <a href="/books?cat=bundles" class="inline-flex items-center gap-2 bg-white text-magenta hover:bg-orangered hover:text-white transition-all text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm">
+                        Shop Bundles <i class="fas fa-chevron-right text-[9px]"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Promo 2: Bulk order Discount / Free Shipping -->
+            <div data-aos="fade-up" data-aos-delay="100" class="relative overflow-hidden rounded-xl bg-gradient-to-r from-orangered to-red-600 text-white p-6 md:p-8 flex flex-col justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow">
+                <div class="absolute right-0 bottom-0 translate-x-6 translate-y-6 opacity-10 pointer-events-none">
+                    <i class="fas fa-shipping-fast text-[180px]"></i>
+                </div>
+                <div>
+                    <span class="bg-magenta text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Nairobi Delivery Promo</span>
+                    <h3 class="text-xl md:text-2xl font-extrabold mt-3 max-w-sm leading-tight">Free Transport on Bulk Orders</h3>
+                    <p class="text-white/80 text-xs mt-2 max-w-xs">We provide FREE reliable delivery within Nairobi county for any order total above <span class="font-bold underline">KES 3,500</span>.</p>
+                </div>
+                <div class="mt-6 flex flex-wrap items-center gap-3">
+                    <span class="bg-white/20 border border-white/30 text-white font-mono text-xs font-bold px-3 py-2 rounded-lg">CODE: TUNUFREE</span>
+                    <a href="/books" class="inline-flex items-center gap-2 bg-dark-magenta text-white hover:bg-white hover:text-magenta transition-all text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm">
+                        Shop Now <i class="fas fa-shopping-basket text-[9px]"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Discounted Books Grid -->
+        {% if discounted_books %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {% for book in discounted_books %}
+            <div data-aos="flip-left" class="group relative bg-white rounded-sm border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+                <a href="/book/{{ book.slug }}" class="block relative bg-lightWarm aspect-[3/4] overflow-hidden">
+                    <img src="{{ book.image_url }}" alt="{{ book.title }}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300" onerror="this.src='{{ url_for('static', filename='icons/tunu_logo.png')}}'">
+                    {% if book.oldPrice and book.oldPrice > book.newPrice %}
+                    <span class="absolute top-2 left-2 bg-orangered text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                        -{{ (((book.oldPrice - book.newPrice) / book.oldPrice) * 100) | round | int }}%
+                    </span>
+                    {% endif %}
+                    <button onclick="event.preventDefault(); addBookToWishlist('{{ book.id }}', '{{ book.newPrice }}', '{{ book.authors }}')" class="absolute top-6 right-6 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-gray-500 hover:text-magenta shadow-sm transition-colors">
+                        <i class="far fa-heart text-xs"></i>
+                    </button>
+                </a>
+                <div class="p-3 flex flex-col flex-grow">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{{ book.grade or book.audience or 'General' }}</p>
+                    <a href="/book/{{ book.slug }}" class="font-bold text-xs text-gray-800 leading-snug line-clamp-2 mb-1 hover:text-magenta transition-colors min-h-[2rem]">{{ book.title }}</a>
+                    <p title="{{ book.authors }}" class="text-[10px] text-gray-400 mb-2 line-clamp-1">By {{ book.authors or 'TUNU Publishers' }}</p>
+                    <div class="mt-auto flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            {% if book.oldPrice and book.oldPrice > book.newPrice %}
+                            <span class="text-[10px] text-gray-400 line-through block">{{ book.oldPrice | currency }}</span>
+                            {% endif %}
+                            <span class="text-sm font-extrabold text-magenta block truncate">{{ book.newPrice | currency }}</span>
+                        </div>
+                        <button onclick="addToCart('{{ book.id }}', '{{ book.audience }}')" class="bg-magenta hover:bg-dark-magenta text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0" title="Add to Cart">
+                            <i class="fas fa-cart-plus text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Showcase dynamic placeholder/message of institutional bulk discount if none loaded dynamically -->
+        <div class="bg-white border border-dashed border-gray-200 rounded-xl py-8 px-4 text-center">
+            <div class="inline-flex items-center justify-center w-12 h-12 bg-orangered/10 rounded-full text-orangered mb-3">
+                <i class="fas fa-percentage text-lg"></i>
+            </div>
+            <h4 class="text-sm font-bold text-gray-800 mb-1">Looking for custom school or institutional orders?</h4>
+            <p class="text-xs text-gray-500 max-w-md mx-auto mb-4">We support educational centers, schools, and distributors across Kenya with specialized discounts of up to 20% on bulk packages.</p>
+            <a href="/contact" class="inline-block bg-magenta hover:bg-dark-magenta text-white font-bold text-[10px] uppercase tracking-wider px-5 py-2.5 rounded-full transition-colors">
+                Get Bulk Quote <i class="fas fa-paper-plane ml-1.5 text-[9px]"></i>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
 <!-- TRENDING NOW -->
 <section class="bg-white border-y border-gray-100">
     <div class="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
@@ -297,7 +400,7 @@
 {% block extra_js %}
 <script>
     window.booksData = [
-        {% for book in (newest + trending + top_rated + best_selling) %}
+        {% for book in (newest + trending + top_rated + best_selling + (discounted_books | default([]))) %}
         {
             id: {{ book.id | tojson }},
             title: {{ book.title | tojson }},
