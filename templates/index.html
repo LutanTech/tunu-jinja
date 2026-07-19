@@ -22,7 +22,7 @@
                 </a>
             </div>
             {% if book_count %}
-            <p class="text-white/60 text-xs mt-6 font-semibold">
+            <p class="text-white/60 text-xs mt-6 font-semibold" data-aos="flip-up">
                 <i class="fas fa-check-circle text-orangered"></i> {{ book_count | number }}+ books in our growing catalog
             </p>
             {% endif %}
@@ -114,7 +114,7 @@
     {% endif %}
 </section>
 
-<!-- SPECIAL OFFERS -->
+<!-- 
 <section class="bg-lightWarm border-y border-gray-100 py-10 md:py-14">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-3">
@@ -128,9 +128,8 @@
             </a>
         </div>
 
-        <!-- Banner Promo Blocks -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-            <!-- Promo 1: CBC Bundles -->
+             
             <div data-aos="fade-up" class="relative overflow-hidden rounded-xl bg-gradient-to-r from-magenta to-dark-magenta text-white p-6 md:p-8 flex flex-col justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow">
                 <div class="absolute right-0 bottom-0 translate-x-10 translate-y-10 opacity-10 pointer-events-none">
                     <i class="fas fa-graduation-cap text-[180px]"></i>
@@ -147,8 +146,7 @@
                 </div>
             </div>
 
-            <!-- Promo 2: Bulk order Discount / Free Shipping -->
-            <div data-aos="fade-up" data-aos-delay="100" class="relative overflow-hidden rounded-xl bg-gradient-to-r from-orangered to-red-600 text-white p-6 md:p-8 flex flex-col justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow">
+          <div data-aos="fade-up" data-aos-delay="100" class="relative overflow-hidden rounded-xl bg-gradient-to-r from-orangered to-red-600 text-white p-6 md:p-8 flex flex-col justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow">
                 <div class="absolute right-0 bottom-0 translate-x-6 translate-y-6 opacity-10 pointer-events-none">
                     <i class="fas fa-shipping-fast text-[180px]"></i>
                 </div>
@@ -162,11 +160,10 @@
                     <a href="/books" class="inline-flex items-center gap-2 bg-dark-magenta text-white hover:bg-white hover:text-magenta transition-all text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm">
                         Shop Now <i class="fas fa-shopping-basket text-[9px]"></i>
                     </a>
-                </div>
+                </div> 
             </div>
-        </div>
+        </div>-->
 
-        <!-- Dynamic Discounted Books Grid -->
         {% if discounted_books %}
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {% for book in discounted_books %}
@@ -202,7 +199,6 @@
             {% endfor %}
         </div>
         {% else %}
-        <!-- Showcase dynamic placeholder/message of institutional bulk discount if none loaded dynamically -->
         <div class="bg-white border border-dashed border-gray-200 rounded-xl py-8 px-4 text-center">
             <div class="inline-flex items-center justify-center w-12 h-12 bg-orangered/10 rounded-full text-orangered mb-3">
                 <i class="fas fa-percentage text-lg"></i>
