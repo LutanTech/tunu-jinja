@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from flask import (
     Flask,
     abort,
+    flash,
     jsonify,
     redirect,
     render_template,
@@ -51,8 +52,7 @@ app.config.update(
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 
-
-# M-Pesa Configurations
+# M-Pesa Configurations 
 CONSUMER_KEY = os.getenv("MPESA_CONSUMER_KEY")
 CONSUMER_SECRET = os.getenv("MPESA_CONSUMER_SECRET")
 SHORTCODE = os.getenv("MPESA_SHORTCODE")
@@ -1225,7 +1225,15 @@ def mpesa_callback():
 
 @app.route("/track-order")
 def track_order():
-    return render_template("track.html", order=db.session.get(Order, request.args.get("id")) if request.args.get("id") else None)
+    id = request.args.get('id')
+    order =  order=db.session.get(Order,id)
+    if not id:
+        return render_template('track.html')
+    if not order:
+       flash('Order not found. Please check again or contact support', 'error')
+       return render_template("track.html")
+    return render_template("track.html", order=order)
+   
 
 @app.route("/api/order-status")
 def order_status():
