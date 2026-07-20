@@ -324,7 +324,7 @@
             {% for book in best_selling %}
             <div data-aos="flip-left" class="group relative bg-lightWarm rounded-sm border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
                 <a href="/book/{{ book.slug }}" class="block relative bg-white aspect-[3/4] overflow-hidden">
-                    <img src="{{ url_for('book_cover', filename= book.image_url.replace('/book-cover/', '')) }}" alt="{{ book.title }}" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300">
+                    <img src="{{ url_for('book_cover', filename= book.image_url.replace('/book-cover/', '')) }}" alt="{{ book.title }}"  onerror="this.src='{{ url_for('static', filename='icons/tunu_logo.png')}}'" class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300">
                     <span class="absolute top-2 left-2 bg-orangered text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
                         <i class="fas fa-fire text-[8px]"></i>  {{ book.sold or 0 }} sold
                     </span>

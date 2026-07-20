@@ -33,6 +33,9 @@ import requests
 from sqlalchemy import func
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -338,6 +341,15 @@ FAR = {
     "Nyamira",
 }
 
+
+limiter = Limiter(
+    key_func = get_remote_address,
+    app=app,
+    storage_uri = "memory://",
+    default_limits=['200 per day', "5 per minute"]
+)
+
+
 def get_delivery_fee(county):
     county = county.strip()
 
@@ -447,6 +459,7 @@ def checkout(oid):
     return render_template("checkout.html", order=order, books=bks, subtotal=subt)
 
 @app.route("/book-cover/<path:filename>")
+@limiter.limit("50 per minute")
 def book_cover(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
@@ -1111,6 +1124,7 @@ def create_order():
     )
     
 @app.route("/api/pay", methods=["POST"])
+@limiter.limit("1 per minute")
 def pay():
     try:
         order = db.session.get(Order, request.get_json().get("order_id"))
@@ -1236,6 +1250,7 @@ def track_order():
    
 
 @app.route("/api/order-status")
+@limiter.limit("12 per minute")
 def order_status():
     order = db.session.get(Order, request.args.get("id"))
     if not order: return jsonify({"error": "Order not found."}), 404

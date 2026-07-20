@@ -9,4 +9,5 @@ alembic
 psycopg2-binary
 python-dotenv
 PyMySQL
+Flask-Limiter
 requests
