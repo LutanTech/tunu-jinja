@@ -25,7 +25,7 @@
         <!-- IMAGE -->
         <div class="md:sticky md:top-24 self-start">
             <div class="relative bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden aspect-[4/3]">
-                <img src="{{ store.image_url }}" alt="{{ store.name }}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x450/8B008B/ffffff?text=TUNU+Store'">
+                <img src="{{ url_for('book_cover', filename=store.image) }}" alt="{{ store.name }}" class="w-full h-full object-cover" oneriror="this.src='https://placehold.co/600x450/8B008B/ffffff?text=TUNU+Store'">
                 {% if store.city %}
                 <span class="absolute top-4 left-4 bg-white/95 text-magenta text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-md">
                     <i class="fas fa-map-marker-alt"></i> {{ store.city }}
