@@ -172,11 +172,14 @@
                     <button  data-aos="fade-up" class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider flex items-center gap-1.5">
                         STORES <i class="fas fa-chevron-down text-[8px] mt-0.5"></i>
                     </button>
+                    {% if stores %}
                     <div class="dropdown-menu absolute left-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-xl border border-gray-100 z-50 py-1 font-bold text-xs uppercase tracking-wider">
-                        <a href="/store/Nairobi" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Nairobi CBD Branch</a>
-                        <a href="/store/Mombasa" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Mombasa Depot</a>
-                        <a href="/store/Kisumu" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Kisumu Outlet</a>
+                        {% for s in stores %}
+                        <a href="/store/{{ s.name.lower().replace(' ', '-') }}" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">{{ s.name }}</a>
+                        {% endfor %}
+                        
                     </div>
+                    {% endif %}
                 </div>
 
                 <a data-aos="fade-down" href="{{ url_for('about') }}" class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider">ABOUT US</a>

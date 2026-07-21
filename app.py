@@ -405,8 +405,10 @@ def home():
     newest = Book.query.filter_by(is_deleted=False).order_by(Book.added_at.desc()).limit(8).all()
     for bk in newest:
         bk.rating_percent = round((bk.stars / tot) * 100, 2) if tot else 0
+    stores = Store.query.all()
     return render_template(
         "index.html", newest=newest,
+        stores=stores,
         trending=Book.query.filter_by(is_deleted=False).order_by(Book.views.desc()).limit(6).all(),
         top_rated=Book.query.filter_by(is_deleted=False).order_by(Book.stars.desc()).limit(6).all(),
         best_selling=Book.query.filter_by(is_deleted=False).order_by(Book.sold.desc()).limit(6).all()
@@ -1399,7 +1401,8 @@ def stores():
 
 @app.route("/store/<string:store_name>")
 def store_detail(store_name):
-    store = Store.query.filter(db.func.lower(Store.name) == store_name.lower(), Store.is_active == True).first_or_404()
+    sanitized = store_name.replace('-', ' ')
+    store = Store.query.filter(db.func.lower(Store.name) == sanitized.lower(), Store.is_active == True).first_or_404()
     other_stores = Store.query.filter(Store.id != store.id, Store.is_active == True).order_by(Store.name.asc()).limit(4).all()
     return render_template("stores/store.html", store=store, other_stores=other_stores)
 
