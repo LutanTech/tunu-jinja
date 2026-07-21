@@ -1,5 +1,6 @@
-/static/books
 /.env
 /instance
 /__pycache__
 /static/resources
+/app.log
+/migrations
