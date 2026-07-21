@@ -128,7 +128,7 @@
                         </button>
                     </a>
                     <div class="p-3 flex flex-col flex-grow">
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{{ book.grade or book.audience or 'General' }}</p>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{{ ('Grade '  ~ grade) if book.grade|length < 3 else '' }}  {{ book.grade }}</p>
                         <a href="/book/{{ book.slug }}" class="font-bold text-xs text-gray-800 leading-snug line-clamp-2 mb-1 hover:text-magenta transition-colors min-h-[2rem]">{{ book.title }}</a>
                         <p class="text-[10px] text-gray-400 mb-2 line-clamp-1">{{ book.authors or 'TUNU Publishers' }}</p>
                         <div class="mt-auto flex items-center justify-between gap-2">

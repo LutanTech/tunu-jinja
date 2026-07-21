@@ -116,9 +116,21 @@
                 <a href="https://wa.me/254722682129?text={{ ('Hi, I am interested in ' ~ book.title ~ ' by ' ~ book.authors ) | urlencode }}" target="_blank" class="flex items-center gap-2 text-xs font-bold text-gray-600 hover:text-[#25d366] transition-colors">
                     <i class="fab fa-whatsapp text-base"></i> Ask on WhatsApp
                 </a>
-                <span class="text-gray-300">|</span>
-                <button onclick="shareProduct()" class="flex items-center gap-2 text-xs font-bold text-gray-600 hover:text-magenta transition-colors">
-                    <i class="fas fa-share-alt"></i> Share
+                <span class="text-gray-300">| </span>  <span class="text-sm">Share On: </span>
+                <button onclick="shareProduct()" class="flex items-center gap-2 text-xl font-bold text-green-600 hover:text-magenta transition-colors">
+                    <i class="fab fa-solid fa-whatsapp "></i> 
+                </button>
+                <button onclick="shareProduct()" class="flex items-center gap-2 text-xl font-bold text-black-600 hover:text-magenta transition-colors">
+                    <i class="fab fa-x-twitter"></i> 
+                </button>
+                <button onclick="shareProduct()" class="flex items-center gap-2 text-xl font-bold text-blue-600 hover:text-magenta transition-colors">
+                    <i class="fab fa-facebook"></i> 
+                </button>
+                <button onclick="shareProduct()" class="flex items-center gap-2 text-xl font-bold text-orange-600 hover:text-magenta transition-colors">
+                    <i class="fab fa-reddit"></i> 
+                </button>
+                <button onclick="shareProduct()" class="flex items-center gap-2 text-xl font-bold text-magenta-600 hover:text-magenta transition-colors">
+                    <i class="fab fa-instagram"></i> 
                 </button>
             </div>
 

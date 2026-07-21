@@ -346,7 +346,7 @@ limiter = Limiter(
     key_func = get_remote_address,
     app=app,
     storage_uri = "memory://",
-    default_limits=['200 per day', "5 per minute"]
+    default_limits=['200 per day', "50 per minute"]
 )
 
 
@@ -381,6 +381,7 @@ def home():
     )
 
 @app.route("/books")
+@limiter.limit("10 per minute")
 def books():
     q = Book.query.filter_by(is_deleted=False)
 
