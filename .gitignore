@@ -3,4 +3,4 @@
 /__pycache__
 /static/resources
 /app.log
-/migrations
+/migrations  

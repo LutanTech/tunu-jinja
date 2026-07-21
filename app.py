@@ -1548,88 +1548,276 @@ def gallery():
     ).distinct().all() if c[0]]
     return render_template("company/gallery.html", images=pagination.items, pagination=pagination, categories=categories, active_category=category)
 
-
-
-@app.route("/cp/gallery")
+@app.route("/cp/gallery", methods=["GET"])
 @login_required
 @admin_required
 def gallery_admin():
-    q = GalleryImage.query
-    search_term = request.args.get("q", "").strip()
-    if search_term:
-        like = f"%{search_term}%"
-        q = q.filter(db.or_(GalleryImage.caption.ilike(like), GalleryImage.category.ilike(like)))
-    pagination = q.order_by(GalleryImage.added_at.desc()).paginate(
-        page=request.args.get("page", 1, type=int), per_page=12, error_out=False
+    """
+    Renders the gallery management page with search filtering and pagination support.
+    """
+    search = request.args.get("q", "").strip()
+    page = request.args.get("page", 1, type=int)
+    per_page = 12
+
+    query = GalleryImage.query
+    if search:
+        query = query.filter(
+            db.or_(
+                GalleryImage.caption.ilike(f"%{search}%"),
+                GalleryImage.category.ilike(f"%{search}%")
+            )
+        )
+
+    pagination = query.order_by(GalleryImage.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    images = pagination.items
+    admin = db.session.get(Staff, session["staff_id"])
+
+    return render_template(
+        "admin/gallery.html",
+        images=images,
+        pagination=pagination,
+        search=search,
+        admin=admin
     )
-    return render_template("admin/gallery.html", admin=db.session.get(Staff, session["staff_id"]),
-                           images=pagination.items, pagination=pagination, search=search_term)
 
 @app.route("/cp/gallery/new", methods=["POST"])
 @login_required
 @admin_required
 def add_gallery_image():
+    """
+    Handles gallery image uploads for both single file submissions and
+    bulk drag-and-drop multi-file uploads with individual captions.
+    Supports both XHR/AJAX responses and traditional form redirects.
+    """
     staff = db.session.get(Staff, session["staff_id"])
-    img = request.files.get("image")
-    if not img or not img.filename:
+    
+    files = request.files.getlist("images")
+    
+    if not files or not files[0].filename:
+        single_file = request.files.get("image")
+        if single_file and single_file.filename:
+            files = [single_file]
+        else:
+            files = []
+
+    if not files:
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"status": "error", "message": "Please choose at least one photo to upload."}), 400
         flash("Please choose a photo to upload.", "error")
         return redirect(url_for("gallery_admin"))
 
-    fn = f"{secrets.token_hex(10)}.{img.filename.rsplit('.', 1)[1].lower()}"
-    img.save(os.path.join(app.config["GALLERY_FOLDER"], fn))
+    category = request.form.get("category", "").strip() or None
+    uploaded_count = 0
 
-    photo = GalleryImage(
-        image=fn,
-        caption=request.form.get("caption", "").strip(),
-        category=request.form.get("category", "").strip() or None
-    )
-    db.session.add(photo)
-    db.session.commit()
-    log_action("Uploaded gallery photo", 200, staff.id)
+    for idx, img in enumerate(files):
+        if not img or not img.filename:
+            continue
+        
+        caption = request.form.get(f"captions_{idx}", "").strip()
+        if not caption:
+            caption = request.form.get("caption", "").strip()
+
+        ext = img.filename.rsplit(".", 1)[-1].lower() if "." in img.filename else "jpg"
+        fn = f"{secrets.token_hex(10)}.{ext}"
+        
+        save_path = os.path.join(app.config["GALLERY_FOLDER"], fn)
+        img.save(save_path)
+
+        photo = GalleryImage(
+            image=fn,
+            caption=caption,
+            category=category
+        )
+        db.session.add(photo)
+        uploaded_count += 1
+
+    if uploaded_count > 0:
+        db.session.commit()
+        log_action(f"Uploaded {uploaded_count} gallery photo(s)", 200, staff.id)
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({
+            "status": "success",
+            "message": f"Successfully uploaded {uploaded_count} photo(s).",
+            "count": uploaded_count
+        }), 200
+
+    flash(f"Successfully uploaded {uploaded_count} photo(s).", "success")
     return redirect(url_for("gallery_admin"))
 
 @app.route("/cp/gallery/edit/<string:id>", methods=["POST"])
 @login_required
 @admin_required
 def edit_gallery_image(id):
+    """
+    Updates photo caption, category, and optionally replaces the image file on disk.
+    """
     staff = db.session.get(Staff, session["staff_id"])
-    photo = GalleryImage.query.get_or_404(id)
+    photo = db.session.get(GalleryImage, id) or GalleryImage.query.get_or_404(id)
 
-    photo.caption = request.form.get("caption", "").strip()
-    photo.category = request.form.get("category", "").strip() or None
+    caption = request.form.get("caption", "").strip()
+    category = request.form.get("category", "").strip() or None
 
-    img = request.files.get("image")
-    if img and img.filename:
-        fn = f"{secrets.token_hex(10)}.{img.filename.rsplit('.', 1)[1].lower()}"
-        img.save(os.path.join(app.config["UPLOAD_FOLDER"], fn))
-        photo.image = fn
+    photo.caption = caption
+    photo.category = category
+
+    new_file = request.files.get("image")
+    if new_file and new_file.filename:
+        old_filename = getattr(photo, "image", None) or getattr(photo, "image_url", None)
+        if old_filename:
+            old_path = os.path.join(app.config["GALLERY_FOLDER"], old_filename)
+            if os.path.exists(old_path):
+                try:
+                    os.remove(old_path)
+                except OSError as e:
+                    app.logger.error(f"Error removing old file {old_path}: {e}")
+
+        ext = new_file.filename.rsplit(".", 1)[-1].lower() if "." in new_file.filename else "jpg"
+        new_fn = f"{secrets.token_hex(10)}.{ext}"
+        new_file.save(os.path.join(app.config["GALLERY_FOLDER"], new_fn))
+
+        if hasattr(photo, "image"):
+            photo.image = new_fn
+        if hasattr(photo, "image_url"):
+            photo.image_url = new_fn
 
     db.session.commit()
-    log_action("Edited gallery photo", 200, staff.id)
-    return redirect(url_for("gallery_admin"))
+    log_action(f"Updated gallery photo {id}", 200, staff.id)
 
-@app.route("/api/admin/toggle_gallery/<string:id>", methods=["POST"])
-@login_required
-@admin_required
-def toggle_gallery_image(id):
-    staff = db.session.get(Staff, session["staff_id"])
-    photo = GalleryImage.query.get_or_404(id)
-    photo.is_active = not photo.is_active
-    db.session.commit()
-    log_action("Toggled visibility for a gallery photo", 200, staff.id)
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.is_json:
+        return jsonify({"status": "success", "message": "Photo updated successfully."}), 200
+
+    flash("Photo updated successfully.", "success")
     return redirect(url_for("gallery_admin"))
 
 @app.route("/api/admin/delete_gallery/<string:id>", methods=["POST"])
 @login_required
 @admin_required
 def delete_gallery_image(id):
+    """
+    Deletes a single gallery photo from both the database and server storage.
+    Supports both XHR/AJAX requests and traditional form redirects.
+    """
     staff = db.session.get(Staff, session["staff_id"])
-    photo = GalleryImage.query.get_or_404(id)
-    log_action("Deleted a gallery photo", 200, staff.id)
+    photo = db.session.get(GalleryImage, id) or GalleryImage.query.get_or_404(id)
+
+    filename = getattr(photo, "image", None) or getattr(photo, "image_url", None)
+
+    if filename:
+        file_path = os.path.join(app.config["GALLERY_FOLDER"], filename)
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except OSError as e:
+                app.logger.error(f"Error removing physical gallery file {file_path}: {e}")
+
+    # Remove database record
     db.session.delete(photo)
     db.session.commit()
+    log_action("Deleted a gallery photo and file", 200, staff.id)
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.is_json:
+        return jsonify({"status": "success", "message": "Photo and file deleted successfully."}), 200
+
+    flash("Photo deleted successfully.", "success")
     return redirect(url_for("gallery_admin"))
 
+@app.route("/api/admin/toggle_gallery/<string:id>", methods=["POST"])
+@login_required
+@admin_required
+def toggle_gallery_image(id):
+    """
+    Toggles the public visibility (is_active status) of a gallery photo.
+    """
+    staff = db.session.get(Staff, session["staff_id"])
+    photo = db.session.get(GalleryImage, id) or GalleryImage.query.get_or_404(id)
+
+    photo.is_active = not getattr(photo, "is_active", True)
+    db.session.commit()
+
+    status_str = "published" if photo.is_active else "hidden"
+    log_action(f"Toggled gallery photo status to {status_str}", 200, staff.id)
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.is_json:
+        return jsonify({
+            "status": "success",
+            "message": f"Photo status changed to {status_str}.",
+            "is_active": photo.is_active
+        }), 200
+
+    flash(f"Photo status changed to {status_str}.", "success")
+    return redirect(url_for("gallery_admin"))
+
+@app.route("/api/admin/batch_delete_gallery", methods=["POST"])
+@login_required
+@admin_required
+def batch_delete_gallery():
+    """
+    Deletes multiple gallery photos and removes their respective physical files from disk.
+    """
+    staff = db.session.get(Staff, session["staff_id"])
+    data = request.get_json(silent=True) or {}
+    photo_ids = data.get("ids", [])
+
+    if not photo_ids:
+        return jsonify({"status": "error", "message": "No photos were selected for deletion."}), 400
+
+    deleted_count = 0
+    for photo_id in photo_ids:
+        photo = db.session.get(GalleryImage, photo_id)
+        if photo:
+            filename = getattr(photo, "image", None) or getattr(photo, "image_url", None)
+            if filename:
+                file_path = os.path.join(app.config["GALLERY_FOLDER"], filename)
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
+            db.session.delete(photo)
+            deleted_count += 1
+
+    if deleted_count > 0:
+        db.session.commit()
+        log_action(f"Batch deleted {deleted_count} gallery photo(s)", 200, staff.id)
+
+    return jsonify({
+        "status": "success",
+        "message": f"Successfully deleted {deleted_count} photo(s).",
+        "count": deleted_count
+    }), 200
+
+@app.route("/api/admin/batch_toggle_gallery", methods=["POST"])
+@login_required
+@admin_required
+def batch_toggle_gallery():
+    """
+    Toggles the public visibility status for a list of gallery image IDs.
+    """
+    staff = db.session.get(Staff, session["staff_id"])
+    data = request.get_json(silent=True) or {}
+    photo_ids = data.get("ids", [])
+
+    if not photo_ids:
+        return jsonify({"status": "error", "message": "No photos were selected."}), 400
+
+    toggled_count = 0
+    for photo_id in photo_ids:
+        photo = db.session.get(GalleryImage, photo_id)
+        if photo:
+            photo.is_active = not getattr(photo, "is_active", True)
+            toggled_count += 1
+
+    if toggled_count > 0:
+        db.session.commit()
+        log_action(f"Batch toggled visibility for {toggled_count} photo(s)", 200, staff.id)
+
+    return jsonify({
+        "status": "success",
+        "message": f"Updated visibility for {toggled_count} photo(s).",
+        "count": toggled_count
+    }), 200
+    
 with app.app_context():
     db.create_all()
 

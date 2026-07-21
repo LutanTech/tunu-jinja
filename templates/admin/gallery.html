@@ -6,7 +6,7 @@
     <title>TUNU Publishers | Gallery Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="{{ url_for('static', filename='assets/tailwind.js')}}"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -34,6 +34,31 @@
         .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
         .status-success { background: #dcfce7; color: #15803d; }
         .status-warning { background: #fef9c3; color: #854d0e; }
+
+        /* Custom Drag & Drop & Upload Progress Styling */
+        .dropzone {
+            border: 2px dashed #CBD5E1;
+            transition: all 0.25s ease-in-out;
+        }
+        .dropzone.dragover {
+            border-color: #8B008B;
+            background-color: rgba(139, 0, 139, 0.05);
+            transform: scale(1.01);
+        }
+        .progress-bar-fill {
+            transition: width 0.2s ease-in-out;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: #f1f5f9;
+        }
     </style>
 </head>
 <body class="font-sans">
@@ -43,7 +68,7 @@
         <!-- SIDEBAR -->
         <aside class="sidebar bg-[#111111] text-white flex flex-col shrink-0 z-[1001] fixed md:relative h-full max-w-[80vw] -translate-x-full md:translate-x-0 overflow-auto" id="sidebar">
             <div class="p-5 flex items-center gap-3 border-b border-white/5">
-                <img src="{{ url_for('static', filename='icons/tunu_logo.png') }}" alt="Logo" class="w-9 h-9 object-contain">
+                <img src="{{ url_for('static', filename='icons/tunu_logo.png') }}" onerror="this.src='https://placehold.co/100x100/8B008B/ffffff?text=TUNU'" alt="Logo" class="w-9 h-9 object-contain rounded-lg">
                 <div>
                     <div class="font-extrabold text-sm tracking-wide">TUNU PUBLISHERS</div>
                     <div class="text-[10px] text-gray-400 uppercase tracking-widest">Admin Panel</div>
@@ -71,7 +96,7 @@
             </nav>
         </aside>
 
-        <!-- MAIN -->
+        <!-- MAIN CONTENT -->
         <main class="flex-1 flex flex-col h-screen overflow-hidden">
             <header class="bg-white h-16 md:h-20 shadow-sm flex items-center justify-between px-4 md:px-10 z-[100] shrink-0 border-b border-gray-100 gap-3">
                 <div class="flex items-center gap-3 min-w-0">
@@ -80,44 +105,100 @@
                 </div>
                 <div class="flex items-center gap-3 md:gap-4 shrink-0">
                     <div class="text-right hidden sm:block">
-                        <div class="font-extrabold text-xs text-gray-800 uppercase tracking-wider">{{ admin.name }}</div>
+                        <div class="font-extrabold text-xs text-gray-800 uppercase tracking-wider">{{ admin.name if admin else 'Admin User' }}</div>
                         <div class="text-[10px] text-orangered font-bold uppercase tracking-widest mt-0.5">CHIEF ADMINISTRATOR</div>
                     </div>
-                    <div class="h-9 w-9 md:h-10 md:w-10 bg-magenta rounded-full flex items-center justify-center text-white font-extrabold text-xs uppercase shadow shrink-0">{{ admin.name[:2] }}</div>
+                    <div class="h-9 w-9 md:h-10 md:w-10 bg-magenta rounded-full flex items-center justify-center text-white font-extrabold text-xs uppercase shadow shrink-0">
+                        {{ admin.name[:2] if admin and admin.name else 'AD' }}
+                    </div>
                 </div>
             </header>
 
-            <div class="flex-grow overflow-y-auto p-4 md:p-10">
+            <div class="flex-grow overflow-y-auto p-4 md:p-10 custom-scrollbar">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    
+                    <!-- Header Actions Bar -->
                     <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Uploaded Gallery Photos</h4>
-                        <button onclick="openUploadModal()" class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors shrink-0">+ Upload Photo</button>
+                        <div class="flex items-center gap-3">
+                            <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Uploaded Gallery Photos</h4>
+                            <span id="selectedCountBadge" class="hidden text-[10px] bg-magenta/10 text-magenta font-bold px-2.5 py-0.5 rounded-full border border-magenta/20">
+                                0 selected
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-end">
+                            <!-- Batch Action Controls -->
+                            <div id="batchActionControls" class="hidden items-center gap-2 mr-2">
+                                <button onclick="triggerBatchToggle()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold px-3 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5">
+                                    <i class="fas fa-eye"></i> Toggle Status
+                                </button>
+                                <button onclick="triggerBatchDeleteModal()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold px-3 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5">
+                                    <i class="fas fa-trash-alt"></i> Delete Selected
+                                </button>
+                            </div>
+
+                            <button onclick="openUploadModal(null, 'multi')" class="bg-magenta hover:bg-dark-magenta text-white font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg flex items-center gap-2 shrink-0">
+                                <i class="fas fa-cloud-upload-alt text-sm"></i> Bulk Multi-Upload
+                            </button>
+                            <button onclick="openUploadModal(null, 'single')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3.5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5 shrink-0">
+                                <i class="fas fa-plus"></i> Single Photo
+                            </button>
+                        </div>
                     </div>
 
-                    <form method="GET" action="{{ url_for('gallery_admin') }}" class="p-4 border-b border-gray-100">
-                        <div class="relative max-w-sm">
-                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
-                            <input type="text" name="q" value="{{ search or '' }}" placeholder="Search by caption or category..." class="w-full border border-gray-300 rounded-full pl-9 pr-4 py-2.5 text-xs outline-none focus:border-magenta">
+                    <!-- Filter & Search Bar -->
+                    <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <form method="GET" action="{{ url_for('gallery_admin') }}" class="w-full sm:max-w-md">
+                            <div class="relative w-full">
+                                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                                <input type="text" name="q" value="{{ search or '' }}" placeholder="Search by caption or category..." class="w-full border border-gray-300 rounded-full pl-9 pr-10 py-2 text-xs outline-none focus:border-magenta bg-white shadow-sm">
+                                {% if search %}
+                                <a href="{{ url_for('gallery_admin') }}" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"><i class="fas fa-times-circle"></i></a>
+                                {% endif %}
+                            </div>
+                        </form>
+
+                        <div class="flex items-center gap-2 text-xs text-gray-500 w-full sm:w-auto justify-between sm:justify-end">
+                            <label class="flex items-center gap-1.5 cursor-pointer text-[11px] font-semibold select-none">
+                                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded border-gray-300 text-magenta focus:ring-magenta h-3.5 w-3.5">
+                                Select All
+                            </label>
                         </div>
-                    </form>
+                    </div>
 
                     <!-- PHOTO GRID -->
                     {% if images %}
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-5">
                         {% for img in images %}
-                        <div class="relative group rounded-xl overflow-hidden border border-gray-100 shadow-sm aspect-square">
-                            <img src='{{ url_for("get_image", folder="gallery", filename=img.image_url ) }}' alt="{{ img.caption or '' }}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/300x300/8B008B/ffffff?text=TUNU'">
-                            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2.5">
-                                <div class="flex items-center justify-between gap-1">
-                                    <span class="status-pill text-[9px] px-2 py-0.5 {{ 'status-success' if img.is_active else 'status-warning' }}">{{ 'Live' if img.is_active else 'Hidden' }}</span>
-                                    {% if img.category %}<span class="bg-white/90 text-magenta text-[9px] font-bold px-2 py-0.5 rounded-full truncate max-w-[80px]">{{ img.category }}</span>{% endif %}
+                        <div class="gallery-card relative group rounded-xl overflow-hidden border border-gray-200 shadow-sm aspect-square bg-gray-100 transition-all hover:shadow-md" data-id="{{ img.id }}">
+                            <!-- Batch Selection Checkbox -->
+                            <div class="absolute top-2.5 left-2.5 z-20">
+                                <input type="checkbox" value="{{ img.id }}" onchange="handleItemSelect()" class="gallery-item-checkbox rounded border-gray-300 text-magenta focus:ring-magenta h-4 w-4 cursor-pointer shadow-sm">
+                            </div>
+
+                            <img src='{{ url_for("get_image", folder="gallery", filename=img.image_url ) }}' alt="{{ img.caption or '' }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.src='https://placehold.co/300x300/8B008B/ffffff?text=TUNU'">
+                            
+                            <!-- Overlay Gradient & Controls -->
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
+                                <div class="flex items-center justify-between gap-1 pl-6">
+                                    <span class="status-pill text-[9px] px-2 py-0.5 {{ 'status-success' if img.is_active else 'status-warning' }} shadow-sm">
+                                        {{ 'Live' if img.is_active else 'Hidden' }}
+                                    </span>
+                                    {% if img.category %}
+                                    <span class="bg-white/90 backdrop-blur-sm text-magenta text-[9px] font-bold px-2 py-0.5 rounded-full truncate max-w-[90px] shadow-sm">{{ img.category }}</span>
+                                    {% endif %}
                                 </div>
                                 <div>
-                                    <p class="text-white text-[10px] font-semibold line-clamp-2 mb-2">{{ img.caption or 'No caption' }}</p>
-                                    <div class="flex items-center gap-2">
-                                        <button onclick='openUploadModal({{ img.to_dict() | tojson }})' class="flex-1 bg-white/90 hover:bg-white text-blue-600 text-[10px] font-bold py-1.5 rounded-lg transition-colors"><i class="fas fa-edit"></i></button>
-                                        <button onclick="toggleGalleryImage('{{ img.id }}')" class="flex-1 bg-white/90 hover:bg-white text-amber-600 text-[10px] font-bold py-1.5 rounded-lg transition-colors"><i class="fas fa-eye{{ '' if img.is_active else '-slash' }}"></i></button>
-                                        <button onclick="deleteGalleryImage('{{ img.id }}')" class="flex-1 bg-white/90 hover:bg-white text-red-600 text-[10px] font-bold py-1.5 rounded-lg transition-colors"><i class="fas fa-trash-alt"></i></button>
+                                    <p class="text-white text-[11px] font-semibold line-clamp-2 mb-2 leading-tight drop-shadow">{{ img.caption or 'No caption provided' }}</p>
+                                    <div class="flex items-center gap-1.5">
+                                        <button onclick='openUploadModal({{ img.to_dict() | tojson if img.to_dict is defined else "{\"id\":\"" ~ img.id ~ "\",\"caption\":\"" ~ (img.caption or "") ~ "\",\"category\":\"" ~ (img.category or "") ~ "\"}" }}, "single")' title="Edit details" class="flex-1 bg-white/90 hover:bg-white text-blue-600 text-[10px] font-bold py-1.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button onclick="toggleGalleryImage('{{ img.id }}')" title="Toggle visibility" class="flex-1 bg-white/90 hover:bg-white text-amber-600 text-[10px] font-bold py-1.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1">
+                                            <i class="fas fa-eye{{ '' if img.is_active else '-slash' }}"></i>
+                                        </button>
+                                        <button onclick="promptDeleteSingle('{{ img.id }}')" title="Delete photo" class="flex-1 bg-white/90 hover:bg-white text-red-600 text-[10px] font-bold py-1.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -125,18 +206,28 @@
                         {% endfor %}
                     </div>
                     {% else %}
-                    <div class="p-12 text-center text-gray-400 text-xs font-bold">No photos match your search.</div>
+                    <div class="p-16 text-center text-gray-400 flex flex-col items-center justify-center">
+                        <i class="fas fa-images text-4xl mb-3 text-gray-300"></i>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">No photos found</p>
+                        <p class="text-[11px] text-gray-400 mt-1">Try refining your search terms or upload new photos to the gallery.</p>
+                        <button onclick="openUploadModal(null, 'multi')" class="mt-4 bg-magenta text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider">
+                            + Upload Photos Now
+                        </button>
+                    </div>
                     {% endif %}
 
+                    <!-- Pagination Controls -->
                     <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <span class="text-[10px] text-gray-400 font-semibold">{{ pagination.total }} photo{{ 's' if pagination.total != 1 else '' }} found</span>
-                        {% if pagination.pages > 1 %}
-                        <div class="flex items-center gap-2">
+                        <span class="text-[10px] text-gray-400 font-semibold">
+                            Showing {{ images | length }} photo{{ 's' if images | length != 1 else '' }}
+                        </span>
+                        {% if pagination and pagination.pages > 1 %}
+                        <div class="flex items-center gap-1.5">
                             <a href="{{ url_for('gallery_admin') }}?q={{ search | urlencode }}&page={{ pagination.prev_num or 1 }}"
                                class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 {{ 'opacity-40 pointer-events-none' if not pagination.has_prev else 'hover:bg-magenta hover:text-white hover:border-magenta transition-colors' }}">‹</a>
                             {% for p in range(1, pagination.pages + 1) %}
                                 {% if p == pagination.page %}
-                                <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-magenta text-white text-xs font-bold">{{ p }}</span>
+                                <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-magenta text-white text-xs font-bold shadow-sm">{{ p }}</span>
                                 {% elif p == 1 or p == pagination.pages or (p >= pagination.page - 1 and p <= pagination.page + 1) %}
                                 <a href="{{ url_for('gallery_admin') }}?q={{ search | urlencode }}&page={{ p }}" class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-magenta hover:text-white hover:border-magenta transition-colors">{{ p }}</a>
                                 {% elif p == pagination.page - 2 or p == pagination.page + 2 %}
@@ -153,44 +244,293 @@
         </main>
     </div>
 
-    <!-- UPLOAD/EDIT MODAL -->
+    <!-- UPLOAD & EDIT MODAL (WITH DRAG & DROP MULTI-UPLOAD AND XHR PROGRESS) -->
     <div id="galleryModalOverlay" class="fixed inset-0 bg-black/60 hidden backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between mb-6">
-                <h3 id="galleryModalTitle" class="font-extrabold text-sm uppercase tracking-wider text-gray-800">Upload Photo</h3>
-                <button onclick="closeUploadModal()" class="text-gray-400 hover:text-magenta text-xl"><i class="fas fa-times"></i></button>
+        <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-6 md:p-7 max-h-[90vh] flex flex-col overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
+                <div class="flex items-center gap-3">
+                    <h3 id="galleryModalTitle" class="font-extrabold text-sm uppercase tracking-wider text-gray-800">Upload Photos</h3>
+                    <div id="modalTabs" class="flex rounded-lg bg-gray-100 p-0.5 text-[10px] font-bold">
+                        <button type="button" id="tabMultiBtn" onclick="switchUploadTab('multi')" class="px-2.5 py-1 rounded-md transition-all text-gray-600 bg-white shadow-sm">Bulk Drop</button>
+                        <button type="button" id="tabSingleBtn" onclick="switchUploadTab('single')" class="px-2.5 py-1 rounded-md transition-all text-gray-500">Single File</button>
+                    </div>
+                </div>
+                <button onclick="closeUploadModal()" class="text-gray-400 hover:text-magenta text-lg transition-colors p-1"><i class="fas fa-times"></i></button>
             </div>
 
-            <form id="galleryForm" method="POST" enctype="multipart/form-data" class="flex flex-col gap-3">
-                <div id="galleryImagePreviewWrap" class="hidden rounded-lg overflow-hidden border border-gray-100 aspect-video bg-gray-50">
-                    <img id="galleryImagePreview" src="" alt="" class="w-full h-full object-cover">
-                </div>
+            <!-- Modal Content Body -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                <form id="galleryForm" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
+                    
+                    <!-- Shared Category & Caption Setting (Applied to all multi uploads) -->
+                    <div id="globalCategoryGroup" class="bg-purple-50/50 p-3.5 rounded-xl border border-purple-100 space-y-3">
+                        <div class="text-[10px] font-extrabold text-magenta uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fas fa-layer-group"></i> Shared Details for Bulk Upload
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                                    <i class="fas fa-tag text-magenta"></i> Category
+                                </label>
+                                <input type="text" name="category" id="gf-category" placeholder="e.g., 'Book Launch', 'Author Interviews'" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-magenta bg-white shadow-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                                    <i class="fas fa-align-left text-magenta"></i> Batch Caption / Description
+                                </label>
+                                <input type="text" name="caption" id="gf-bulk-caption" placeholder="Shared caption applied to all photos" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-magenta bg-white shadow-sm">
+                            </div>
+                        </div>
+                    </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Photo</label>
-                    <input type="file" name="image" id="gf-image" accept="image/*" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none">
-                    <p id="gf-image-note" class="hidden text-[10px] text-gray-400 mt-1">Leave empty to keep the current photo.</p>
-                </div>
+                    <!-- MULTI-FILE DRAG & DROP ZONE -->
+                    <div id="multiUploadZone" class="flex flex-col gap-3">
+                        <div id="dropzone" class="dropzone rounded-2xl p-6 text-center cursor-pointer bg-gray-50 flex flex-col items-center justify-center hover:border-magenta transition-all" onclick="document.getElementById('gf-multi-files').click()">
+                            <input type="file" id="gf-multi-files" accept="image/*" multiple class="hidden" onchange="handleFileSelect(this.files)">
+                            <div class="w-12 h-12 rounded-full bg-magenta/10 text-magenta flex items-center justify-center mb-2">
+                                <i class="fas fa-cloud-upload-alt text-xl"></i>
+                            </div>
+                            <p class="text-xs font-bold text-gray-700">Drag & Drop photo files here</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">or <span class="text-magenta font-semibold underline">browse from your computer</span></p>
+                            <p class="text-[9px] text-gray-400 mt-2">Supports PNG, JPG, WEBP, JPEG (Max 10MB per image)</p>
+                        </div>
 
-                <input type="text" name="caption" id="gf-caption" placeholder="Caption (e.g. 'Book launch at Kenyatta University')" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta">
-                <input type="text" name="category" id="gf-category" placeholder="Category (optional, e.g. 'Book Launches')" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta">
+                        <!-- Selected File List Queue -->
+                        <div id="fileQueueContainer" class="hidden flex flex-col gap-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-gray-500">Selected Queue (<span id="queueCount">0</span>)</span>
+                                <button type="button" onclick="clearFileQueue()" class="text-[10px] text-red-500 hover:underline font-semibold">Clear All</button>
+                            </div>
+                            <div id="fileQueueList" class="max-h-48 overflow-y-auto space-y-2 custom-scrollbar pr-1">
+                                <!-- Dynamic queue items inserted via JS -->
+                            </div>
+                        </div>
+                    </div>
 
-                <button type="submit" class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider py-3 rounded-full transition-colors mt-2">
-                    <span id="galleryModalSubmitText">Upload Photo</span>
-                </button>
-            </form>
+                    <!-- SINGLE FILE MODE preview & fields -->
+                    <div id="singleUploadZone" class="hidden flex-col gap-3">
+                        <div id="galleryImagePreviewWrap" class="hidden rounded-xl overflow-hidden border border-gray-200 aspect-video bg-gray-50 relative group">
+                            <img id="galleryImagePreview" src="" alt="" class="w-full h-full object-cover">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Photo File</label>
+                            <input type="file" name="image" id="gf-image" accept="image/*" onchange="previewSingleImage(this)" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none">
+                            <p id="gf-image-note" class="hidden text-[10px] text-gray-400 mt-1">Leave empty if keeping current photo.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Caption / Description</label>
+                            <input type="text" name="caption" id="gf-caption" placeholder="Caption (e.g. 'Book launch at Kenyatta University')" class="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-xs outline-none focus:border-magenta">
+                        </div>
+                    </div>
+
+                    <!-- PROGRESS BAR WIDGET (XHR Tracker) -->
+                    <div id="uploadProgressSection" class="hidden bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span id="progressStatusText" class="font-bold text-magenta flex items-center gap-1.5">
+                                <i class="fas fa-spinner fa-spin"></i> Uploading files...
+                            </span>
+                            <span id="progressPercentText" class="font-extrabold text-gray-800">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
+                            <div id="progressBarFill" class="progress-bar-fill bg-gradient-to-r from-magenta to-orangered h-full w-0 rounded-full"></div>
+                        </div>
+                        <div class="flex justify-between items-center text-[10px] text-gray-400">
+                            <span id="progressBytesText">0 KB / 0 KB</span>
+                            <span id="progressSpeedText">-- KB/s</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitUploadBtn" class="w-full bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider py-3 rounded-xl transition-all shadow-md mt-2 flex items-center justify-center gap-2">
+                        <span id="galleryModalSubmitText">Start Uploading</span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
+    <!-- CUSTOM CONFIRMATION DELETE MODAL -->
+    <div id="confirmDeleteModal" class="fixed inset-0 bg-black/60 hidden backdrop-blur-sm z-[2050] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center space-y-4">
+            <div class="w-12 h-12 rounded-full bg-red-100 text-red-500 mx-auto flex items-center justify-center text-xl">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-sm uppercase tracking-wider text-gray-800" id="confirmDeleteTitle">Delete Photo?</h3>
+                <p class="text-xs text-gray-500 mt-1" id="confirmDeleteMessage">Are you sure you want to perform this delete operation? This action cannot be undone.</p>
+            </div>
+            <div class="flex items-center gap-2 pt-2">
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition-colors">Cancel</button>
+                <button type="button" id="confirmDeleteSubmitBtn" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition-colors shadow-md">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-[3000] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Hidden standard forms for API submits -->
     <form id="deleteGalleryForm" method="POST" class="hidden"></form>
     <form id="toggleGalleryForm" method="POST" class="hidden"></form>
 
     <script>
+        let currentUploadMode = 'multi'; // 'multi' or 'single'
+        let queuedFiles = [];
+        let pendingDeleteAction = null;
+        let isEditingPhoto = false;
+
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('-translate-x-full');
         }
 
-        function openUploadModal(img) {
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white transition-all transform translate-y-3 opacity-0 ${
+                type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-gray-800'
+            }`;
+            
+            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-3', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        const dropzone = document.getElementById('dropzone');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFileSelect(files);
+        });
+
+        function handleFileSelect(files) {
+            const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+            if (validFiles.length === 0) {
+                showToast('Please select valid image files.', 'error');
+                return;
+            }
+
+            validFiles.forEach(file => {
+                queuedFiles.push({
+                    file: file,
+                    id: Math.random().toString(36).substr(2, 9),
+                    caption: ''
+                });
+            });
+
+            renderFileQueue();
+        }
+
+        function renderFileQueue() {
+            const container = document.getElementById('fileQueueContainer');
+            const list = document.getElementById('fileQueueList');
+            const countText = document.getElementById('queueCount');
+
+            if (queuedFiles.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            countText.textContent = queuedFiles.length;
+            list.innerHTML = '';
+
+            queuedFiles.forEach((item, index) => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'flex items-center gap-3 p-2 bg-gray-50 border border-gray-200 rounded-xl text-xs';
+                
+                const sizeMb = (item.file.size / (1024 * 1024)).toFixed(2);
+                const objectUrl = URL.createObjectURL(item.file);
+
+                itemEl.innerHTML = `
+                    <img src="${objectUrl}" class="w-10 h-10 object-cover rounded-lg shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center">
+                            <p class="font-bold text-gray-800 truncate text-[11px]">${item.file.name}</p>
+                            <span class="text-[9px] text-gray-400 shrink-0">${sizeMb} MB</span>
+                        </div>
+                        <input type="text" placeholder="Individual caption (optional - defaults to batch caption)" value="${item.caption}" 
+                               onchange="updateQueueCaption('${item.id}', this.value)" 
+                               class="w-full text-[10px] border border-gray-200 rounded px-2 py-1 mt-1 bg-white outline-none focus:border-magenta">
+                    </div>
+                    <button type="button" onclick="removeFromQueue('${item.id}')" class="text-gray-400 hover:text-red-500 p-1 text-xs">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                list.appendChild(itemEl);
+            });
+        }
+
+        function updateQueueCaption(id, val) {
+            const item = queuedFiles.find(q => q.id === id);
+            if (item) item.caption = val;
+        }
+
+        function removeFromQueue(id) {
+            queuedFiles = queuedFiles.filter(q => q.id !== id);
+            renderFileQueue();
+        }
+
+        function clearFileQueue() {
+            queuedFiles = [];
+            renderFileQueue();
+        }
+
+        function switchUploadTab(mode) {
+            currentUploadMode = mode;
+            const tabMulti = document.getElementById('tabMultiBtn');
+            const tabSingle = document.getElementById('tabSingleBtn');
+            const zoneMulti = document.getElementById('multiUploadZone');
+            const zoneSingle = document.getElementById('singleUploadZone');
+
+            if (mode === 'multi') {
+                tabMulti.className = 'px-2.5 py-1 rounded-md transition-all text-gray-600 bg-white shadow-sm';
+                tabSingle.className = 'px-2.5 py-1 rounded-md transition-all text-gray-500';
+                zoneMulti.classList.remove('hidden');
+                zoneSingle.classList.add('hidden');
+                document.getElementById('galleryModalSubmitText').textContent = 'Start Bulk Upload';
+            } else {
+                tabSingle.className = 'px-2.5 py-1 rounded-md transition-all text-gray-600 bg-white shadow-sm';
+                tabMulti.className = 'px-2.5 py-1 rounded-md transition-all text-gray-500';
+                zoneSingle.classList.remove('hidden');
+                zoneMulti.classList.add('hidden');
+                document.getElementById('galleryModalSubmitText').textContent = isEditingPhoto ? 'Save Changes' : 'Upload Single Photo';
+            }
+        }
+
+        function openUploadModal(img = null, preferredMode = 'multi') {
             const form = document.getElementById('galleryForm');
             const title = document.getElementById('galleryModalTitle');
             const submitText = document.getElementById('galleryModalSubmitText');
@@ -200,11 +540,19 @@
             const preview = document.getElementById('galleryImagePreview');
 
             form.reset();
+            queuedFiles = [];
+            renderFileQueue();
+            
+            document.getElementById('uploadProgressSection').classList.add('hidden');
             previewWrap.classList.add('hidden');
             imageNote.classList.add('hidden');
-            imageInput.required = true;
+
+            // Reset shared category & batch caption fields
+            document.getElementById('gf-category').value = '';
+            document.getElementById('gf-bulk-caption').value = '';
 
             if (img) {
+                isEditingPhoto = true;
                 title.textContent = 'Edit Photo';
                 submitText.textContent = 'Save Changes';
                 form.action = `/cp/gallery/edit/${img.id}`;
@@ -212,12 +560,16 @@
                 document.getElementById('gf-category').value = img.category || '';
                 imageInput.required = false;
                 imageNote.classList.remove('hidden');
-                preview.src = img.image;
+                preview.src = img.image || `/get-image/gallery/${img.image_url}`;
                 previewWrap.classList.remove('hidden');
+                switchUploadTab('single');
+                document.getElementById('modalTabs').classList.add('hidden');
             } else {
-                title.textContent = 'Upload Photo';
-                submitText.textContent = 'Upload Photo';
+                isEditingPhoto = false;
+                title.textContent = 'Upload Photos';
                 form.action = '/cp/gallery/new';
+                document.getElementById('modalTabs').classList.remove('hidden');
+                switchUploadTab(preferredMode);
             }
 
             document.getElementById('galleryModalOverlay').classList.remove('hidden');
@@ -227,6 +579,155 @@
             document.getElementById('galleryModalOverlay').classList.add('hidden');
         }
 
+        function previewSingleImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('galleryImagePreview').src = e.target.result;
+                    document.getElementById('galleryImagePreviewWrap').classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        document.getElementById('galleryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (currentUploadMode === 'multi' && !isEditingPhoto) {
+                if (queuedFiles.length === 0) {
+                    showToast('Please add at least one image to upload.', 'error');
+                    return;
+                }
+                uploadFilesWithXHR();
+            } else {
+                // Single image standard submission via XHR for progress display
+                uploadSingleWithXHR();
+            }
+        });
+
+        function uploadFilesWithXHR() {
+            const formData = new FormData();
+            const category = document.getElementById('gf-category').value;
+            const bulkCaption = document.getElementById('gf-bulk-caption').value;
+
+            queuedFiles.forEach((item, index) => {
+                formData.append(`images`, item.file);
+                // Use individual item caption if entered, otherwise default to shared batch caption
+                const itemCaption = item.caption && item.caption.trim() ? item.caption : bulkCaption;
+                formData.append(`captions_${index}`, itemCaption);
+            });
+            formData.append('category', category);
+            formData.append('caption', bulkCaption);
+
+            executeXhrUpload('/cp/gallery/new', formData);
+        }
+
+        function uploadSingleWithXHR() {
+            const form = document.getElementById('galleryForm');
+            const formData = new FormData(form);
+            executeXhrUpload(form.action, formData);
+        }
+
+        function executeXhrUpload(url, formData) {
+            const xhr = new XMLHttpRequest();
+            const progressSection = document.getElementById('uploadProgressSection');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressPercentText = document.getElementById('progressPercentText');
+            const progressBytesText = document.getElementById('progressBytesText');
+            const progressSpeedText = document.getElementById('progressSpeedText');
+            const submitBtn = document.getElementById('submitUploadBtn');
+
+            progressSection.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50');
+
+            let startTime = new Date().getTime();
+
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    progressBarFill.style.width = percentComplete + '%';
+                    progressPercentText.textContent = percentComplete + '%';
+
+                    const loadedKb = (e.loaded / 1024).toFixed(0);
+                    const totalKb = (e.total / 1024).toFixed(0);
+                    progressBytesText.textContent = `${loadedKb} KB / ${totalKb} KB`;
+
+                    const elapsedTime = (new Date().getTime() - startTime) / 1000;
+                    if (elapsedTime > 0) {
+                        const kbps = ((e.loaded / 1024) / elapsedTime).toFixed(1);
+                        progressSpeedText.textContent = `${kbps} KB/s`;
+                    }
+                }
+            });
+
+            xhr.addEventListener('load', function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    showToast('Upload completed successfully!', 'success');
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast('Upload failed with status ' + xhr.status, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50');
+                }
+            });
+
+            xhr.addEventListener('error', function() {
+                showToast('An error occurred during file transmission.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50');
+            });
+
+            xhr.open('POST', url, true);
+            xhr.send(formData);
+        }
+
+        function handleItemSelect() {
+            const checkedBoxes = document.querySelectorAll('.gallery-item-checkbox:checked');
+            const badge = document.getElementById('selectedCountBadge');
+            const controls = document.getElementById('batchActionControls');
+
+            if (checkedBoxes.length > 0) {
+                badge.textContent = `${checkedBoxes.length} selected`;
+                badge.classList.remove('hidden');
+                controls.classList.remove('hidden');
+                controls.classList.add('flex');
+            } else {
+                badge.classList.add('hidden');
+                controls.classList.add('hidden');
+                controls.classList.remove('flex');
+            }
+        }
+
+        function toggleSelectAll(masterCheckbox) {
+            const checkboxes = document.querySelectorAll('.gallery-item-checkbox');
+            checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+            handleItemSelect();
+        }
+
+        function openDeleteModal(title, message, onConfirm) {
+            document.getElementById('confirmDeleteTitle').textContent = title;
+            document.getElementById('confirmDeleteMessage').textContent = message;
+            pendingDeleteAction = onConfirm;
+            document.getElementById('confirmDeleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('confirmDeleteModal').classList.add('hidden');
+            pendingDeleteAction = null;
+        }
+
+        document.getElementById('confirmDeleteSubmitBtn').addEventListener('click', () => {
+            if (pendingDeleteAction) pendingDeleteAction();
+            closeDeleteModal();
+        });
+
+        function promptDeleteSingle(id) {
+            openDeleteModal('Delete Photo?', 'Are you sure you want to delete this photo from the gallery? This cannot be undone.', () => {
+                deleteGalleryImage(id);
+            });
+        }
+
         function toggleGalleryImage(id) {
             const form = document.getElementById('toggleGalleryForm');
             form.action = `/api/admin/toggle_gallery/${id}`;
@@ -234,10 +735,43 @@
         }
 
         function deleteGalleryImage(id) {
-            if (!confirm('Delete this photo? This cannot be undone.')) return;
             const form = document.getElementById('deleteGalleryForm');
             form.action = `/api/admin/delete_gallery/${id}`;
             form.submit();
+        }
+
+        function triggerBatchDeleteModal() {
+            const checked = Array.from(document.querySelectorAll('.gallery-item-checkbox:checked')).map(cb => cb.value);
+            if (checked.length === 0) return;
+
+            openDeleteModal('Delete Selected Photos?', `Are you sure you want to delete ${checked.length} selected photos?`, () => {
+                fetch('/api/admin/batch_delete_gallery', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: checked })
+                }).then(() => {
+                    showToast('Selected items deleted.', 'success');
+                    setTimeout(() => window.location.reload(), 600);
+                }).catch(() => {
+                    showToast('Failed to perform batch delete.', 'error');
+                });
+            });
+        }
+
+        function triggerBatchToggle() {
+            const checked = Array.from(document.querySelectorAll('.gallery-item-checkbox:checked')).map(cb => cb.value);
+            if (checked.length === 0) return;
+
+            fetch('/api/admin/batch_toggle_gallery', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: checked })
+            }).then(() => {
+                showToast('Status updated for selected photos.', 'success');
+                setTimeout(() => window.location.reload(), 600);
+            }).catch(() => {
+                showToast('Failed to update status.', 'error');
+            });
         }
     </script>
 </body>
