@@ -161,10 +161,13 @@
                     <button  data-aos="fade-down" class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider flex items-center gap-1.5">
                         BOOKS <i class="fas fa-chevron-down text-[8px] mt-0.5"></i>
                     </button>
-                    <div class="dropdown-menu absolute left-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-xl border border-gray-100 z-50 py-1 font-bold text-xs uppercase tracking-wider">
+                    <div class="dropdown-menu absolute left-0 mt-2 w-48 bg-white text-gray-800  shadow-xl border border-gray-100 z-50 py-1 font-bold text-xs uppercase tracking-wider">
                         <a href="/books" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">All Books</a>
                         <a href="/books?cat=junior" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Junior School</a>
+                        <a href="/books?cat=general" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">General Audience </a>
                         <a href="/books?cat=revision" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Revision</a>
+                        <a href="/books?cat=1" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Grade 1 </a>
+                        <a href="/books?cat=4a" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Grade 4a</a>
                     </div>
                 </div>
 
@@ -172,18 +175,15 @@
                     <button  data-aos="fade-up" class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider flex items-center gap-1.5">
                         STORES <i class="fas fa-chevron-down text-[8px] mt-0.5"></i>
                     </button>
-                    {% if stores %}
-                    <div class="dropdown-menu absolute left-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-xl border border-gray-100 z-50 py-1 font-bold text-xs uppercase tracking-wider">
-                        {% for s in stores %}
-                        <a href="/store/{{ s.name.lower().replace(' ', '-') }}" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">{{ s.name }}</a>
-                        {% endfor %}
+                    <div class="dropdown-menu absolute left-0 mt-2 w-48 bg-white text-gray-800  shadow-xl border border-gray-100 z-50 py-1 font-bold text-xs uppercase tracking-wider">
+                        <a href="/store/nairobi" class="block px-4 py-2 hover:bg-magenta/5 hover:text-magenta transition-colors">Nairobi</a>
                         
                     </div>
-                    {% endif %}
                 </div>
 
                 <a data-aos="fade-down" href="{{ url_for('about') }}" class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider">ABOUT US</a>
                 <a  data-aos="fade-up" href="{{ url_for('contact_us') }}" class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider">CONTACT</a>
+                <a  data-aos="fade-down" href="/gallery" target="_blank" class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider">Our Gallery</a>
                 <a  data-aos="fade-down" href="https://blogzone.tunupublishers.com" target="_blank" class="text-white hover:bg-orangered px-4 py-2 rounded font-bold text-xs uppercase transition-colors tracking-wider">BLOG ZONE</a>
             </nav>
 

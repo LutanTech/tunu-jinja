@@ -46,9 +46,9 @@
     {% if stores %}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
         {% for store in stores %}
-        <a href="/store/{{ store.name | urlencode }}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
+        <a href="/store/{{ store.name.replace(' ', '-').lower() | urlencode }}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col">
             <div class="relative bg-lightWarm aspect-[16/10] overflow-hidden">
-                <img src="{{ store.image_url }}" alt="{{ store.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/500x320/8B008B/ffffff?text=TUNU+Store'">
+                <img src="{{ url_for('book_cover', filename=store.image) }}" alt="{{ store.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/500x320/8B008B/ffffff?text=TUNU+Store'">
                 {% if store.city %}
                 <span class="absolute top-3 left-3 bg-white/95 text-magenta text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
                     <i class="fas fa-map-marker-alt"></i> {{ store.city }}

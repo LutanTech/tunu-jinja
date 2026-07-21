@@ -51,9 +51,13 @@ app.config.update(
     MAIL_USERNAME="noreply@tunupublishers.com",
     MAIL_PASSWORD=os.getenv("M_P"),
     MAIL_DEFAULT_SENDER=("Tunu Publishers", "noreply@tunupublishers.com"),
-    UPLOAD_FOLDER=os.path.join(app.root_path, "static", "resources", "books" ,"covers")
+    UPLOAD_FOLDER=os.path.join(app.root_path, "static", "resources", "books" ,"covers"),
+    GALLERY_FOLDER=os.path.join(app.root_path, "static", "resources", "gallery"),
+    STORES_FOLDER=os.path.join(app.root_path, "static", "resources", "stores")
 )
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+os.makedirs(app.config["GALLERY_FOLDER"], exist_ok=True)
+os.makedirs(app.config["STORES_FOLDER"], exist_ok=True)
 
 
 # M-Pesa Configurations 
@@ -138,7 +142,7 @@ def auto_log(response):
             action=f"{request.method} {request.path}", method=request.method, endpoint=request.path,
             ip=request.remote_addr, user_agent=request.headers.get("User-Agent"), status_code=response.status_code
         ))
-        db.session.commit()  # FIXED: Required to commit the logging entries to the database
+        db.session.commit() 
     except Exception: 
         db.session.rollback()
     return response
@@ -334,6 +338,24 @@ class Store(db.Model):
     def to_dict(self):
         return {"id": self.id, "name": self.name, "image": self.image_url, "city": self.city, "address": self.address, "phone": self.phone, "email": self.email, "description": self.description, "hours": self.hours, "latitude": self.latitude, "longitude": self.longitude}
 
+class GalleryImage(db.Model):
+    id = db.Column(db.String(20), primary_key=True, default=lambda: generate_id("GAL"))
+    image = db.Column(db.String(1024), nullable=False)
+    caption = db.Column(db.String(255))
+    category = db.Column(db.String(100))
+    is_active = db.Column(db.Boolean, default=True)
+    added_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(hours=3))
+
+    @property
+    def image_url(self):
+        if self.image and self.image.startswith(("http://", "https://", "/static/")):
+            return self.image
+        return self.image or "https://i.ibb.co/CKRYPD4p/image.png"
+
+    def to_dict(self):
+        return {"id": self.id, "image": self.image_url, "caption": self.caption, "category": self.category}
+
+
 NEAR_NAIROBI = {
     "Nairobi",
     "Kiambu",
@@ -498,6 +520,23 @@ def checkout(oid):
 def book_cover(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
+FOLDERS = {
+    "store": "STORE_FOLDER",
+    "gallery": "GALLERY_FOLDER",
+}
+
+@app.route("/image/<string:folder>/<path:filename>")
+@limiter.limit("50 per minute")
+def get_image(folder, filename):
+    config_key = FOLDERS.get(folder.lower())
+    if not config_key:
+        abort(404)
+
+    return send_from_directory(
+        app.config[config_key],
+        filename
+    )
+    
 @app.route("/base")
 def base():
     return render_template('base.html')
@@ -1430,7 +1469,7 @@ def add_store():
     img, fn = request.files.get("image"), None
     if img and img.filename:
         fn = f"{secrets.token_hex(10)}.{img.filename.rsplit('.', 1)[1].lower()}"
-        img.save(os.path.join(app.config["UPLOAD_FOLDER"], fn))
+        img.save(os.path.join(app.config["STORES_FOLDER"], fn))
 
     store = Store(
         name=request.form.get("name"),
@@ -1494,6 +1533,102 @@ def delete_store(id):
     db.session.delete(store)
     db.session.commit()
     return redirect(url_for("stores_admin"))
+
+@app.route("/gallery")
+def gallery():
+    category = request.args.get("cat", "").strip()
+    q = GalleryImage.query.filter_by(is_active=True)
+    if category:
+        q = q.filter(GalleryImage.category.ilike(category))
+    pagination = q.order_by(GalleryImage.added_at.desc()).paginate(
+        page=request.args.get("page", 1, type=int), per_page=24, error_out=False
+    )
+    categories = [c[0] for c in db.session.query(GalleryImage.category).filter(
+        GalleryImage.category.isnot(None), GalleryImage.is_active == True
+    ).distinct().all() if c[0]]
+    return render_template("company/gallery.html", images=pagination.items, pagination=pagination, categories=categories, active_category=category)
+
+
+
+@app.route("/cp/gallery")
+@login_required
+@admin_required
+def gallery_admin():
+    q = GalleryImage.query
+    search_term = request.args.get("q", "").strip()
+    if search_term:
+        like = f"%{search_term}%"
+        q = q.filter(db.or_(GalleryImage.caption.ilike(like), GalleryImage.category.ilike(like)))
+    pagination = q.order_by(GalleryImage.added_at.desc()).paginate(
+        page=request.args.get("page", 1, type=int), per_page=12, error_out=False
+    )
+    return render_template("admin/gallery.html", admin=db.session.get(Staff, session["staff_id"]),
+                           images=pagination.items, pagination=pagination, search=search_term)
+
+@app.route("/cp/gallery/new", methods=["POST"])
+@login_required
+@admin_required
+def add_gallery_image():
+    staff = db.session.get(Staff, session["staff_id"])
+    img = request.files.get("image")
+    if not img or not img.filename:
+        flash("Please choose a photo to upload.", "error")
+        return redirect(url_for("gallery_admin"))
+
+    fn = f"{secrets.token_hex(10)}.{img.filename.rsplit('.', 1)[1].lower()}"
+    img.save(os.path.join(app.config["GALLERY_FOLDER"], fn))
+
+    photo = GalleryImage(
+        image=fn,
+        caption=request.form.get("caption", "").strip(),
+        category=request.form.get("category", "").strip() or None
+    )
+    db.session.add(photo)
+    db.session.commit()
+    log_action("Uploaded gallery photo", 200, staff.id)
+    return redirect(url_for("gallery_admin"))
+
+@app.route("/cp/gallery/edit/<string:id>", methods=["POST"])
+@login_required
+@admin_required
+def edit_gallery_image(id):
+    staff = db.session.get(Staff, session["staff_id"])
+    photo = GalleryImage.query.get_or_404(id)
+
+    photo.caption = request.form.get("caption", "").strip()
+    photo.category = request.form.get("category", "").strip() or None
+
+    img = request.files.get("image")
+    if img and img.filename:
+        fn = f"{secrets.token_hex(10)}.{img.filename.rsplit('.', 1)[1].lower()}"
+        img.save(os.path.join(app.config["UPLOAD_FOLDER"], fn))
+        photo.image = fn
+
+    db.session.commit()
+    log_action("Edited gallery photo", 200, staff.id)
+    return redirect(url_for("gallery_admin"))
+
+@app.route("/api/admin/toggle_gallery/<string:id>", methods=["POST"])
+@login_required
+@admin_required
+def toggle_gallery_image(id):
+    staff = db.session.get(Staff, session["staff_id"])
+    photo = GalleryImage.query.get_or_404(id)
+    photo.is_active = not photo.is_active
+    db.session.commit()
+    log_action("Toggled visibility for a gallery photo", 200, staff.id)
+    return redirect(url_for("gallery_admin"))
+
+@app.route("/api/admin/delete_gallery/<string:id>", methods=["POST"])
+@login_required
+@admin_required
+def delete_gallery_image(id):
+    staff = db.session.get(Staff, session["staff_id"])
+    photo = GalleryImage.query.get_or_404(id)
+    log_action("Deleted a gallery photo", 200, staff.id)
+    db.session.delete(photo)
+    db.session.commit()
+    return redirect(url_for("gallery_admin"))
 
 with app.app_context():
     db.create_all()
