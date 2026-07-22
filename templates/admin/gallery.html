@@ -96,7 +96,6 @@
             </nav>
         </aside>
 
-        <!-- MAIN CONTENT -->
         <main class="flex-1 flex flex-col h-screen overflow-hidden">
             <header class="bg-white h-16 md:h-20 shadow-sm flex items-center justify-between px-4 md:px-10 z-[100] shrink-0 border-b border-gray-100 gap-3">
                 <div class="flex items-center gap-3 min-w-0">
@@ -117,7 +116,6 @@
             <div class="flex-grow overflow-y-auto p-4 md:p-10 custom-scrollbar">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     
-                    <!-- Header Actions Bar -->
                     <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div class="flex items-center gap-3">
                             <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest border-l-2 border-magenta pl-2">Uploaded Gallery Photos</h4>
@@ -126,7 +124,6 @@
                             </span>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-end">
-                            <!-- Batch Action Controls -->
                             <div id="batchActionControls" class="hidden items-center gap-2 mr-2">
                                 <button onclick="triggerBatchToggle()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold px-3 py-2 rounded-xl text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5">
                                     <i class="fas fa-eye"></i> Toggle Status
@@ -145,7 +142,6 @@
                         </div>
                     </div>
 
-                    <!-- Filter & Search Bar -->
                     <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
                         <form method="GET" action="{{ url_for('gallery_admin') }}" class="w-full sm:max-w-md">
                             <div class="relative w-full">
@@ -165,19 +161,16 @@
                         </div>
                     </div>
 
-                    <!-- PHOTO GRID -->
                     {% if images %}
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-5">
                         {% for img in images %}
                         <div class="gallery-card relative group rounded-xl overflow-hidden border border-gray-200 shadow-sm aspect-square bg-gray-100 transition-all hover:shadow-md" data-id="{{ img.id }}">
-                            <!-- Batch Selection Checkbox -->
                             <div class="absolute top-2.5 left-2.5 z-20">
                                 <input type="checkbox" value="{{ img.id }}" onchange="handleItemSelect()" class="gallery-item-checkbox rounded border-gray-300 text-magenta focus:ring-magenta h-4 w-4 cursor-pointer shadow-sm">
                             </div>
 
                             <img src='{{ url_for("get_image", folder="gallery", filename=img.image_url ) }}' alt="{{ img.caption or '' }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.src='https://placehold.co/300x300/8B008B/ffffff?text=TUNU'">
                             
-                            <!-- Overlay Gradient & Controls -->
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
                                 <div class="flex items-center justify-between gap-1 pl-6">
                                     <span class="status-pill text-[9px] px-2 py-0.5 {{ 'status-success' if img.is_active else 'status-warning' }} shadow-sm">
@@ -216,7 +209,6 @@
                     </div>
                     {% endif %}
 
-                    <!-- Pagination Controls -->
                     <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
                         <span class="text-[10px] text-gray-400 font-semibold">
                             Showing {{ images | length }} photo{{ 's' if images | length != 1 else '' }}
@@ -244,11 +236,9 @@
         </main>
     </div>
 
-    <!-- UPLOAD & EDIT MODAL (WITH DRAG & DROP MULTI-UPLOAD AND XHR PROGRESS) -->
     <div id="galleryModalOverlay" class="fixed inset-0 bg-black/60 hidden backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-6 md:p-7 max-h-[90vh] flex flex-col overflow-hidden">
             
-            <!-- Modal Header -->
             <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
                 <div class="flex items-center gap-3">
                     <h3 id="galleryModalTitle" class="font-extrabold text-sm uppercase tracking-wider text-gray-800">Upload Photos</h3>
@@ -260,11 +250,9 @@
                 <button onclick="closeUploadModal()" class="text-gray-400 hover:text-magenta text-lg transition-colors p-1"><i class="fas fa-times"></i></button>
             </div>
 
-            <!-- Modal Content Body -->
             <div class="flex-1 overflow-y-auto custom-scrollbar pr-1">
                 <form id="galleryForm" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
                     
-                    <!-- Shared Category & Caption Setting (Applied to all multi uploads) -->
                     <div id="globalCategoryGroup" class="bg-purple-50/50 p-3.5 rounded-xl border border-purple-100 space-y-3">
                         <div class="text-[10px] font-extrabold text-magenta uppercase tracking-wider flex items-center gap-1.5">
                             <i class="fas fa-layer-group"></i> Shared Details for Bulk Upload
@@ -285,7 +273,6 @@
                         </div>
                     </div>
 
-                    <!-- MULTI-FILE DRAG & DROP ZONE -->
                     <div id="multiUploadZone" class="flex flex-col gap-3">
                         <div id="dropzone" class="dropzone rounded-2xl p-6 text-center cursor-pointer bg-gray-50 flex flex-col items-center justify-center hover:border-magenta transition-all" onclick="document.getElementById('gf-multi-files').click()">
                             <input type="file" id="gf-multi-files" accept="image/*" multiple class="hidden" onchange="handleFileSelect(this.files)">
@@ -297,19 +284,16 @@
                             <p class="text-[9px] text-gray-400 mt-2">Supports PNG, JPG, WEBP, JPEG (Max 10MB per image)</p>
                         </div>
 
-                        <!-- Selected File List Queue -->
                         <div id="fileQueueContainer" class="hidden flex flex-col gap-2">
                             <div class="flex items-center justify-between">
                                 <span class="text-[10px] font-extrabold uppercase tracking-wider text-gray-500">Selected Queue (<span id="queueCount">0</span>)</span>
                                 <button type="button" onclick="clearFileQueue()" class="text-[10px] text-red-500 hover:underline font-semibold">Clear All</button>
                             </div>
                             <div id="fileQueueList" class="max-h-48 overflow-y-auto space-y-2 custom-scrollbar pr-1">
-                                <!-- Dynamic queue items inserted via JS -->
                             </div>
                         </div>
                     </div>
 
-                    <!-- SINGLE FILE MODE preview & fields -->
                     <div id="singleUploadZone" class="hidden flex-col gap-3">
                         <div id="galleryImagePreviewWrap" class="hidden rounded-xl overflow-hidden border border-gray-200 aspect-video bg-gray-50 relative group">
                             <img id="galleryImagePreview" src="" alt="" class="w-full h-full object-cover">
@@ -327,7 +311,6 @@
                         </div>
                     </div>
 
-                    <!-- PROGRESS BAR WIDGET (XHR Tracker) -->
                     <div id="uploadProgressSection" class="hidden bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-2">
                         <div class="flex justify-between items-center text-xs">
                             <span id="progressStatusText" class="font-bold text-magenta flex items-center gap-1.5">
@@ -352,7 +335,6 @@
         </div>
     </div>
 
-    <!-- CUSTOM CONFIRMATION DELETE MODAL -->
     <div id="confirmDeleteModal" class="fixed inset-0 bg-black/60 hidden backdrop-blur-sm z-[2050] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center space-y-4">
             <div class="w-12 h-12 rounded-full bg-red-100 text-red-500 mx-auto flex items-center justify-center text-xl">
@@ -369,15 +351,13 @@
         </div>
     </div>
 
-    <!-- TOAST NOTIFICATION CONTAINER -->
     <div id="toastContainer" class="fixed bottom-5 right-5 z-[3000] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- Hidden standard forms for API submits -->
     <form id="deleteGalleryForm" method="POST" class="hidden"></form>
     <form id="toggleGalleryForm" method="POST" class="hidden"></form>
 
     <script>
-        let currentUploadMode = 'multi'; // 'multi' or 'single'
+        let currentUploadMode = 'multi'; 
         let queuedFiles = [];
         let pendingDeleteAction = null;
         let isEditingPhoto = false;
@@ -547,7 +527,6 @@
             previewWrap.classList.add('hidden');
             imageNote.classList.add('hidden');
 
-            // Reset shared category & batch caption fields
             document.getElementById('gf-category').value = '';
             document.getElementById('gf-bulk-caption').value = '';
 
@@ -600,7 +579,6 @@
                 }
                 uploadFilesWithXHR();
             } else {
-                // Single image standard submission via XHR for progress display
                 uploadSingleWithXHR();
             }
         });
@@ -612,7 +590,6 @@
 
             queuedFiles.forEach((item, index) => {
                 formData.append(`images`, item.file);
-                // Use individual item caption if entered, otherwise default to shared batch caption
                 const itemCaption = item.caption && item.caption.trim() ? item.caption : bulkCaption;
                 formData.append(`captions_${index}`, itemCaption);
             });
