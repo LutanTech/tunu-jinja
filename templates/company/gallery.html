@@ -3,7 +3,12 @@
 {% block title %}Gallery | TUNU Publishers{% endblock %}
 
 {% block head %}
-<meta name="description" content="A look at TUNU Publishers' events, school visits, book launches, and community moments across Kenya.">
+<meta name="description" content="A look at TUNU Publishers' events, school visits, book launches and community moments across Kenya.">
+<meta property="og:image" content="https://www.tunupublishers.com/static/icons/tunu_logo.png">
+<link rel="icon" type="image/png" href="/static/icons/tunu_logo.png">
+<link rel="apple-touch-icon" href="/static/icons/tunu_logo.png">
+<meta name="twitter:image" content="https://www.tunupublishers.com/static/icons/tunu_logo.png">
+
 {% endblock %}
 
 {% block content %}
@@ -42,7 +47,7 @@
         {% for img in images %}
         <button type="button"
                 onclick="openLightbox('{{ url_for("get_image", folder="gallery", filename=img.image_url ) }}', '{{ (img.caption or '')  }}')"
-                class="group relative block w-full rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all break-inside-avoid">
+                class="group relative block w-full overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all break-inside-avoid">
                 <img src='{{ url_for("get_image", folder="gallery", filename=img.image_url ) }}' alt="{{ img.caption or 'Gallery photo' }}" loading="lazy" class="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/500x600/8B008B/ffffff?text=TUNU'">
             {% if img.caption %}
             <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8 opacity-0 group-hover:opacity-100 transition-opacity">
