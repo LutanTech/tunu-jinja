@@ -1322,6 +1322,18 @@ def track_order():
        return render_template("track.html")
     return render_template("track.html", order=order)
    
+@app.route("/share/image/<string:folder>/<path:filename>")
+@limiter.limit("50 per minute")
+def share_image(folder, filename):
+    config_key = FOLDERS.get(folder.lower())
+    if not config_key:
+        abort(404)
+
+    return render_template(
+        "company/image_share.html",
+        folder=folder,
+        filename=filename
+    )
 
 @app.route("/api/order-status")
 @limiter.limit("12 per minute")

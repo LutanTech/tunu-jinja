@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Photo Preview | TUNU Publishers{% endblock %}
+
+{% block head %}
+<meta name="description" content="{{ caption or 'View photo from TUNU Publishers gallery.' }}">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ caption or 'Gallery Photo | TUNU Publishers' }}">
+<meta property="og:description" content="View photo from TUNU Publishers gallery.">
+<meta property="og:image" content="{{ url_for('get_image', folder=folder, filename=filename, _external=True) }}">
+<meta property="og:image:secure_url" content="{{ url_for('get_image', folder=folder, filename=filename, _external=True) }}">
+<meta property="og:url" content="{{ request.url }}">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ caption or 'Gallery Photo | TUNU Publishers' }}">
+<meta name="twitter:description" content="View photo from TUNU Publishers gallery.">
+<meta name="twitter:image" content="{{ url_for('get_image', folder=folder, filename=filename, _external=True) }}">
+
+<link rel="icon" type="image/png" href="/static/icons/tunu_logo.png">
+<link rel="apple-touch-icon" href="/static/icons/tunu_logo.png">
+{% endblock %}
+
+{% block content %}
+<div class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center gap-2 text-[11px] font-semibold text-gray-500">
+        <a href="/" class="hover:text-magenta transition-colors">Home</a>
+        <i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
+        <a href="{{ url_for('gallery') }}" class="hover:text-magenta transition-colors">Gallery</a>
+        <i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
+        <span class="text-gray-800">Shared Photo</span>
+    </div>
+</div>
+
+<section class="max-w-4xl mx-auto px-4 py-10 md:py-16 text-center">
+    <div class="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-lg">
+        <div class="overflow-hidden rounded-xl bg-gray-900 flex items-center justify-center max-h-[75vh]">
+            <img src="{{ url_for('get_image', folder=folder, filename=filename) }}" 
+                 alt="{{ caption or 'Gallery Photo' }}" 
+                 class="max-h-[75vh] w-auto object-contain mx-auto"
+                 onerror="this.src='https://placehold.co/800x600/8B008B/ffffff?text=TUNU+Publishers'">
+        </div>
+        
+        {% if caption %}
+        <p class="mt-4 text-gray-700 text-sm md:text-base font-semibold">{{ caption }}</p>
+        {% endif %}
+
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <a href="{{ url_for('gallery') }}" 
+               class="px-5 py-2.5 bg-magenta text-white text-xs font-bold uppercase tracking-wider rounded-full hover:bg-magenta/90 transition-colors inline-flex items-center gap-2 shadow-sm">
+                <i class="fas fa-th"></i> View Full Gallery
+            </a>
+            <button type="button" 
+                    onclick="shareThisImage(event, '{{ request.url }}', '{{ (caption or 'Gallery Photo')|escape }}')"
+                    class="px-5 py-2.5 bg-lightWarm text-gray-700 hover:text-magenta border border-gray-200 text-xs font-bold uppercase tracking-wider rounded-full hover:bg-gray-100 transition-colors inline-flex items-center gap-2 shadow-sm">
+                <i class="fas fa-share-alt"></i> Share Link
+            </button>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function shareThisImage(event, url, caption) {
+        event.stopPropagation();
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (isAndroid && navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'TUNU Publishers Gallery',
+                    text: caption || 'Check out this photo from TUNU Publishers!',
+                    url: url
+                });
+                return;
+            } catch (err) {
+                if (err.name === 'AbortError') return;
+            }
+        }
+        copyLinkToClipboard(url, event.currentTarget);
+    }
+
+    function copyLinkToClipboard(text, btnElement) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => {
+                showCopyFeedback(btnElement);
+            }).catch(() => {
+                fallbackCopy(text, btnElement);
+            });
+        } else {
+            fallbackCopy(text, btnElement);
+        }
+    }
+
+    function fallbackCopy(text, btnElement) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showCopyFeedback(btnElement);
+        } catch (err) {
+            alert('Copy this link: ' + text);
+        }
+        document.body.removeChild(textarea);
+    }
+
+    function showCopyFeedback(btnElement) {
+        if (!btnElement) return;
+        const icon = btnElement.querySelector('i');
+        if (icon) {
+            const originalClass = icon.className;
+            icon.className = 'fas fa-check text-green-500 text-xs';
+            setTimeout(() => {
+                icon.className = originalClass;
+            }, 2000);
+        }
+    }
+</script>
+{% endblock %}
