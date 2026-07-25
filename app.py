@@ -1,11 +1,8 @@
 import base64
 from datetime import datetime, timedelta
-from datetime import datetime, timedelta
-from functools import wraps
 from functools import wraps
 import hashlib
 import hmac
-import json
 import json
 import os
 import re
@@ -36,6 +33,8 @@ from flask_sqlalchemy import SQLAlchemy
 import requests
 from sqlalchemy import func
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_caching import Cache
+
 
 load_dotenv()
 
@@ -67,6 +66,10 @@ SHORTCODE = os.getenv("MPESA_SHORTCODE")
 PASSKEY = os.getenv("MPESA_PASSKEY")
 BASE_URL = "https://sandbox.safaricom.co.ke" if os.getenv("MPESA_ENV", "sandbox") == "sandbox" else "https://api.safaricom.co.ke"
 
+cache = Cache(app, config={
+    "CACHE_TYPE": "SimpleCache",
+    "CACHE_DEFAULT_TIMEOUT": 300  # 5 minutes
+})
 # Database & Extensions
 db = SQLAlchemy(app)
 mail = Mail(app)
@@ -422,6 +425,7 @@ BOOKS_DATA = [
 ]
 
 @app.route("/")
+@cache.cached(timeout=259200)
 def home():
     tot = db.session.query(db.func.sum(Book.stars)).filter_by(is_deleted=False).scalar() or 0
     newest = Book.query.filter_by(is_deleted=False).order_by(Book.added_at.desc()).limit(8).all()
@@ -492,7 +496,9 @@ def book_detail(book_slug):
     book_id = slugged[1]
     book = Book.query.filter_by(id=book_id, is_deleted=False).first_or_404()
     book.views += 1
+    
     db.session.commit()
+    cache.delete_memoized(home)
     return render_template("book.html", book=book, related=Book.query.filter(Book.id != book.id, Book.is_deleted == False).limit(4).all())
 
 
@@ -518,7 +524,11 @@ def checkout(oid):
 @app.route("/book-cover/<path:filename>")
 @limiter.limit("50 per minute")
 def book_cover(filename):
-    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+    return send_from_directory(
+        app.config["UPLOAD_FOLDER"],
+        filename,
+        max_age=2592000  
+    )
 
 FOLDERS = {
     "store": "STORE_FOLDER",
@@ -527,6 +537,7 @@ FOLDERS = {
 
 @app.route("/image/<string:folder>/<path:filename>")
 @limiter.limit("50 per minute")
+@cache.cached(timeout=259200)
 def get_image(folder, filename):
     config_key = FOLDERS.get(folder.lower())
     if not config_key:
@@ -576,22 +587,6 @@ def validate_coupon():
         "discount_value": coupon.discount_value
     })
 
-@app.route("/create_dummy")
-def create_dummy():
-    admin = Staff.query.filter_by(id="ADM-0001").first()
-    if not admin:
-        admin = Staff(id="ADM-0001", name="Administrator", phone="0700000000", email="admin@tunupublishers.com", password=generate_password_hash("admin123"), is_admin=True)
-        db.session.add(admin)
-        db.session.commit()
-    created = []
-    for item in BOOKS_DATA:
-        if Book.query.filter_by(title=item["title"]).first(): continue
-        bk = Book(title=item["title"], image=item["image"], grade=item["grade"], audience=item["audience"], authors=item["authors"], newPrice=item["newPrice"], oldPrice=item["oldPrice"], added_by=admin.id)
-        bk.set_slug()
-        db.session.add(bk)
-        created.append(bk.title)
-    db.session.commit()
-    return jsonify({"created": created})
 
 @app.route("/staff/login", methods=["GET", "POST"])
 def login():
@@ -1064,8 +1059,6 @@ def about():
 def contact_us():
     return render_template('company/contact.html')
 
-
-
 @app.post("/api/create-order")
 def create_order():
     data = request.get_json(silent=True) or {}
@@ -1259,28 +1252,7 @@ def books_batch():
 def search():
     query = request.args.get("q", "").strip()
     return redirect(url_for('books', q=query, sort='newest'))
-            
-@app.route("/clear-cache")
-def clear_url_cache():
-    changed = []
-
-    books = Book.query.all()
-
-    for book in books:
-        if book.image:
-            for prefix in prefixes:
-                if book.image.startswith(prefix):
-                    book.image = book.image[len(prefix):]
-                    changed.append(book.title)
-                    break
-
-    db.session.commit()
-
-    return jsonify({
-        "updated": len(changed),
-        "books": changed
-    })
-    
+               
 @app.route("/delivery-policy")
 def delivery_policy():
     return render_template("delivery_policy.html")
@@ -1302,6 +1274,7 @@ def mpesa_callback():
                 bk = db.session.get(Book, item["id"])
                 if bk: bk.sold += item["qty"]
             db.session.commit()
+            cache.delete_memoized(home)
             send_mail("Payment Successful", [order.email], render_template("emails/payment.html", order=order))
         else:
             order.status = "FAILED"
@@ -1355,6 +1328,10 @@ def newsletter():
     if not request.json.get("email"): return jsonify({"error": "Email required."}), 400
     return jsonify({"success": True, "message": "Subscribed."})
 
+
+
+
+
 def send_welcome_email(staff):
     send_mail("Welcome to Tunu Publishers", [staff.email], render_template("emails/welcome.html", staff=staff))
 
@@ -1374,6 +1351,10 @@ def send_weekend_wishes():
         if mb.email:
             try: send_mail("Happy Weekend", [mb.email], render_template("emails/weekend.html", staff=mb))
             except Exception: pass
+
+
+
+
 
 @app.route("/api/send-reminders")
 @login_required
@@ -1399,6 +1380,10 @@ def test_email():
     if not staff.email: return jsonify({"error": "No email found."}), 400
     send_mail("Email Test", [staff.email], render_template("emails/test.html", staff=staff))
     return jsonify({"success": True})
+
+
+
+
 
 @app.context_processor
 def inject_globals():
@@ -1439,6 +1424,10 @@ def method_not_allowed(e): return render_template("errors/405.html", error=e), 4
 def server_error(e):
     db.session.rollback()
     return render_template("errors/500.html", error=e), 500
+
+
+
+
 
 @app.route("/stores")
 def stores():
@@ -1546,6 +1535,10 @@ def delete_store(id):
     db.session.commit()
     return redirect(url_for("stores_admin"))
 
+
+
+
+
 @app.route("/gallery")
 def gallery():
     category = request.args.get("cat", "").strip()
@@ -1591,72 +1584,7 @@ def gallery_admin():
         search=search,
         admin=admin
     )
-
-@app.route("/cp/gallery/new", methods=["POST"])
-@login_required
-@admin_required
-def add_gallery_image():
-    """
-    Handles gallery image uploads for both single file submissions and
-    bulk drag-and-drop multi-file uploads with individual captions.
-    Supports both XHR/AJAX responses and traditional form redirects.
-    """
-    staff = db.session.get(Staff, session["staff_id"])
     
-    files = request.files.getlist("images")
-    
-    if not files or not files[0].filename:
-        single_file = request.files.get("image")
-        if single_file and single_file.filename:
-            files = [single_file]
-        else:
-            files = []
-
-    if not files:
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return jsonify({"status": "error", "message": "Please choose at least one photo to upload."}), 400
-        flash("Please choose a photo to upload.", "error")
-        return redirect(url_for("gallery_admin"))
-
-    category = request.form.get("category", "").strip() or None
-    uploaded_count = 0
-
-    for idx, img in enumerate(files):
-        if not img or not img.filename:
-            continue
-        
-        caption = request.form.get(f"captions_{idx}", "").strip()
-        if not caption:
-            caption = request.form.get("caption", "").strip()
-
-        ext = img.filename.rsplit(".", 1)[-1].lower() if "." in img.filename else "jpg"
-        fn = f"{secrets.token_hex(10)}.{ext}"
-        
-        save_path = os.path.join(app.config["GALLERY_FOLDER"], fn)
-        img.save(save_path)
-
-        photo = GalleryImage(
-            image=fn,
-            caption=caption,
-            category=category
-        )
-        db.session.add(photo)
-        uploaded_count += 1
-
-    if uploaded_count > 0:
-        db.session.commit()
-        log_action(f"Uploaded {uploaded_count} gallery photo(s)", 200, staff.id)
-
-    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        return jsonify({
-            "status": "success",
-            "message": f"Successfully uploaded {uploaded_count} photo(s).",
-            "count": uploaded_count
-        }), 200
-
-    flash(f"Successfully uploaded {uploaded_count} photo(s).", "success")
-    return redirect(url_for("gallery_admin"))
-
 @app.route("/cp/gallery/edit/<string:id>", methods=["POST"])
 @login_required
 @admin_required
@@ -1830,9 +1758,70 @@ def batch_toggle_gallery():
         "count": toggled_count
     }), 200
     
-with app.app_context():
-    db.create_all()
+@app.route("/cp/gallery/new", methods=["POST"])
+@login_required
+@admin_required
+def add_gallery_image():
+
+    staff = db.session.get(Staff, session["staff_id"])
+    
+    files = request.files.getlist("images")
+    
+    if not files or not files[0].filename:
+        single_file = request.files.get("image")
+        if single_file and single_file.filename:
+            files = [single_file]
+        else:
+            files = []
+
+    if not files:
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"status": "error", "message": "Please choose at least one photo to upload."}), 400
+        flash("Please choose a photo to upload.", "error")
+        return redirect(url_for("gallery_admin"))
+
+    category = request.form.get("category", "").strip() or None
+    uploaded_count = 0
+
+    for idx, img in enumerate(files):
+        if not img or not img.filename:
+            continue
+        
+        caption = request.form.get(f"captions_{idx}", "").strip()
+        if not caption:
+            caption = request.form.get("caption", "").strip()
+
+        ext = img.filename.rsplit(".", 1)[-1].lower() if "." in img.filename else "jpg"
+        fn = f"{secrets.token_hex(10)}.{ext}"
+        
+        save_path = os.path.join(app.config["GALLERY_FOLDER"], fn)
+        img.save(save_path)
+
+        photo = GalleryImage(
+            image=fn,
+            caption=caption,
+            category=category
+        )
+        db.session.add(photo)
+        uploaded_count += 1
+
+    if uploaded_count > 0:
+        db.session.commit()
+        log_action(f"Uploaded {uploaded_count} gallery photo(s)", 200, staff.id)
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({
+            "status": "success",
+            "message": f"Successfully uploaded {uploaded_count} photo(s).",
+            "count": uploaded_count
+        }), 200
+
+    flash(f"Successfully uploaded {uploaded_count} photo(s).", "success")
+    return redirect(url_for("gallery_admin"))
+
 
 if __name__ == "__main__":
+    with app.app_context():
+       db.create_all()
     print('iiiiiiiiiiiii')
     app.run(host="0.0.0.0", port=5000, debug=True)

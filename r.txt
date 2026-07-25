@@ -11,3 +11,4 @@ python-dotenv
 PyMySQL
 Flask-Limiter
 requests
+Flask-Caching
