@@ -10,7 +10,7 @@ import secrets
 import string
 import traceback
 from urllib.parse import quote
-
+from flask_cors import CORS
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -74,6 +74,7 @@ cache = Cache(app, config={
 db = SQLAlchemy(app)
 mail = Mail(app)
 migrate = Migrate(app, db)
+cors = CORS(app)
 
 def generate_id(prefix="STF", length=6):
     return f"{prefix}-" + "".join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(length))
