@@ -12,3 +12,4 @@ PyMySQL
 Flask-Limiter
 requests
 Flask-Caching
+Flask-Cors
