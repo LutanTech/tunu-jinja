@@ -425,7 +425,7 @@ BOOKS_DATA = [
 ]
 
 @app.route("/")
-@cache.cached(timeout=259200)
+@cache.cached(timeout=600)
 def home():
     tot = db.session.query(db.func.sum(Book.stars)).filter_by(is_deleted=False).scalar() or 0
     newest = Book.query.filter_by(is_deleted=False).order_by(Book.added_at.desc()).limit(8).all()
@@ -490,6 +490,82 @@ def books():
         cat=cat, search=search, sort=sort, min_price=min_price, max_price=max_price, labels=labels
     )
 
+@app.route("/api/books")
+@limiter.limit("40 per minute")
+def api_books():
+    q = Book.query.filter_by(is_deleted=False)
+
+    cat = request.args.get("cat", "").strip()
+    if cat:
+        like = f"%{cat}%"
+        q = q.filter(db.or_(Book.grade.ilike(like), Book.audience.ilike(like)))
+
+    search = request.args.get("q", "").strip()
+    if search:
+        like = f"%{search}%"
+        q = q.filter(db.or_(Book.title.ilike(like), Book.authors.ilike(like)))
+
+    min_price = request.args.get("min_price", type=float)
+    if min_price is not None:
+        q = q.filter(Book.newPrice >= min_price)
+
+    max_price = request.args.get("max_price", type=float)
+    if max_price is not None:
+        q = q.filter(Book.newPrice <= max_price)
+
+    sort = request.args.get("sort", "newest")
+    sort_map = {
+        "newest": Book.added_at.desc(),
+        "price_asc": Book.newPrice.asc(),
+        "price_desc": Book.newPrice.desc(),
+        "popular": Book.sold.desc(),
+        "rating": Book.stars.desc(),
+    }
+    q = q.order_by(sort_map.get(sort, Book.added_at.desc()))
+
+    bks = q.paginate(
+        page=request.args.get("page", 1, type=int),
+        per_page=12,
+        error_out=False
+    )
+
+    labels = (
+        db.session.query(
+            Book.grade,
+            func.count(Book.id).label("count")
+        )
+        .filter(Book.is_deleted == False)
+        .group_by(Book.grade)
+        .order_by(Book.grade)
+        .all()
+    )
+
+    return jsonify({
+        "books": [book.to_dict() for book in bks.items],
+        "pagination": {
+            "page": bks.page,
+            "pages": bks.pages,
+            "per_page": bks.per_page,
+            "total": bks.total,
+            "has_next": bks.has_next,
+            "has_prev": bks.has_prev,
+            "next_num": bks.next_num,
+            "prev_num": bks.prev_num,
+        },
+        "cat": cat,
+        "search": search,
+        "sort": sort,
+        "min_price": min_price,
+        "max_price": max_price,
+        "labels": [
+            {
+                "grade": grade,
+                "count": count
+            }
+            for grade, count in labels
+        ]
+    })
+
 @app.route("/book/<string:book_slug>")
 def book_detail(book_slug):
     slugged = book_slug.split('_')
@@ -498,7 +574,6 @@ def book_detail(book_slug):
     book.views += 1
     
     db.session.commit()
-    cache.delete_memoized(home)
     return render_template("book.html", book=book, related=Book.query.filter(Book.id != book.id, Book.is_deleted == False).limit(4).all())
 
 
@@ -872,7 +947,7 @@ def books_admin():
         page=request.args.get("page", 1, type=int), per_page=10, error_out=False
     )
  
-    return redirect(url_for(''))
+    return redirect(url_for('admin_dashboard'))
 
 @app.route("/cp/books/new", methods=["GET", "POST"])
 @login_required
