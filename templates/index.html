@@ -390,6 +390,47 @@
     </div>
 </section>
 
+<div id="adModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/80 backdrop-blur-sm hidden transition-opacity duration-300 opacity-0">
+    <div id="adModalContainer" class="relative bg-white rounded-2xl shadow-2xl max-w-sm md:max-w-3xl w-full overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col md:flex-row">
+        
+        <button onclick="closeAdModal()" class="absolute top-3 right-3 z-30 w-8 h-8 bg-black/60 hover:bg-black text-white rounded-full flex items-center justify-center transition-colors shadow-lg">
+            <i class="fas fa-times text-xs"></i>
+        </button>
+
+        <div class="md:w-1/2 bg-white flex items-center justify-center p-2 sm:p-4 max-h-[60vh] md:max-h-none">
+            <img src="/static/assets/udi_wa_mahaba.jpg" alt="Udi wa Mahaba" class="max-h-full w-auto object-contain rounded-lg" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'p-6 text-center text-white\'><i class=\'fas fa-book-open text-4xl mb-2 text-magenta\'></i><p class=\'font-bold text-sm\'>UDI WA MAHABA</p></div>';">
+        </div>
+
+        <div class="md:w-1/2 p-4 sm:p-6 flex flex-col justify-between bg-white">
+            <div class="hidden md:block">
+                <span class="inline-block bg-orangered/10 text-orangered text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-2">
+                    Uzinduzi wa Kitabu
+                </span>
+                <h3 class="text-xl font-extrabold text-gray-900 leading-tight">Udi wa Mahaba</h3>
+                <p class="text-xs text-gray-500 font-semibold mt-0.5">Mwandishi: Kassim Kombe (Malenga Mpambe)</p>
+
+                <div class="my-4 space-y-2 border-y border-gray-100 py-3 text-xs text-gray-700">
+                    <p><strong>Mahali:</strong> Baraza Media Lab, Mombasa</p>
+                    <p><strong>Tarehe:</strong> Jumamosi, 19 Septemba 2026</p>
+                    <p><strong>Muda:</strong> 8:00 Mchana – 1:00 Jioni</p>
+                </div>
+            </div>
+
+            <div class="space-y-2 w-full pt-1">
+                <a href="https://wa.me/254787281177?text=Habari,%20ningependa%20pata%20maelezo%20zaidi%20husu%20uzinduzi%20wa%20kitabu%20cha%20Udi%20wa%20Mahaba" target="_blank" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-xs uppercase tracking-wider py-3 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md">
+                    <i class="fab fa-whatsapp text-base"></i> Piga Simu / WhatsApp
+                </a>
+                <button onclick="closeAdModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs uppercase tracking-wider py-2.5 rounded-xl transition-colors">
+                    Endelea na Tovuti
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
 {% endblock %}
 
 {% block extra_js %}
@@ -434,6 +475,54 @@
                 }
             });
         }
+    });
+
+    function showAdModal() {
+        if (sessionStorage.getItem('ad_dismissed')) return;
+    
+        const modal = document.getElementById('adModal');
+        const container = document.getElementById('adModalContainer');
+        if (!modal) return;
+    
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            container.classList.remove('scale-95');
+            container.classList.add('scale-100');
+        }, 50);
+    }
+    
+    function closeAdModal() {
+        const modal = document.getElementById('adModal');
+        const container = document.getElementById('adModalContainer');
+        if (!modal) return;
+    
+        modal.classList.add('opacity-0');
+        container.classList.remove('scale-100');
+        container.classList.add('scale-95');
+    
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            sessionStorage.setItem('ad_dismissed', 'true');
+        }, 300);
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(showAdModal, 1000);
+    
+        const modal = document.getElementById('adModal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeAdModal();
+            });
+        }
+    
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAdModal();
+        });
     });
 </script>
 {% endblock %}
