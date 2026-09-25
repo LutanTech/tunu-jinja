@@ -20,6 +20,8 @@
                     <i class="fas fa-search text-xs"></i>
                 </div>
             </div>
+            <button class="text-white bg-red-500 text-sm border border-2 rounded-xl px-4 py-2" onclick="deleteLogs()"> Delete Logs </button>
+
             <div class="text-xs text-gray-500 font-semibold" id="log-counter">
                 Showing {{ logs|length }} logs
             </div>
@@ -43,7 +45,7 @@
                     <tr class="log-row hover:bg-gray-50/50 transition-colors" 
                         data-search="{{ log.staff_id or 'anonymous' }} {{ log.action }} {{ log.status_code }} {{ log.ip }} {{ log.method }}">
                         <td class="py-4 px-6 font-semibold text-gray-500 whitespace-nowrap">
-                            {{ log.timestamp | datetime }}
+                            {{ (log.timestamp).strftime('%D-%H:%M:%S') }}
                         </td>
                         <td class="py-4 px-6 font-bold text-gray-700 font-mono whitespace-nowrap">
                             {% if log.staff_id %}
@@ -92,6 +94,20 @@
 
 {% block extra_js %}
 <script>
+    function deleteLogs(){
+        
+        fetch('/api/admin/logs/delete',{
+            method :'POST',
+            'contentType': 'application/json'
+        })
+        .then(r=>r.json())
+        .then(data=>{
+            console.log(data)
+            if(data.reload){
+                window.location.reload()
+            }
+        })
+    }
     function filterLogs() {
         const input = document.getElementById('log-search').value.toLowerCase().trim();
         const rows = document.querySelectorAll('.log-row');

@@ -767,7 +767,7 @@ def admin_dashboard():
         total_orders=Order.query.count(), total_reports=Submission.query.count(),
         recent_books=Book.query.filter_by(is_deleted=False).order_by(Book.added_at.desc()).limit(5).all(),
         recent_reports=Submission.query.order_by(Submission.submitted_at.desc()).limit(8).all(),
-        recent_orders=Order.query.order_by(Order.created_at.desc()).limit(8).all(),
+        recent_orders = Order.query.filter(Order.status != "DELETED").order_by(Order.created_at.desc()).limit(8).all(),
         recent_staff=Staff.query.filter_by(is_super_admin=False).order_by(Staff.added_at.desc()).limit(8).all(),
         monthly_reports=Submission.query.filter(Submission.submitted_at >= datetime.utcnow() - timedelta(days=30)).count()
     )
@@ -1126,6 +1126,19 @@ def admin_api_orders():
         "has_next": pg.has_next,
         "has_prev": pg.has_prev
     })
+
+@app.route("/api/admin/logs/delete", methods=['POST'])
+@login_required
+@admin_required
+def admin_api_delete_logs():
+    try:
+        Log.query.delete()
+        db.session.commit()
+        return jsonify({"reload": True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"reload": False, "error": str(e)}), 500
+
 
 @app.route("/api/admin/staff-list")
 @login_required
