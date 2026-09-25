@@ -772,6 +772,60 @@ def admin_dashboard():
         monthly_reports=Submission.query.filter(Submission.submitted_at >= datetime.utcnow() - timedelta(days=30)).count()
     )
 
+from flask import Response
+
+@app.route("/sitemap.xml", methods=["GET"])
+def sitemap():
+    base_url = request.url_root.rstrip("/")
+    pages = []
+
+    static_routes = [
+        "home",
+        "books",
+        "about",
+        "contact_us",
+        "stores",
+        "gallery",
+        "cart",
+        "wishlist",
+        "delivery_policy",
+        "track_order",
+    ]
+
+    for route in static_routes:
+        pages.append({
+            "loc": url_for(route, _external=True),
+            "lastmod": datetime.utcnow().strftime("%Y-%m-%d"),
+            "changefreq": "daily" if route in ["home", "books"] else "monthly",
+            "priority": "1.0" if route == "home" else ("0.8" if route == "books" else "0.5")
+        })
+
+    all_books = Book.query.filter_by(is_deleted=False).all()
+    for book in all_books:
+        if not book.slug:
+            book.set_slug()
+            db.session.commit()
+        
+        pages.append({
+            "loc": url_for("book_detail", book_slug=book.slug, _external=True),
+            "lastmod": (book.edited_at or book.added_at or datetime.utcnow()).strftime("%Y-%m-%d"),
+            "changefreq": "weekly",
+            "priority": "0.7"
+        })
+
+    all_stores = Store.query.filter_by(is_active=True).all()
+    for store in all_stores:
+        store_slug = store.name.lower().replace(" ", "-")
+        pages.append({
+            "loc": url_for("store_detail", store_name=store_slug, _external=True),
+            "lastmod": (store.added_at or datetime.utcnow()).strftime("%Y-%m-%d"),
+            "changefreq": "monthly",
+            "priority": "0.6"
+        })
+
+    xml_content = render_template("sitemap.xml", pages=pages)
+    return Response(xml_content, mimetype="application/xml")
+    
 
 @app.route("/api/admin/edit_staff", methods=["POST"])
 @login_required
@@ -808,7 +862,7 @@ def toggle_staff():
 @login_required
 @admin_required
 def orders_page():
-    return render_template("orders.html", orders=Order.query.order_by(Order.created_at.desc()).all())
+    return render_template("admin/orders.html", orders=Order.query.filter(Order.status != "DELETED").order_by(Order.created_at.desc()).all())
 
 @app.route("/api/admin/order/status", methods=["POST"])
 @login_required
@@ -822,6 +876,21 @@ def update_order_status():
     db.session.commit()
     log_action(f"Updated order {order.id} status", 200, adm.id)
     return jsonify({"msg": "Order updated."})
+
+
+@app.route("/api/admin/order/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_order():
+    adm = db.session.get(Staff, session["staff_id"])
+    data = request.get_json()
+    order = db.session.get(Order, data.get("order_id"))
+    if not order: return jsonify({"error": "Order not found."}), 404
+    order.status = 'DELETED'
+    db.session.commit()
+    log_action(f"Deleted order", 200, adm.id)
+    return jsonify({"msg": "Order updated."})
+
 
 
 @app.route("/cp/logs")
@@ -1011,7 +1080,7 @@ def admin_api_books():
         like = f"%{search}%"
         q = q.filter(db.or_(Book.title.ilike(like), Book.authors.ilike(like)))
     q = q.order_by(Book.added_at.desc())
-    pg = q.paginate(page=request.args.get("page", 1, type=int), per_page=10, error_out=False)
+    pg = q.paginate(page=request.args.get("page", 1, type=int), per_page=100, error_out=False)
     return jsonify({
         "items": [{"id": b.id, "title": b.title, "authors": b.authors, "grade": b.grade, "newPrice": b.newPrice, "image_url": b.image_url} for b in pg.items],
         "page": pg.page, "pages": pg.pages, "total": pg.total, "has_next": pg.has_next, "has_prev": pg.has_prev
@@ -1021,16 +1090,41 @@ def admin_api_books():
 @login_required
 @admin_required
 def admin_api_orders():
-    q = Order.query
+    q = Order.query.filter(Order.status != "DELETED")
     search = request.args.get("q", "").strip()
+
     if search:
         like = f"%{search}%"
-        q = q.filter(db.or_(Order.name.ilike(like), Order.phone.ilike(like), Order.id.ilike(like)))
+        q = q.filter(db.or_(
+            Order.name.ilike(like),
+            Order.phone.ilike(like),
+            Order.id.ilike(like)
+        ))
+
     q = q.order_by(Order.created_at.desc())
-    pg = q.paginate(page=request.args.get("page", 1, type=int), per_page=10, error_out=False)
+    pg = q.paginate(
+        page=request.args.get("page", 1, type=int),
+        per_page=10,
+        error_out=False
+    )
+
     return jsonify({
-        "items": [{"id": o.id, "name": o.name, "phone": o.phone, "city": o.city, "grand_total": o.grand_total, "status": o.status} for o in pg.items],
-        "page": pg.page, "pages": pg.pages, "total": pg.total, "has_next": pg.has_next, "has_prev": pg.has_prev
+        "items": [
+            {
+                "id": o.id,
+                "name": o.name,
+                "phone": o.phone,
+                "city": o.city,
+                "grand_total": o.grand_total,
+                "status": o.status
+            }
+            for o in pg.items
+        ],
+        "page": pg.page,
+        "pages": pg.pages,
+        "total": pg.total,
+        "has_next": pg.has_next,
+        "has_prev": pg.has_prev
     })
 
 @app.route("/api/admin/staff-list")
@@ -1622,7 +1716,7 @@ def gallery():
     if category:
         q = q.filter(GalleryImage.category.ilike(category))
     pagination = q.order_by(GalleryImage.added_at.desc()).paginate(
-        page=request.args.get("page", 1, type=int), per_page=24, error_out=False
+        page=request.args.get("page", 1, type=int), per_page=80, error_out=False
     )
     categories = [c[0] for c in db.session.query(GalleryImage.category).filter(
         GalleryImage.category.isnot(None), GalleryImage.is_active == True
@@ -1895,9 +1989,33 @@ def add_gallery_image():
     flash(f"Successfully uploaded {uploaded_count} photo(s).", "success")
     return redirect(url_for("gallery_admin"))
 
+@app.route("/ads.txt")
+def ads_txt():
+    return "google.com, pub-6834050619765169, DIRECT, f08c47fec0942fa0\n", 200, {"Content-Type": "text/plain"}
+
+@app.route("/robots.txt", methods=["GET"])
+def robots():
+    content = """User-agent: *
+        Allow: /
+
+        Disallow: /cart
+        Disallow: /wishlist
+        Disallow: /track_order
+
+        Sitemap: https://tunupublishers.com/sitemap.xml
+"""
+    return Response(content, mimetype="text/plain")
+
+from bs4 import BeautifulSoup
+
+@app.template_filter("strip_tags")
+def strip_tags(text):
+    if not text:
+        return ""
+    return BeautifulSoup(text, "html.parser").get_text(separator=" ", strip=True)
 
 if __name__ == "__main__":
     with app.app_context():
        db.create_all()
     print('iiiiiiiiiiiii')
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(debug=True, port=5000)

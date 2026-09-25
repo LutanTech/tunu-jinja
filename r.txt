@@ -13,3 +13,4 @@ Flask-Limiter
 requests
 Flask-Caching
 Flask-Cors
+beautifulsoup4

@@ -333,8 +333,12 @@
                     <option value="DISPATCHED">DISPATCHED</option>
                     <option value="DELIVERED">DELIVERED</option>
                 </select>
+ 
             </div>
             <div class="border-t border-gray-100 pt-4 mt-2 flex justify-end gap-3">
+                <div>
+                    <button onclick="deleteOrder()" class=" border border-1 rounded text-red-500 py-2 px-6"> <i class="fas fa-trash"></i> </button>
+                </div>
                 <button onclick="closeOrderModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg text-xs font-bold transition-colors">Cancel</button>
                 <button onclick="saveOrderStatus()" class="bg-magenta hover:bg-dark-magenta text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Update Status</button>
             </div>
@@ -784,6 +788,28 @@
             showAlert('error', 'Status modification failed.');
         }
     }
+
+
+    async function deleteOrder() {
+        try {
+            const res = await fetch('/api/admin/order/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: selectedOrderId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showAlert('success', data.msg);
+                closeOrderModal();
+                queryOrders(ordersPage);
+            } else {
+                showAlert('error', data.error);
+            }
+        } catch (e) {
+            showAlert('error', 'Order deletion failed.');
+        }
+    }
+
 
     function openReportModal(inst, agent, contact, phone, notes) {
         document.getElementById('rep-inst').textContent = inst;

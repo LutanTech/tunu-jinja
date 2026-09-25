@@ -12,16 +12,55 @@
 {
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": {{ book.title | tojson }},
-    "image": {{ book.image_url | tojson }},
-    "description": {{ (book.blurb or '')[:300] | tojson }},
-    "brand": { "@type": "Brand", "name": "TUNU Publishers" },
+    "name": "{{ book.title }}",
+    "image": "{{ url_for('static', filename=book.image_path, _external=True) }}",
+    "description": "{{ book.description | default('Educational book published by TUNU Publishers in Kenya.') | strip_tags | escape }}",
+    "brand": {
+        "@type": "Brand",
+        "name": "TUNU Publishers"
+    },
     "offers": {
         "@type": "Offer",
+        "url": "{{ request.url }}",
         "priceCurrency": "KES",
-        "price": {{ book.newPrice or 0 }},
+        "price": "{{ book.price }}",
+        "itemCondition": "https://schema.org/NewCondition",
         "availability": "https://schema.org/InStock",
-        "url": "https://www.tunupublishers.com/book/{{ book.slug }}"
+        "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": {
+                "@type": "MonetaryAmount",
+                "value": "Calculated at checkout",
+                "currency": "KES"
+            },
+            "shippingDestination": {
+                "@type": "DefinedRegion",
+                "addressCountry": "KE"
+            },
+            "deliveryTime": {
+                "@type": "ShippingDeliveryTime",
+                "handlingTime": {
+                    "@type": "QuantitativeValue",
+                    "minValue": 0,
+                    "maxValue": 1,
+                    "unitCode": "DAY"
+                },
+                "transitTime": {
+                    "@type": "QuantitativeValue",
+                    "minValue": 1,
+                    "maxValue": 3,
+                    "unitCode": "DAY"
+                }
+            }
+        },
+        "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+            "applicableCountry": "KE",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+            "merchantReturnDays": 14,
+            "returnMethod": "https://schema.org/ReturnByMail",
+            "returnFees": "https://schema.org/FreeReturn"
+        }
     }
 }
 </script>
