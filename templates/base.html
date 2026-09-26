@@ -367,6 +367,80 @@
         </div>
     </footer>
 
+    <!-- COOKIE BANNER COMPONENT -->
+<!-- COOKIE BANNER OVERLAY & MODAL (Hidden by default) -->
+<div id="cookie-banner-overlay" class="hidden fixed inset-0 bg-black/20 backdrop-blur-xs z-50 flex items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+    <div class="bg-white border border-gray-100 shadow-2xl rounded-2xl max-w-md w-full p-6 text-center space-y-4">
+        <div class="w-14 h-14 rounded-full bg-magenta/10 flex items-center justify-center mx-auto">
+            <i class="fas fa-cookie-bite text-magenta text-2xl"></i>
+        </div>
+        
+        <h4 class="font-extrabold text-gray-800 text-lg">We Value Your Privacy</h4>
+        
+        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
+            We use essential cookies and basic advertising data to run this site and share updates on our CBC educational materials. Please make a selection to continue. Read our <a href="/privacy-policy" class="text-magenta font-semibold underline hover:text-dark-magenta">Privacy Policy</a> and <a href="/terms-of-service" class="text-magenta font-semibold underline hover:text-dark-magenta">Terms of Service</a>.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <button onclick="acceptCookies()" class="w-full sm:w-auto bg-magenta text-white font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-full hover:bg-dark-magenta transition-colors shadow-sm">
+                Accept All
+            </button>
+            <button onclick="declineCookies()" class="w-full sm:w-auto bg-gray-100 text-gray-700 font-bold text-xs uppercase tracking-wider px-5 py-3 rounded-full hover:bg-gray-200 transition-colors">
+                Essential Only
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    body.cookie-modal-active {
+        overflow: hidden !important;
+        height: 100vh !important;
+    }
+</style>
+
+<script>
+    function showBanner() {
+        const overlay = document.getElementById('cookie-banner-overlay');
+        if (overlay) {
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+            }, 10);
+            document.body.classList.add('cookie-modal-active');
+        }
+    }
+
+    function hideBanner() {
+        const overlay = document.getElementById('cookie-banner-overlay');
+        if (overlay) {
+            overlay.classList.add('opacity-0');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.body.classList.remove('cookie-modal-active');
+            }, 300);
+        }
+    }
+
+    function acceptCookies() {
+        localStorage.setItem('cookieConsent', 'accepted');
+        hideBanner();
+    }
+
+    function declineCookies() {
+        localStorage.setItem('cookieConsent', 'declined');
+        hideBanner();
+    }
+
+    // Only shows banner if choice is missing in current session
+    document.addEventListener('DOMContentLoaded', () => {
+        const consent = localStorage.getItem('cookieConsent');
+        if (!consent) {
+            showBanner();
+        }
+    });
+</script>
+
     <script>
         let cart = [];
         try {
@@ -708,6 +782,7 @@
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+
             AOS.init({
                 duration: 700,
                 easing: "ease",
@@ -716,6 +791,7 @@
                 once: true,
                 mirror: false
             });
+
         });
         </script>
     {% block extra_js %}{% endblock %}

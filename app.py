@@ -1407,6 +1407,16 @@ def contact_us():
 
     return render_template("company/contact.html")
 
+@app.route("/privacy-policy", methods=["GET"])
+def privacy_policy():
+    return render_template("company/privacy_policy.html")
+
+
+@app.route("/terms-of-service", methods=["GET"])
+def terms():
+    return render_template("company/terms.html")
+
+
 @app.route("/cp/support")
 @login_required
 @admin_required
