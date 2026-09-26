@@ -262,7 +262,7 @@
         const orderIdField = document.getElementById('lookup-order-id');
         const rawId = orderIdField.value.trim();
         if (rawId) {
-            window.location.href = `/track-order?id=${encodeURIComponent(rawId)}`;
+            window.location.href = `/track-order/${encodeURIComponent(rawId)}`;
         }
     }
 

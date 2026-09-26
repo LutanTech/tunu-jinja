@@ -128,7 +128,9 @@
         <i class="fas fa-times"></i>
     </button>
     <div class="max-w-3xl w-full flex flex-col items-center" onclick="event.stopPropagation()">
-        <img id="lightboxImage" src="" alt="" class="max-h-[75vh] w-auto rounded-lg shadow-2xl object-contain">
+        <div id="lightboxContainer" class="relative overflow-hidden rounded-lg cursor-zoom-in max-h-[75vh]">
+            <img id="lightboxImage" src="" alt="" class="max-h-[75vh] w-auto object-contain transition-transform duration-100 ease-out origin-center">
+        </div>
         <p id="lightboxCaption" class="text-white text-sm font-semibold text-center mt-4 max-w-xl"></p>
     </div>
 </div>
@@ -137,23 +139,48 @@
 
 {% block extra_js %}
 <script>
+    const lightboxOverlay = document.getElementById('lightboxOverlay');
+    const lightboxContainer = document.getElementById('lightboxContainer');
+    const lightboxImage = document.getElementById('lightboxImage');
+    const lightboxCaption = document.getElementById('lightboxCaption');
+
+    const ZOOM_SCALE = 2.5;
+
     function openLightbox(src, caption) {
-        document.getElementById('lightboxImage').src = src;
-        const captionEl = document.getElementById('lightboxCaption');
-        captionEl.textContent = caption || '';
-        captionEl.classList.toggle('hidden', !caption);
-        const overlay = document.getElementById('lightboxOverlay');
-        overlay.classList.remove('hidden');
-        overlay.classList.add('flex');
+        lightboxImage.src = src;
+        lightboxCaption.textContent = caption || '';
+        lightboxCaption.classList.toggle('hidden', !caption);
+        
+        lightboxOverlay.classList.remove('hidden');
+        lightboxOverlay.classList.add('flex');
         document.body.style.overflow = 'hidden';
     }
 
     function closeLightbox(e) {
-        const overlay = document.getElementById('lightboxOverlay');
-        overlay.classList.add('hidden');
-        overlay.classList.remove('flex');
+        lightboxOverlay.classList.add('hidden');
+        lightboxOverlay.classList.remove('flex');
         document.body.style.overflow = '';
+        resetZoom();
     }
+
+    function resetZoom() {
+        lightboxImage.style.transformOrigin = 'center center';
+        lightboxImage.style.transform = 'scale(1)';
+    }
+
+    lightboxContainer.addEventListener('mousemove', (e) => {
+        const rect = lightboxContainer.getBoundingClientRect();
+        
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+        lightboxImage.style.transformOrigin = `${x}% ${y}%`;
+        lightboxImage.style.transform = `scale(${ZOOM_SCALE})`;
+    });
+
+    lightboxContainer.addEventListener('mouseleave', () => {
+        resetZoom();
+    });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeLightbox();

@@ -1,129 +1,876 @@
 {% extends "admin_base.html" %}
 
 {% block content %}
+
 <div class="max-w-7xl mx-auto px-4 md:px-6 py-8">
-    <div class="flex items-center gap-3 mb-6">
-        <a href="/cp" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-colors">
-            <i class="fas fa-arrow-left text-xs"></i>
-        </a>
-        <div>
-            <span class="inline-block bg-magenta/10 text-magenta text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-1">System Audit</span>
-            <h1 class="text-2xl font-extrabold text-gray-800">System Logs</h1>
-        </div>
-    </div>
-
-    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-        <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="relative max-w-md w-full">
-                <input type="text" id="log-search" oninput="filterLogs()" placeholder="Filter logs by operator, action, status, or IP..." class="w-full pl-10 pr-4 py-2.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-magenta transition-colors">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <i class="fas fa-search text-xs"></i>
-                </div>
-            </div>
-            <button class="text-white bg-red-500 text-sm border border-2 rounded-xl px-4 py-2" onclick="deleteLogs()"> Delete Logs </button>
-
-            <div class="text-xs text-gray-500 font-semibold" id="log-counter">
-                Showing {{ logs|length }} logs
-            </div>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-                <thead>
-                    <tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                        <th class="py-4 px-6">Timestamp</th>
-                        <th class="py-4 px-6">Operator ID</th>
-                        <th class="py-4 px-6">Method</th>
-                        <th class="py-4 px-6">Action / Endpoint</th>
-                        <th class="py-4 px-6">Status</th>
-                        <th class="py-4 px-6">IP Address</th>
-                        <th class="py-4 px-6">Client Device</th>
-                    </tr>
-                </thead>
-                <tbody id="logs-tbody" class="divide-y divide-gray-50">
-                    {% for log in logs %}
-                    <tr class="log-row hover:bg-gray-50/50 transition-colors" 
-                        data-search="{{ log.staff_id or 'anonymous' }} {{ log.action }} {{ log.status_code }} {{ log.ip }} {{ log.method }}">
-                        <td class="py-4 px-6 font-semibold text-gray-500 whitespace-nowrap">
-                            {{ (log.timestamp).strftime('%D-%H:%M:%S') }}
-                        </td>
-                        <td class="py-4 px-6 font-bold text-gray-700 font-mono whitespace-nowrap">
-                            {% if log.staff_id %}
-                                <span class="bg-magenta/5 text-magenta px-2.5 py-1 rounded-lg border border-magenta/10">
-                                    {{ log.staff_id }}
-                                </span>
+	
+	<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+		<div>
+			<span class="inline-block bg-magenta/10 text-magenta text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-2">
+				System Intelligence
+			</span>
+			<h1 class="text-2xl md:text-3xl font-extrabold text-gray-800">
+				Log Analytics
+			</h1>
+			<p class="text-xs text-gray-500 mt-1">
+				Traffic, visitors, activity patterns and unusual system behaviour
+			</p>
+		</div>
+		
+		<div class="flex gap-2">
+			<button onclick="location.reload()" class="border border-gray-200 hover:border-magenta hover:text-magenta px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors">
+				<i class="fas fa-sync-alt mr-1.5"></i>
+				Refresh
+			</button>
+			
+			<button onclick="deleteLogs()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors">
+				<i class="fas fa-trash mr-1.5"></i>
+				Clear Logs
+			</button>
+		</div>
+	</div>
+	
+	
+	<!-- OVERVIEW -->
+	
+	<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+		
+		<div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+						Visitors
+					</p>
+					<h3 class="text-2xl font-black text-gray-800 mt-1">
+						{{ total_visitors }}
+					</h3>
+				</div>
+				<div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+					<i class="fas fa-users"></i>
+				</div>
+			</div>
+		</div>
+		
+		<div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+						Requests
+					</p>
+					<h3 class="text-2xl font-black text-gray-800 mt-1">
+						{{ total_logs }}
+					</h3>
+				</div>
+				<div class="w-10 h-10 rounded-xl bg-magenta/10 text-magenta flex items-center justify-center">
+					<i class="fas fa-chart-line"></i>
+				</div>
+			</div>
+		</div>
+		
+		<div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+						IPs
+					</p>
+					<h3 class="text-2xl font-black text-gray-800 mt-1">
+						{{ unique_ips }}
+					</h3>
+				</div>
+				<div class="w-10 h-10 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center">
+					<i class="fas fa-network-wired"></i>
+				</div>
+			</div>
+		</div>
+		
+		<div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+						Endpoints
+					</p>
+					<h3 class="text-2xl font-black text-gray-800 mt-1">
+						{{ unique_endpoints }}
+					</h3>
+				</div>
+				<div class="w-10 h-10 rounded-xl bg-orangered/10 text-orangered flex items-center justify-center">
+					<i class="fas fa-route"></i>
+				</div>
+			</div>
+		</div>
+		
+		<div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+						Unusual IPs
+					</p>
+					<h3 class="text-2xl font-black text-red-500 mt-1">
+						{{ suspicious_ips|length }}
+					</h3>
+				</div>
+				<div class="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center">
+					<i class="fas fa-exclamation-triangle"></i>
+				</div>
+			</div>
+		</div>
+		
+	</div>
+	
+	
+	<!-- ALERTS -->
+	
+	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+		
+		<div class="bg-white border border-red-100 rounded-2xl shadow-sm overflow-hidden">
+			
+			<div class="p-5 border-b border-red-100 bg-red-50/50">
+				<div class="flex items-center justify-between">
+					<div>
+						<h3 class="font-bold text-xs text-red-700 uppercase tracking-wider">
+							<i class="fas fa-exclamation-triangle mr-2"></i>
+							Suspicious Traffic
+						</h3>
+						<p class="text-[10px] text-red-400 mt-1">
+							High request volume
+						</p>
+					</div>
+					
+					<span class="px-2 py-1 rounded-full bg-red-100 text-red-700 text-[9px] font-bold">
+						{{ suspicious_ips|length }}
+					</span>
+				</div>
+			</div>
+			
+			<div class="divide-y divide-gray-50 max-h-72 overflow-y-auto">
+				
+				{% for item in suspicious_ips %}
+				
+				<div class="px-5 py-3 flex items-center justify-between gap-3">
+					<div class="min-w-0">
+						<p class="text-xs font-bold text-gray-700 truncate">
+							{{ item.ip }}
+						</p>
+						<p class="text-[10px] text-gray-400">
+							High request frequency
+						</p>
+					</div>
+					
+					<span class="shrink-0 px-2 py-1 rounded-full bg-red-100 text-red-700 text-[9px] font-bold">
+						{{ item.requests }}
+					</span>
+				</div>
+				
+				{% else %}
+				
+				<div class="p-8 text-center text-gray-400 text-xs">
+					<i class="fas fa-shield-alt text-xl mb-2 block text-green-400"></i>
+					No unusual traffic detected
+				</div>
+				
+				{% endfor %}
+				
+			</div>
+			
+		</div>
+		
+		
+		<div class="bg-white border border-orange-100 rounded-2xl shadow-sm overflow-hidden">
+			
+			<div class="p-5 border-b border-orange-100 bg-orange-50/50">
+				<div class="flex items-center justify-between">
+					<div>
+						<h3 class="font-bold text-xs text-orange-700 uppercase tracking-wider">
+							<i class="fas fa-moon mr-2"></i>
+							Night Activity
+						</h3>
+						<p class="text-[10px] text-orange-400 mt-1">
+							11 PM to 4 AM
+						</p>
+					</div>
+					
+					<span class="px-2 py-1 rounded-full bg-orange-100 text-orange-700 text-[9px] font-bold">
+						{{ night_activity|length }}
+					</span>
+				</div>
+			</div>
+			
+			<div class="divide-y divide-gray-50 max-h-72 overflow-y-auto">
+				
+				{% for log in night_activity %}
+				
+				<div class="px-5 py-3">
+					<div class="flex items-center justify-between gap-3">
+						<span class="text-xs font-bold text-gray-700">
+							{{ log.ip }}
+						</span>
+						
+						<span class="text-[9px] text-gray-400 whitespace-nowrap">
+							{{ log.timestamp }}
+						</span>
+					</div>
+					
+					<p class="text-[10px] text-gray-500 mt-1 truncate">
+						{{ log.method }} {{ log.endpoint }}
+					</p>
+				</div>
+				
+				{% else %}
+				
+				<div class="p-8 text-center text-gray-400 text-xs">
+					No night activity detected
+				</div>
+				
+				{% endfor %}
+				
+			</div>
+			
+		</div>
+		
+		
+		<div class="bg-white border border-blue-100 rounded-2xl shadow-sm overflow-hidden">
+			
+			<div class="p-5 border-b border-blue-100 bg-blue-50/50">
+				<div class="flex items-center justify-between">
+					<div>
+						<h3 class="font-bold text-xs text-blue-700 uppercase tracking-wider">
+							<i class="fas fa-robot mr-2"></i>
+							Automated Traffic
+						</h3>
+						<p class="text-[10px] text-blue-400 mt-1">
+							Bots and crawlers
+						</p>
+					</div>
+					
+					<span class="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-[9px] font-bold">
+						{{ bot_visits|length }}
+					</span>
+				</div>
+			</div>
+			
+			<div class="divide-y divide-gray-50 max-h-72 overflow-y-auto">
+				
+				{% for log in bot_visits %}
+				
+				<div class="px-5 py-3">
+					<div class="flex items-center justify-between gap-3">
+						<span class="text-xs font-bold text-gray-700">
+							{{ log.ip }}
+						</span>
+						
+						<span class="text-[9px] text-gray-400">
+							{{ log.timestamp }}
+						</span>
+					</div>
+					
+					<p class="text-[10px] text-gray-500 mt-1 truncate">
+						{{ log.user_agent }}
+					</p>
+				</div>
+				
+				{% else %}
+				
+				<div class="p-8 text-center text-gray-400 text-xs">
+					No bots detected
+				</div>
+				
+				{% endfor %}
+				
+			</div>
+			
+		</div>
+		
+	</div>
+	
+	
+	<!-- RAPID REQUESTS -->
+	
+	<div class="bg-white border border-red-100 rounded-2xl shadow-sm overflow-hidden mb-6">
+		
+		<div class="p-5 border-b border-red-100 bg-red-50/30">
+			<h3 class="font-bold text-xs text-red-700 uppercase tracking-wider">
+				<i class="fas fa-bolt mr-2"></i>
+				Rapid Request Activity
+			</h3>
+			
+			<p class="text-[10px] text-gray-400 mt-1">
+				IPs generating unusually high request volumes within a short period
+			</p>
+		</div>
+		
+		<div class="overflow-x-auto">
+			
+			<table class="w-full text-left text-xs">
+				
+				<thead>
+					<tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+						<th class="py-3 px-5">IP Address</th>
+						<th class="py-3 px-5">Recent Requests</th>
+						<th class="py-3 px-5">Observation</th>
+					</tr>
+				</thead>
+				
+				<tbody class="divide-y divide-gray-50">
+					
+					{% for item in slow_attack %}
+					
+					<tr class="hover:bg-red-50/30">
+						
+						<td class="py-3 px-5 font-bold text-gray-700">
+							{{ item.ip }}
+						</td>
+						
+						<td class="py-3 px-5">
+							<span class="px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-[9px] font-bold">
+								{{ item.count }}
+							</span>
+						</td>
+						
+						<td class="py-3 px-5 text-red-500">
+							Unusually frequent requests
+						</td>
+						
+					</tr>
+					
+					{% else %}
+					
+					<tr>
+						<td colspan="3" class="py-8 text-center text-gray-400">
+							No rapid request patterns detected
+						</td>
+					</tr>
+					
+					{% endfor %}
+					
+				</tbody>
+				
+			</table>
+			
+		</div>
+		
+	</div>
+	
+	
+	<!-- TRAFFIC -->
+	
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+		
+		<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+			
+			<div class="p-5 border-b border-gray-100">
+				<h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider">
+					<i class="fas fa-clock text-magenta mr-2"></i>
+					Traffic by Hour
+				</h3>
+			</div>
+			
+			<div class="p-5">
+				
+				<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+					
+					{% for hour, count in traffic_by_hour %}
+					
+					<div class="bg-lightWarm rounded-xl p-3">
+						<p class="text-[10px] text-gray-400 font-bold">
+							{{ hour }}
+						</p>
+						
+						<p class="text-lg font-black text-gray-800 mt-1">
+							{{ count }}
+						</p>
+						
+						<div class="h-1.5 bg-gray-200 rounded-full mt-2 overflow-hidden">
+							<div class="h-full bg-magenta rounded-full traffic-bar" data-value="{{ count }}">
+							</div>
+						</div>
+					</div>
+					
+					{% endfor %}
+					
+				</div>
+				
+			</div>
+			
+		</div>
+		
+		
+		<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+			
+			<div class="p-5 border-b border-gray-100">
+				<h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider">
+					<i class="fas fa-chart-pie text-orangered mr-2"></i>
+					Response Status
+				</h3>
+			</div>
+			
+			<div class="divide-y divide-gray-50">
+				
+				{% for status, count in statuses.items() %}
+				
+				<div class="px-5 py-3 flex items-center justify-between">
+					
+					<div class="flex items-center gap-3">
+						
+						<span class="w-2 h-2 rounded-full
+                            {% if status|int >= 500 %}
+                                bg-red-500
+                            {% elif status|int >= 400 %}
+                                bg-yellow-500
+                            {% elif status|int >= 300 %}
+                                bg-blue-500
                             {% else %}
-                                <span class="text-gray-400 italic">Guest</span>
+                                bg-green-500
                             {% endif %}
-                        </td>
-                        <td class="py-4 px-6 whitespace-nowrap">
-                            <span class="inline-block px-2.5 py-1 rounded text-[9px] font-extrabold uppercase tracking-wider
-                                {% if log.method == 'GET' %}bg-blue-100 text-blue-700
-                                {% elif log.method == 'POST' %}bg-green-100 text-green-700
-                                {% elif log.method == 'DELETE' %}bg-red-100 text-red-600
-                                {% else %}bg-yellow-100 text-yellow-700{% endif %}">
-                                {{ log.method }}
-                            </span>
-                        </td>
-                        <td class="py-4 px-6 font-medium text-gray-800 break-all max-w-xs">
-                            {{ log.action }}
-                        </td>
-                        <td class="py-4 px-6 whitespace-nowrap">
-                            <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold
-                                {% if log.status_code >= 200 and log.status_code < 300 %}bg-green-50 text-green-600 border border-green-200/50
-                                {% elif log.status_code >= 300 and log.status_code < 400 %}bg-blue-50 text-blue-600 border border-blue-200/50
-                                {% elif log.status_code >= 400 and log.status_code < 500 %}bg-orange-50 text-orange-600 border border-orange-200/50
-                                {% else %}bg-red-50 text-red-600 border border-red-200/50{% endif %}">
-                                {{ log.status_code }}
-                            </span>
-                        </td>
-                        <td class="py-4 px-6 font-semibold text-gray-600 font-mono whitespace-nowrap">
-                            {{ log.ip }}
-                        </td>
-                        <td class="py-4 px-6 text-gray-400 font-medium truncate max-w-xs" title="{{ log.user_agent }}">
-                            {{ log.user_agent or 'Unknown Client' }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+                        "></span>
+						
+						<span class="text-xs font-bold text-gray-700">
+							{{ status }}
+						</span>
+						
+					</div>
+					
+					<span class="text-xs font-black text-gray-600">
+						{{ count }}
+					</span>
+					
+				</div>
+				
+				{% endfor %}
+				
+			</div>
+			
+		</div>
+		
+	</div>
+	
+	
+	<!-- IP + ENDPOINT -->
+	
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+		
+		<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+			
+			<div class="p-5 border-b border-gray-100">
+				<h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider">
+					<i class="fas fa-network-wired text-magenta mr-2"></i>
+					Top Visitors
+				</h3>
+			</div>
+			
+			<div class="divide-y divide-gray-50">
+				
+				{% for ip, count in top_ips %}
+				
+				<div class="px-5 py-3 flex items-center justify-between gap-3">
+					
+					<span class="text-xs font-bold text-gray-700">
+						{{ ip }}
+					</span>
+					
+					<span class="px-2.5 py-1 rounded-full bg-magenta/10 text-magenta text-[9px] font-bold">
+						{{ count }}
+					</span>
+					
+				</div>
+				
+				{% endfor %}
+				
+			</div>
+			
+		</div>
+		
+		
+		<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+			
+			<div class="p-5 border-b border-gray-100">
+				<h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider">
+					<i class="fas fa-route text-orangered mr-2"></i>
+					Most Accessed Endpoints
+				</h3>
+			</div>
+			
+			<div class="divide-y divide-gray-50 max-h-96 overflow-y-auto">
+				
+				{% for endpoint, count in top_endpoints %}
+				
+				<div class="px-5 py-3 flex items-center justify-between gap-4">
+					
+					<span class="text-xs text-gray-600 truncate">
+						{{ endpoint }}
+					</span>
+					
+					<span class="shrink-0 px-2.5 py-1 rounded-full bg-orangered/10 text-orangered text-[9px] font-bold">
+						{{ count }}
+					</span>
+					
+				</div>
+				
+				{% endfor %}
+				
+			</div>
+			
+		</div>
+		
+	</div>
+	
+	
+	<!-- ERROR SOURCES -->
+	
+	<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden mb-6">
+		
+		<div class="p-5 border-b border-gray-100">
+			
+			<h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider">
+				<i class="fas fa-bug text-red-500 mr-2"></i>
+				Error Sources
+			</h3>
+			
+			<p class="text-[10px] text-gray-400 mt-1">
+				IP addresses producing repeated failed responses
+			</p>
+			
+		</div>
+		
+		<div class="overflow-x-auto">
+			
+			<table class="w-full text-left text-xs">
+				
+				<thead>
+					<tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+						<th class="py-3 px-5">IP Address</th>
+						<th class="py-3 px-5">Errors</th>
+						<th class="py-3 px-5">Indicator</th>
+					</tr>
+				</thead>
+				
+				<tbody class="divide-y divide-gray-50">
+					
+					{% for item in error_ips %}
+					
+					<tr>
+						
+						<td class="py-3 px-5 font-bold text-gray-700">
+							{{ item.ip }}
+						</td>
+						
+						<td class="py-3 px-5">
+							<span class="px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-[9px] font-bold">
+								{{ item.errors }}
+							</span>
+						</td>
+						
+						<td class="py-3 px-5 text-red-500">
+							Repeated failed responses
+						</td>
+						
+					</tr>
+					
+					{% else %}
+					
+					<tr>
+						<td colspan="3" class="py-8 text-center text-gray-400">
+							No repeated error sources detected
+						</td>
+					</tr>
+					
+					{% endfor %}
+					
+				</tbody>
+				
+			</table>
+			
+		</div>
+		
+	</div>
+	
+	
+	<!-- STAFF -->
+	
+	<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden mb-6">
+		
+		<div class="p-5 border-b border-gray-100">
+			<h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider">
+				<i class="fas fa-user-shield text-magenta mr-2"></i>
+				Staff Activity
+			</h3>
+		</div>
+		
+		<div class="overflow-x-auto">
+			
+			<table class="w-full text-left text-xs">
+				
+				<thead>
+					<tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+						<th class="py-3 px-5">Staff</th>
+						<th class="py-3 px-5">Requests</th>
+					</tr>
+				</thead>
+				
+				<tbody class="divide-y divide-gray-50">
+					
+					{% for staff, count in top_staff %}
+					
+					<tr class="hover:bg-gray-50">
+						
+						<td class="py-3 px-5 font-bold text-gray-700">
+							{{ staff }}
+						</td>
+						
+						<td class="py-3 px-5 text-gray-500">
+							{{ count }}
+						</td>
+						
+					</tr>
+					
+					{% endfor %}
+					
+				</tbody>
+				
+			</table>
+			
+		</div>
+		
+	</div>
+	
+	
+	<!-- RAW LOGS -->
+	
+	<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+		
+		<div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+			
+			<div>
+				<h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider">
+					<i class="fas fa-list text-magenta mr-2"></i>
+					Raw Activity
+				</h3>
+				
+				<p class="text-[10px] text-gray-400 mt-1">
+					Latest {{ logs|length }} records
+				</p>
+			</div>
+			
+			<div class="relative w-full sm:w-72">
+				
+				<input type="text" id="log-search" placeholder="Search IP, endpoint, action..." class="w-full pl-9 pr-4 py-2.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-magenta transition-colors">
+				
+				<i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+				
+			</div>
+			
+		</div>
+		
+		
+		<div class="overflow-x-auto">
+			
+			<table class="w-full text-left text-xs">
+				
+				<thead>
+					<tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+						
+						<th class="py-3 px-5 whitespace-nowrap">
+							Time
+						</th>
+						
+						<th class="py-3 px-5">
+							IP
+						</th>
+						
+						<th class="py-3 px-5">
+							Staff
+						</th>
+						
+						<th class="py-3 px-5">
+							Method
+						</th>
+						
+						<th class="py-3 px-5">
+							Endpoint
+						</th>
+						
+						<th class="py-3 px-5">
+							Action
+						</th>
+						
+						<th class="py-3 px-5">
+							Status
+						</th>
+						
+						<th class="py-3 px-5">
+							User Agent
+						</th>
+						
+					</tr>
+				</thead>
+				
+				<tbody id="logs-table" class="divide-y divide-gray-50">
+					
+					{% for log in logs %}
+					
+					<tr class="log-row hover:bg-gray-50/60" data-search="{{ log.ip or '' }} {{ log.staff_id or '' }} {{ log.method or '' }} {{ log.endpoint or '' }} {{ log.action or '' }} {{ log.user_agent or '' }} {{ log.status_code or '' }}">
+						
+						<td class="py-3 px-5 whitespace-nowrap text-gray-500">
+							{{ log.timestamp }}
+						</td>
+						
+						<td class="py-3 px-5 whitespace-nowrap font-bold text-gray-700">
+							{{ log.ip or "Unknown" }}
+						</td>
+						
+						<td class="py-3 px-5 whitespace-nowrap text-gray-600">
+							{{ log.staff_id or "Guest" }}
+						</td>
+						
+						<td class="py-3 px-5">
+							<span class="font-bold text-magenta">
+								{{ log.method or "N/A" }}
+							</span>
+						</td>
+						
+						<td class="py-3 px-5 max-w-xs truncate text-gray-600">
+							{{ log.endpoint or "N/A" }}
+						</td>
+						
+						<td class="py-3 px-5 text-gray-700">
+							{{ log.action or "N/A" }}
+						</td>
+						
+						<td class="py-3 px-5">
+							
+							{% if log.status_code and log.status_code >= 500 %}
+							
+							<span class="px-2 py-1 rounded-full bg-red-100 text-red-700 text-[9px] font-bold">
+								{{ log.status_code }}
+							</span>
+							
+							{% elif log.status_code and log.status_code >= 400 %}
+							
+							<span class="px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-[9px] font-bold">
+								{{ log.status_code }}
+							</span>
+							
+							{% elif log.status_code and log.status_code >= 300 %}
+							
+							<span class="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-[9px] font-bold">
+								{{ log.status_code }}
+							</span>
+							
+							{% else %}
+							
+							<span class="px-2 py-1 rounded-full bg-green-100 text-green-700 text-[9px] font-bold">
+								{{ log.status_code or "N/A" }}
+							</span>
+							
+							{% endif %}
+							
+						</td>
+						
+						<td class="py-3 px-5 max-w-xs truncate text-gray-400" title="{{ log.user_agent or '' }}">
+							{{ log.user_agent or "N/A" }}
+						</td>
+						
+					</tr>
+					
+					{% endfor %}
+					
+				</tbody>
+				
+			</table>
+			
+		</div>
+		
+		<div id="no-results" class="hidden p-10 text-center text-gray-400 text-xs">
+			<i class="fas fa-search text-xl mb-2 block"></i>
+			No matching logs found
+		</div>
+		
+	</div>
+	
 </div>
-{% endblock %}
 
-{% block extra_js %}
+
 <script>
-    function deleteLogs(){
-        
-        fetch('/api/admin/logs/delete',{
-            method :'POST',
-            'contentType': 'application/json'
-        })
-        .then(r=>r.json())
-        .then(data=>{
-            console.log(data)
-            if(data.reload){
-                window.location.reload()
-            }
-        })
-    }
-    function filterLogs() {
-        const input = document.getElementById('log-search').value.toLowerCase().trim();
-        const rows = document.querySelectorAll('.log-row');
-        let visibleCount = 0;
+const searchInput = document.getElementById("log-search");
+const logRows = document.querySelectorAll(".log-row");
+const noResults = document.getElementById("no-results");
 
-        rows.forEach(row => {
-            const searchData = row.getAttribute('data-search').toLowerCase();
-            if (searchData.includes(input)) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
+searchInput.addEventListener("input", function() {
+	
+	const query = this.value.toLowerCase()
+		.trim();
+	let visible = 0;
+	
+	logRows.forEach(row => {
+		
+		const text = row.dataset.search.toLowerCase();
+		const match = text.includes(query);
+		
+		row.style.display = match ? "" : "none";
+		
+		if (match) visible++;
+		
+	});
+	
+	noResults.classList.toggle("hidden", visible !== 0);
+	
+});
 
-        document.getElementById('log-counter').textContent = `Showing ${visibleCount} of ${rows.length} logs`;
-    }
+
+const bars = document.querySelectorAll(".traffic-bar");
+
+let maxTraffic = 1;
+
+bars.forEach(bar => {
+	maxTraffic = Math.max(
+		maxTraffic,
+		Number(bar.dataset.value || 0)
+	);
+});
+
+bars.forEach(bar => {
+	
+	const value = Number(bar.dataset.value || 0);
+	
+	bar.style.width =
+		Math.max(3, (value / maxTraffic) * 100) + "%";
+	
+});
+
+
+async function deleteLogs() {
+	
+	if (!confirm("Delete all system logs? This cannot be undone.")) {
+		return;
+	}
+	
+	try {
+		
+		const response = await fetch(
+			"/api/admin/logs/delete", {
+				method: "GET"
+			}
+		);
+		
+		const data = await response.json();
+		
+		if (!response.ok || !data.reload) {
+			throw new Error(
+				data.error || "Failed to delete logs"
+			);
+		}
+		
+		location.reload();
+		
+	} catch (error) {
+		
+		alert(
+			error.message || "Failed to delete logs"
+		);
+		
+	}
+	
+}
+
 </script>
+
 {% endblock %}

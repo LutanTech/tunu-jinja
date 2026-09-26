@@ -1,4 +1,6 @@
 import base64
+from collections import Counter
+from datetime import datetime, timedelta
 from datetime import datetime, timedelta
 from functools import wraps
 import hashlib
@@ -10,7 +12,8 @@ import secrets
 import string
 import traceback
 from urllib.parse import quote
-from flask_cors import CORS
+
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -24,7 +27,10 @@ from flask import (
     session,
     url_for,
 )
-from flask import redirect, request, session, url_for
+from flask import redirect, request, session, url_for, g
+from flask import Response
+from flask_caching import Cache
+from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail, Message
@@ -33,7 +39,6 @@ from flask_sqlalchemy import SQLAlchemy
 import requests
 from sqlalchemy import func
 from werkzeug.security import check_password_hash, generate_password_hash
-from flask_caching import Cache
 
 
 load_dotenv()
@@ -127,28 +132,48 @@ def admin_required(f):
 
 def log_action(action, status_code=200, staff_id=None):
     try:
+        g.route_logged = True
+
         db.session.add(Log(
-            staff_id=staff_id, action=action, method=request.method, endpoint=request.path,
-            ip=request.remote_addr, user_agent=request.headers.get("User-Agent"), status_code=status_code
+            staff_id=staff_id,
+            action=action,
+            method=request.method,
+            endpoint=request.path,
+            ip=request.remote_addr,
+            user_agent=request.headers.get("User-Agent"),
+            status_code=status_code
         ))
+
         db.session.commit()
-    except Exception as e: 
+
+    except Exception as e:
         print(f"Log error: {e}")
         db.session.rollback()
 
+
 @app.after_request
 def auto_log(response):
-
-    if request.path.startswith(("/static", "/book-cover")):
+    if request.path.startswith(("/static", "/book-cover", "/image")):
         return response
+
+    if getattr(g, "route_logged", False):
+        return response
+
     try:
         db.session.add(Log(
-            action=f"{request.method} {request.path}", method=request.method, endpoint=request.path,
-            ip=request.remote_addr, user_agent=request.headers.get("User-Agent"), status_code=response.status_code
+            action=f"{request.method} {request.path}",
+            method=request.method,
+            endpoint=request.path,
+            ip=request.remote_addr,
+            user_agent=request.headers.get("User-Agent"),
+            status_code=response.status_code
         ))
-        db.session.commit() 
-    except Exception: 
+
+        db.session.commit()
+
+    except Exception:
         db.session.rollback()
+
     return response
 
 def send_mail(subject, recipients, html):
@@ -613,7 +638,6 @@ FOLDERS = {
 
 @app.route("/image/<string:folder>/<path:filename>")
 @limiter.limit("50 per minute")
-@cache.cached(timeout=259200)
 def get_image(folder, filename):
     config_key = FOLDERS.get(folder.lower())
     if not config_key:
@@ -772,7 +796,7 @@ def admin_dashboard():
         monthly_reports=Submission.query.filter(Submission.submitted_at >= datetime.utcnow() - timedelta(days=30)).count()
     )
 
-from flask import Response
+
 
 @app.route("/sitemap.xml", methods=["GET"])
 def sitemap():
@@ -893,11 +917,7 @@ def delete_order():
 
 
 
-@app.route("/cp/logs")
-@login_required
-@admin_required
-def logs_page():
-    return render_template("system/logs.html", logs=Log.query.order_by(Log.timestamp.desc()).limit(1000).all())
+
 
 @app.route("/cp/coupons")
 @login_required
@@ -1127,7 +1147,7 @@ def admin_api_orders():
         "has_prev": pg.has_prev
     })
 
-@app.route("/api/admin/logs/delete", methods=['POST'])
+@app.route("/api/admin/logs/delete", methods=['GET'])
 @login_required
 @admin_required
 def admin_api_delete_logs():
@@ -1467,9 +1487,8 @@ def mpesa_callback():
         db.session.rollback()
     return jsonify({"ResultCode": 0, "ResultDesc": "Accepted"})
 
-@app.route("/track-order")
-def track_order():
-    id = request.args.get('id')
+@app.route("/track-order/<id>")
+def track_order(id):
     order =  order=db.session.get(Order,id)
     if not id:
         return render_template('track.html')
@@ -1740,9 +1759,8 @@ def gallery():
 @login_required
 @admin_required
 def gallery_admin():
-    """
-    Renders the gallery management page with search filtering and pagination support.
-    """
+    adm = db.session.get(Staff, session["staff_id"])
+    log_action("Gallery opened", 200, adm.id)
     search = request.args.get("q", "").strip()
     page = request.args.get("page", 1, type=int)
     per_page = 12
@@ -2019,13 +2037,107 @@ def robots():
 """
     return Response(content, mimetype="text/plain")
 
-from bs4 import BeautifulSoup
+
 
 @app.template_filter("strip_tags")
 def strip_tags(text):
     if not text:
         return ""
     return BeautifulSoup(text, "html.parser").get_text(separator=" ", strip=True)
+
+
+
+@app.route("/cp/logs")
+@login_required
+@admin_required
+def logs_page():
+    from collections import Counter
+    from datetime import datetime, timedelta
+    adm = db.session.get(Staff, session["staff_id"])
+    log_action("Viewed logs", 200, adm.id)
+    logs = Log.query.order_by(Log.timestamp.desc()).limit(5000).all()
+
+    ip_counter = Counter()
+    endpoint_counter = Counter()
+    hour_counter = Counter()
+    staff_counter = Counter()
+    status_counter = Counter()
+
+    visitors = set()
+    suspicious_ips = []
+    error_ips = []
+    night_activity = []
+    bot_visits = []
+    slow_attack = []
+
+    for log in logs:
+        ip = log.ip or "Unknown"
+
+        ip_counter[ip] += 1
+        endpoint_counter[log.endpoint or "Unknown"] += 1
+        hour_counter[log.timestamp.strftime("%H:00")] += 1
+        staff_counter[log.staff_id or "Guest"] += 1
+        status_counter[log.status_code or 0] += 1
+        visitors.add(ip)
+
+        ua = (log.user_agent or "").lower()
+
+        if "bot" in ua or "crawler" in ua or "spider" in ua:
+            bot_visits.append(log)
+
+        if log.timestamp.hour >= 23 or log.timestamp.hour <= 4:
+            night_activity.append(log)
+
+    for ip, count in ip_counter.items():
+        if count > 100:
+            suspicious_ips.append({
+                "ip": ip,
+                "requests": count
+            })
+
+        errors = sum(
+            1 for log in logs
+            if log.ip == ip and (log.status_code or 0) >= 400
+        )
+
+        if errors > 20:
+            error_ips.append({
+                "ip": ip,
+                "errors": errors
+            })
+
+        recent = [
+            log for log in logs
+            if log.ip == ip
+            and datetime.utcnow() + timedelta(hours=3) - log.timestamp
+            < timedelta(minutes=5)
+        ]
+
+        if len(recent) > 30:
+            slow_attack.append({
+                "ip": ip,
+                "count": len(recent)
+            })
+
+    return render_template(
+        "system/logs.html",
+        logs=logs,
+        total_logs=len(logs),
+        total_visitors=len(visitors),
+        unique_ips=len(ip_counter),
+        unique_endpoints=len(endpoint_counter),
+        unique_staff=len(staff_counter),
+        top_ips=ip_counter.most_common(20),
+        top_endpoints=endpoint_counter.most_common(20),
+        traffic_by_hour=sorted(hour_counter.items()),
+        suspicious_ips=suspicious_ips,
+        error_ips=error_ips,
+        night_activity=night_activity[:50],
+        bot_visits=bot_visits[:50],
+        slow_attack=slow_attack,
+        top_staff=staff_counter.most_common(20),
+        statuses=dict(status_counter)
+    )
 
 if __name__ == "__main__":
     with app.app_context():
