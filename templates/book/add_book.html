@@ -38,27 +38,108 @@
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="audience" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Target Audience</label>
+                        <label for="audience" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                            Target Audience
+                        </label>
+                    
                         <select id="audience" name="audience" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors bg-white appearance-none text-gray-700">
-                            <option value="General">General Readers</option>
-                            <option value="Students">Students</option>
-                            <option value="Teachers">Teachers / Instructors</option>
-                            <option value="Children">Children</option>
+                    
+                            <optgroup label="General">
+                                <option value="General">General Readers</option>
+                                <option value="Adults">Adults</option>
+                                <option value="Young Adults">Young Adults</option>
+                            </optgroup>
+                    
+                            <optgroup label="Education">
+                                <option value="Students">Students</option>
+                                <option value="Primary Students">Primary Students</option>
+                                <option value="Secondary Students">Secondary Students</option>
+                                <option value="Tertiary Students">Tertiary Students</option>
+                                <option value="Teachers">Teachers / Instructors</option>
+                                <option value="Researchers">Researchers</option>
+                                <option value="Education Professionals">Education Professionals</option>
+                            </optgroup>
+                    
+                            <optgroup label="Children & Youth">
+                                <option value="Children">Children</option>
+                                <option value="Early Readers">Early Readers</option>
+                                <option value="Teenagers">Teenagers</option>
+                                <option value="Young Readers">Young Readers</option>
+                            </optgroup>
+                    
+                            <optgroup label="Professional">
+                                <option value="Professionals">Professionals</option>
+                                <option value="Business Owners">Business Owners</option>
+                                <option value="Writers">Writers</option>
+                                <option value="Authors">Authors</option>
+                            </optgroup>
+                    
                         </select>
                     </div>
                     <div>
-                        <label for="grade" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Education Grade / Category</label>
+                        <label for="grade" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                            Education Grade / Category
+                        </label>
+                    
                         <select id="grade" name="grade" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors bg-white appearance-none text-gray-700">
-                            <option value="General">General / Fiction</option>
-                            <option value="Grade 1">Grade 1</option>
-                            <option value="Grade 2">Grade 2</option>
-                            <option value="Grade 3">Grade 3</option>
-                            <option value="Grade 4">Grade 4</option>
-                            <option value="Grade 5">Grade 5</option>
-                            <option value="Grade 6">Grade 6</option>
-                            <option value="Junior Secondary">Junior Secondary</option>
-                            <option value="Secondary">Senior Secondary</option>
-                            <option value="Adult">Adult / Tertiary</option>
+                    
+                            <optgroup label="Education">
+                                <option value="Grade 1">Grade 1</option>
+                                <option value="Grade 2">Grade 2</option>
+                                <option value="Grade 3">Grade 3</option>
+                                <option value="Grade 4">Grade 4</option>
+                                <option value="Grade 5">Grade 5</option>
+                                <option value="Grade 6">Grade 6</option>
+                                <option value="Grade 7">Grade 7</option>
+                                <option value="Grade 8">Grade 8</option>
+                                <option value="Grade 9">Grade 9</option>
+                                <option value="Grade 10">Grade 10</option>
+                                <option value="Grade 11">Grade 11</option>
+                                <option value="Grade 12">Grade 12</option>
+                                <option value="Junior Secondary">Junior Secondary</option>
+                                <option value="Secondary">Senior Secondary</option>
+                                <option value="Adult / Tertiary">Adult / Tertiary</option>
+                            </optgroup>
+                    
+                            <optgroup label="Literature">
+                                <option value="General">General</option>
+                                <option value="Fiction">Fiction</option>
+                                <option value="Poetry">Poetry</option>
+                                <option value="Drama">Drama</option>
+                                <option value="Short Stories">Short Stories</option>
+                                <option value="Novels">Novels</option>
+                                <option value="Creative Writing">Creative Writing</option>
+                                <option value="African Literature">African Literature</option>
+                            </optgroup>
+                    
+                            <optgroup label="Children">
+                                <option value="Children's Books">Children's Books</option>
+                                <option value="Picture Books">Picture Books</option>
+                                <option value="Storybooks">Storybooks</option>
+                                <option value="Early Readers">Early Readers</option>
+                                <option value="Young Adult">Young Adult</option>
+                            </optgroup>
+                    
+                            <optgroup label="Academic & Professional">
+                                <option value="Academic">Academic</option>
+                                <option value="Reference">Reference</option>
+                                <option value="Research">Research</option>
+                                <option value="Professional">Professional</option>
+                                <option value="Business">Business</option>
+                                <option value="Technology">Technology</option>
+                            </optgroup>
+                    
+                            <optgroup label="Other">
+                                <option value="Biography">Biography</option>
+                                <option value="History">History</option>
+                                <option value="Religion">Religion</option>
+                                <option value="Self Help">Self Help</option>
+                                <option value="Health">Health</option>
+                                <option value="Politics & Society">Politics & Society</option>
+                                <option value="Culture">Culture</option>
+                                <option value="General Interest">General Interest</option>
+                            </optgroup>
+                    
                         </select>
                     </div>
                 </div>

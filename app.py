@@ -782,20 +782,54 @@ def submit_report():
 @login_required
 @admin_required
 def admin_dashboard():
+    from collections import Counter
+
     adm = db.session.get(Staff, session["staff_id"])
     log_action("Visited Admin Dashboard", 200, adm.id)
+
+    logs = Log.query.order_by(Log.timestamp.desc()).limit(5000).all()
+
+    ip_counts = Counter(log.ip or "Unknown" for log in logs)
+
+    unusual_logs = []
+
+    for log in logs:
+        if log.endpoint == "/.well-known/appspecific/com.chrome.devtools.json":
+            continue
+        ip = log.ip or "Unknown"
+        ua = (log.user_agent or "").lower()
+
+        unusual = (
+            ip_counts[ip] > 100
+            or (log.status_code or 0) >= 400
+            or log.timestamp.hour >= 23
+            or log.timestamp.hour <= 4
+            or "bot" in ua
+            or "crawler" in ua
+            or "spider" in ua
+        )
+        
+        
+
+
+        if unusual:
+            unusual_logs.append(log)
+
     return render_template(
-        "admin.html", admin=adm,
+        "admin.html",
+        admin=adm,
         total_books=Book.query.filter_by(is_deleted=False).count(),
         total_staff=Staff.query.filter_by(is_super_admin=False).count(),
-        total_orders=Order.query.count(), total_reports=Submission.query.count(),
+        total_orders=Order.query.count(),
+        total_reports=Submission.query.count(),
         recent_books=Book.query.filter_by(is_deleted=False).order_by(Book.added_at.desc()).limit(5).all(),
-        recent_reports=Submission.query.order_by(Submission.submitted_at.desc()).limit(8).all(),
-        recent_orders = Order.query.filter(Order.status != "DELETED").order_by(Order.created_at.desc()).limit(8).all(),
+        unusual_logs=unusual_logs[:8],
+        recent_orders=Order.query.filter(Order.status != "DELETED").order_by(Order.created_at.desc()).limit(8).all(),
         recent_staff=Staff.query.filter_by(is_super_admin=False).order_by(Staff.added_at.desc()).limit(8).all(),
-        monthly_reports=Submission.query.filter(Submission.submitted_at >= datetime.utcnow() - timedelta(days=30)).count()
+        monthly_reports=Submission.query.filter(
+            Submission.submitted_at >= datetime.utcnow() - timedelta(days=30)
+        ).count()
     )
-
 
 
 @app.route("/sitemap.xml", methods=["GET"])
@@ -812,8 +846,7 @@ def sitemap():
         "gallery",
         "cart",
         "wishlist",
-        "delivery_policy",
-        "track_order",
+        "delivery_policy"
     ]
 
     for route in static_routes:

@@ -38,27 +38,109 @@
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="audience" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Target Audience</label>
+                        <label for="audience" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                            Target Audience
+                        </label>
+                
                         <select id="audience" name="audience" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors bg-white appearance-none text-gray-700">
-                            <option value="General" {% if book.audience == 'General' %}selected{% endif %}>General Readers</option>
-                            <option value="Students" {% if book.audience == 'Students' %}selected{% endif %}>Students</option>
-                            <option value="Teachers" {% if book.audience == 'Teachers' %}selected{% endif %}>Teachers / Instructors</option>
-                            <option value="Children" {% if book.audience == 'Children' %}selected{% endif %}>Children</option>
+                
+                            <optgroup label="General">
+                                <option value="General" {% if book.audience == 'General' %}selected{% endif %}>General Readers</option>
+                                <option value="Adults" {% if book.audience == 'Adults' %}selected{% endif %}>Adults</option>
+                                <option value="Young Adults" {% if book.audience == 'Young Adults' %}selected{% endif %}>Young Adults</option>
+                            </optgroup>
+                
+                            <optgroup label="Education">
+                                <option value="Students" {% if book.audience == 'Students' %}selected{% endif %}>Students</option>
+                                <option value="Primary Students" {% if book.audience == 'Primary Students' %}selected{% endif %}>Primary Students</option>
+                                <option value="Secondary Students" {% if book.audience == 'Secondary Students' %}selected{% endif %}>Secondary Students</option>
+                                <option value="Tertiary Students" {% if book.audience == 'Tertiary Students' %}selected{% endif %}>Tertiary Students</option>
+                                <option value="Teachers" {% if book.audience == 'Teachers' %}selected{% endif %}>Teachers / Instructors</option>
+                                <option value="Researchers" {% if book.audience == 'Researchers' %}selected{% endif %}>Researchers</option>
+                                <option value="Education Professionals" {% if book.audience == 'Education Professionals' %}selected{% endif %}>Education Professionals</option>
+                            </optgroup>
+                
+                            <optgroup label="Children & Youth">
+                                <option value="Children" {% if book.audience == 'Children' %}selected{% endif %}>Children</option>
+                                <option value="Early Readers" {% if book.audience == 'Early Readers' %}selected{% endif %}>Early Readers</option>
+                                <option value="Teenagers" {% if book.audience == 'Teenagers' %}selected{% endif %}>Teenagers</option>
+                                <option value="Young Readers" {% if book.audience == 'Young Readers' %}selected{% endif %}>Young Readers</option>
+                            </optgroup>
+                
+                            <optgroup label="Professional">
+                                <option value="Professionals" {% if book.audience == 'Professionals' %}selected{% endif %}>Professionals</option>
+                                <option value="Business Owners" {% if book.audience == 'Business Owners' %}selected{% endif %}>Business Owners</option>
+                                <option value="Writers" {% if book.audience == 'Writers' %}selected{% endif %}>Writers</option>
+                                <option value="Authors" {% if book.audience == 'Authors' %}selected{% endif %}>Authors</option>
+                            </optgroup>
+                
                         </select>
                     </div>
+                
                     <div>
-                        <label for="grade" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Education Grade / Category</label>
+                        <label for="grade" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                            Education Grade / Category
+                        </label>
+                
                         <select id="grade" name="grade" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors bg-white appearance-none text-gray-700">
-                            <option value="General" {% if book.grade == 'General' %}selected{% endif %}>General / Fiction</option>
-                            <option value="Grade 1" {% if book.grade == 'Grade 1' %}selected{% endif %}>Grade 1</option>
-                            <option value="Grade 2" {% if book.grade == 'Grade 2' %}selected{% endif %}>Grade 2</option>
-                            <option value="Grade 3" {% if book.grade == 'Grade 3' %}selected{% endif %}>Grade 3</option>
-                            <option value="Grade 4" {% if book.grade == 'Grade 4' %}selected{% endif %}>Grade 4</option>
-                            <option value="Grade 5" {% if book.grade == 'Grade 5' %}selected{% endif %}>Grade 5</option>
-                            <option value="Grade 6" {% if book.grade == 'Grade 6' %}selected{% endif %}>Grade 6</option>
-                            <option value="Junior Secondary" {% if book.grade == 'Junior Secondary' %}selected{% endif %}>Junior Secondary</option>
-                            <option value="Secondary" {% if book.grade == 'Secondary' %}selected{% endif %}>Senior Secondary</option>
-                            <option value="Adult" {% if book.grade == 'Adult' %}selected{% endif %}>Adult / Tertiary</option>
+                
+                            <optgroup label="Education">
+                                <option value="Grade 1" {% if book.grade == 'Grade 1' %}selected{% endif %}>Grade 1</option>
+                                <option value="Grade 2" {% if book.grade == 'Grade 2' %}selected{% endif %}>Grade 2</option>
+                                <option value="Grade 3" {% if book.grade == 'Grade 3' %}selected{% endif %}>Grade 3</option>
+                                <option value="Grade 4" {% if book.grade == 'Grade 4' %}selected{% endif %}>Grade 4</option>
+                                <option value="Grade 5" {% if book.grade == 'Grade 5' %}selected{% endif %}>Grade 5</option>
+                                <option value="Grade 6" {% if book.grade == 'Grade 6' %}selected{% endif %}>Grade 6</option>
+                                <option value="Grade 7" {% if book.grade == 'Grade 7' %}selected{% endif %}>Grade 7</option>
+                                <option value="Grade 8" {% if book.grade == 'Grade 8' %}selected{% endif %}>Grade 8</option>
+                                <option value="Grade 9" {% if book.grade == 'Grade 9' %}selected{% endif %}>Grade 9</option>
+                                <option value="Grade 10" {% if book.grade == 'Grade 10' %}selected{% endif %}>Grade 10</option>
+                                <option value="Grade 11" {% if book.grade == 'Grade 11' %}selected{% endif %}>Grade 11</option>
+                                <option value="Grade 12" {% if book.grade == 'Grade 12' %}selected{% endif %}>Grade 12</option>
+                                <option value="Junior Secondary" {% if book.grade == 'Junior Secondary' %}selected{% endif %}>Junior Secondary</option>
+                                <option value="Secondary" {% if book.grade == 'Secondary' %}selected{% endif %}>Senior Secondary</option>
+                                <option value="Adult / Tertiary" {% if book.grade == 'Adult / Tertiary' %}selected{% endif %}>Adult / Tertiary</option>
+                            </optgroup>
+                
+                            <optgroup label="Literature">
+                                <option value="General" {% if book.grade == 'General' %}selected{% endif %}>General</option>
+                                <option value="Fiction" {% if book.grade == 'Fiction' %}selected{% endif %}>Fiction</option>
+                                <option value="Poetry" {% if book.grade == 'Poetry' %}selected{% endif %}>Poetry</option>
+                                <option value="Drama" {% if book.grade == 'Drama' %}selected{% endif %}>Drama</option>
+                                <option value="Short Stories" {% if book.grade == 'Short Stories' %}selected{% endif %}>Short Stories</option>
+                                <option value="Novels" {% if book.grade == 'Novels' %}selected{% endif %}>Novels</option>
+                                <option value="Creative Writing" {% if book.grade == 'Creative Writing' %}selected{% endif %}>Creative Writing</option>
+                                <option value="African Literature" {% if book.grade == 'African Literature' %}selected{% endif %}>African Literature</option>
+                            </optgroup>
+                
+                            <optgroup label="Children">
+                                <option value="Children's Books" {% if book.grade == "Children's Books" %}selected{% endif %}>Children's Books</option>
+                                <option value="Picture Books" {% if book.grade == 'Picture Books' %}selected{% endif %}>Picture Books</option>
+                                <option value="Storybooks" {% if book.grade == 'Storybooks' %}selected{% endif %}>Storybooks</option>
+                                <option value="Early Readers" {% if book.grade == 'Early Readers' %}selected{% endif %}>Early Readers</option>
+                                <option value="Young Adult" {% if book.grade == 'Young Adult' %}selected{% endif %}>Young Adult</option>
+                            </optgroup>
+                
+                            <optgroup label="Academic & Professional">
+                                <option value="Academic" {% if book.grade == 'Academic' %}selected{% endif %}>Academic</option>
+                                <option value="Reference" {% if book.grade == 'Reference' %}selected{% endif %}>Reference</option>
+                                <option value="Research" {% if book.grade == 'Research' %}selected{% endif %}>Research</option>
+                                <option value="Professional" {% if book.grade == 'Professional' %}selected{% endif %}>Professional</option>
+                                <option value="Business" {% if book.grade == 'Business' %}selected{% endif %}>Business</option>
+                                <option value="Technology" {% if book.grade == 'Technology' %}selected{% endif %}>Technology</option>
+                            </optgroup>
+                
+                            <optgroup label="Other">
+                                <option value="Biography" {% if book.grade == 'Biography' %}selected{% endif %}>Biography</option>
+                                <option value="History" {% if book.grade == 'History' %}selected{% endif %}>History</option>
+                                <option value="Religion" {% if book.grade == 'Religion' %}selected{% endif %}>Religion</option>
+                                <option value="Self Help" {% if book.grade == 'Self Help' %}selected{% endif %}>Self Help</option>
+                                <option value="Health" {% if book.grade == 'Health' %}selected{% endif %}>Health</option>
+                                <option value="Politics & Society" {% if book.grade == 'Politics & Society' %}selected{% endif %}>Politics & Society</option>
+                                <option value="Culture" {% if book.grade == 'Culture' %}selected{% endif %}>Culture</option>
+                                <option value="General Interest" {% if book.grade == 'General Interest' %}selected{% endif %}>General Interest</option>
+                            </optgroup>
+                
                         </select>
                     </div>
                 </div>
