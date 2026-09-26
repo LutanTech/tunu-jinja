@@ -143,6 +143,36 @@
                 
                         </select>
                     </div>
+                    <div>
+                        <label for="category" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                            Category
+                        </label>
+                    
+                        <select id="category" name="category" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors bg-white appearance-none text-gray-700">
+                            <option value="General" {% if book.category == 'General' %}selected{% endif %}>General Interest</option>
+                            <option value="Fiction" {% if book.category == 'Fiction' %}selected{% endif %}>Fiction</option>
+                            <option value="Poetry" {% if book.category == 'Poetry' %}selected{% endif %}>Poetry</option>
+                            <option value="Drama" {% if book.category == 'Drama' %}selected{% endif %}>Drama</option>
+                            <option value="Novels" {% if book.category == 'Novels' %}selected{% endif %}>Novels</option>
+                            <option value="Short Stories" {% if book.category == 'Short Stories' %}selected{% endif %}>Short Stories</option>
+                            <option value="Picture Books" {% if book.category == 'Picture Books' %}selected{% endif %}>Picture Books</option>
+                            <option value="Storybooks" {% if book.category == 'Storybooks' %}selected{% endif %}>Storybooks</option>
+                            <option value="Children's Books" {% if book.category == "Children's Books" %}selected{% endif %}>Children's Books</option>
+                            <option value="Early Readers" {% if book.category == 'Early Readers' %}selected{% endif %}>Early Readers</option>
+                            <option value="Academic" {% if book.category == 'Academic' %}selected{% endif %}>Academic</option>
+                            <option value="Reference" {% if book.category == 'Reference' %}selected{% endif %}>Reference</option>
+                            <option value="Biography" {% if book.category == 'Biography' %}selected{% endif %}>Biography</option>
+                            <option value="History" {% if book.category == 'History' %}selected{% endif %}>History</option>
+                            <option value="Religion" {% if book.category == 'Religion' %}selected{% endif %}>Religion</option>
+                            <option value="Gudance" {% if book.category == 'Guidance' %}selected{% endif %}>Guidance</option>
+                            <option value="Self Help" {% if book.category == 'Self Help' %}selected{% endif %}>Self Help</option>
+                            <option value="Business" {% if book.category == 'Business' %}selected{% endif %}>Business</option>
+                            <option value="Technology" {% if book.category == 'Technology' %}selected{% endif %}>Technology</option>
+                            <option value="Health" {% if book.category == 'Health' %}selected{% endif %}>Health</option>
+                            <option value="Culture" {% if book.category == 'Culture' %}selected{% endif %}>Culture</option>
+                            <option value="African Literature" {% if book.category == 'African Literature' %}selected{% endif %}>African Literature</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>

@@ -228,7 +228,11 @@ class Book(db.Model):
     title = db.Column(db.String(512), nullable=False)
     image = db.Column(db.String(1024), default="https://i.ibb.co/CKRYPD4p/image.png")
     slug = db.Column(db.String(120))
-    audience, grade = db.Column(db.String(120)), db.Column(db.String(120))
+    audience, grade, category = (
+        db.Column(db.String(120)),
+        db.Column(db.String(120)),
+        db.Column(db.String(120), default="General")
+    )
     authors, blurb = db.Column(db.Text), db.Column(db.Text)
     added_by = db.Column(db.String(20), db.ForeignKey("staff.id"))
     edited_by = db.Column(db.String(20), db.ForeignKey("staff.id"))
@@ -251,7 +255,23 @@ class Book(db.Model):
         return url_for("book_cover", filename=self.image)
 
     def to_dict(self):
-        return {"id": self.id, "title": self.title, "image": self.image_url, "slug": self.slug, "grade": self.grade, "audience": self.audience, "authors": self.authors, "blurb": self.blurb, "oldPrice": self.oldPrice, "newPrice": self.newPrice, "discounted": self.discounted, "stars": self.stars, "sold": self.sold, "views": self.views}
+        return {
+            "id": self.id,
+            "title": self.title,
+            "image": self.image_url,
+            "slug": self.slug,
+            "grade": self.grade,
+            "audience": self.audience,
+            "category": self.category,
+            "authors": self.authors,
+            "blurb": self.blurb,
+            "oldPrice": self.oldPrice,
+            "newPrice": self.newPrice,
+            "discounted": self.discounted,
+            "stars": self.stars,
+            "sold": self.sold,
+            "views": self.views
+        }
 
 class Submission(db.Model):
     id = db.Column(db.String(20), primary_key=True, default=lambda: generate_id("SUB", 4))
@@ -1077,26 +1097,43 @@ def books_admin():
 @admin_required
 def add_book():
     staff = db.session.get(Staff, session["staff_id"])
-    if request.method == "GET": return render_template("book/add_book.html")
+
+    if request.method == "GET":
+        return render_template("book/add_book.html")
+
     img, fn = request.files.get("image"), "default.png"
+
     if img and img.filename:
         fn = f"{secrets.token_hex(10)}.{img.filename.rsplit('.', 1)[1].lower()}"
         img.save(os.path.join(app.config["UPLOAD_FOLDER"], fn))
-    bid = generate_id('BK')
+
+    bid = generate_id("BK")
     existing = Book.query.filter_by(id=bid).first()
-    
+
     if existing:
-        bid = generate_id('BK')
-        
-    bk = Book(id=bid,
-        title=request.form.get("title"), authors=request.form.get("authors"), audience=request.form.get("audience"),
-        grade=request.form.get("grade"), blurb=request.form.get("blurb"), oldPrice=float(request.form.get("oldPrice") or 0),
-        newPrice=float(request.form.get("newPrice") or 0), image=fn, discounted=bool(request.form.get("discounted")), added_by=staff.id
+        bid = generate_id("BK")
+
+    bk = Book(
+        id=bid,
+        title=request.form.get("title"),
+        authors=request.form.get("authors"),
+        audience=request.form.get("audience"),
+        grade=request.form.get("grade"),
+        category=request.form.get("category", "General"),
+        blurb=request.form.get("blurb"),
+        oldPrice=float(request.form.get("oldPrice") or 0),
+        newPrice=float(request.form.get("newPrice") or 0),
+        image=fn,
+        discounted=bool(request.form.get("discounted")),
+        added_by=staff.id
     )
+
     db.session.add(bk)
     bk.set_slug()
     db.session.commit()
+
     log_action(f"Added book {bk.title}", 200, staff.id)
+
     return redirect(url_for("books_admin"))
 
 @app.route("/cp/books/edit/<string:id>", methods=["GET", "POST"])
@@ -1105,24 +1142,39 @@ def add_book():
 def edit_book(id):
     staff = db.session.get(Staff, session["staff_id"])
     bk = Book.query.get_or_404(id)
-    if request.method == "GET": return render_template("book/edit_book.html", book=bk)
-    for fld in ["title", "authors", "grade", "audience", "blurb"]:
+
+    if request.method == "GET":
+        return render_template("book/edit_book.html", book=bk)
+
+    for fld in ["title", "authors", "grade", "audience", "category", "blurb"]:
         setattr(bk, fld, request.form.get(fld))
-    bk.oldPrice, bk.newPrice, bk.discounted = float(request.form.get("oldPrice") or 0), float(request.form.get("newPrice") or 0), bool(request.form.get("discounted"))
+
+    bk.oldPrice = float(request.form.get("oldPrice") or 0)
+    bk.newPrice = float(request.form.get("newPrice") or 0)
+    bk.discounted = bool(request.form.get("discounted"))
+
     img = request.files.get("image")
+
     if img and img.filename:
         fn = f"{secrets.token_hex(10)}.{img.filename.rsplit('.', 1)[1]}"
         img.save(os.path.join(app.config["UPLOAD_FOLDER"], fn))
+
         if bk.image and bk.image != "default.png":
             old = os.path.join(app.config["UPLOAD_FOLDER"], bk.image)
-            if os.path.exists(old): os.remove(old)
-        bk.image = fn
-    bk.edited_at, bk.edited_by = datetime.utcnow() + timedelta(hours=3), staff.id
-    bk.set_slug()
-    db.session.commit()
-    log_action(f"Edited book {bk.title}", 200, staff.id)
-    return redirect(url_for("books_admin"))
+            if os.path.exists(old):
+                os.remove(old)
 
+        bk.image = fn
+
+    bk.edited_at = datetime.utcnow() + timedelta(hours=3)
+    bk.edited_by = staff.id
+    bk.set_slug()
+
+    db.session.commit()
+
+    log_action(f"Edited book {bk.title}", 200, staff.id)
+
+    return redirect(url_for("books_admin"))
 @app.route("/api/admin/books")
 @login_required
 @admin_required
@@ -1191,7 +1243,6 @@ def admin_api_delete_logs():
     except Exception as e:
         db.session.rollback()
         return jsonify({"reload": False, "error": str(e)}), 500
-
 
 @app.route("/api/admin/staff-list")
 @login_required
@@ -1285,7 +1336,6 @@ def upload_image():
     fn = f"{generate_id('IMG')}.{ext}"
     img.save(os.path.join(app.config["UPLOAD_FOLDER"], fn))
     return jsonify({"path": fn, "url": url_for("book_cover", filename=fn)})
-
 
 @app.route("/about", methods=["GET"])
 def about():
