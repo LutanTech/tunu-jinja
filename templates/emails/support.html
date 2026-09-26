@@ -1,0 +1,72 @@
+<div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;color:#333">
+
+    <div style="padding:20px 0;border-bottom:2px solid #b0007a">
+        <h2 style="margin:0;color:#b0007a">New Support Request</h2>
+        <p style="margin:5px 0 0;color:#888;font-size:13px">
+            TUNU Publishers
+        </p>
+    </div>
+
+    <div style="padding:25px 0">
+
+        <p style="font-size:14px">
+            A new support request has been submitted through the website.
+        </p>
+
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <tr>
+                <td style="padding:10px 0;font-weight:bold;width:100px">Name</td>
+                <td style="padding:10px 0">{{ support.name }}</td>
+            </tr>
+
+            <tr>
+                <td style="padding:10px 0;font-weight:bold">Email</td>
+                <td style="padding:10px 0">{{ support.email }}</td>
+            </tr>
+
+            {% if support.phone %}
+            <tr>
+                <td style="padding:10px 0;font-weight:bold">Phone</td>
+                <td style="padding:10px 0">{{ support.phone }}</td>
+            </tr>
+            {% endif %}
+
+            <tr>
+                <td style="padding:10px 0;font-weight:bold">Subject</td>
+                <td style="padding:10px 0">
+                    {{ support.subject or "No Subject" }}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding:10px 0;font-weight:bold">Received</td>
+                <td style="padding:10px 0">
+                    {{ support.created_at.strftime('%d %B %Y, %H:%M') if support.created_at else 'N/A' }}
+                </td>
+            </tr>
+        </table>
+
+        <div style="margin-top:20px">
+            <p style="font-weight:bold;font-size:13px">Message</p>
+
+            <div style="background:#f7f7f7;border:1px solid #eee;border-radius:8px;padding:18px;font-size:13px;line-height:1.6;white-space:pre-line">
+                {{ support.message }}
+            </div>
+        </div>
+
+        <div style="margin-top:25px">
+            <a
+                href="https://tunupublishers.com/cp/support"
+                style="display:inline-block;background:#b0007a;color:#fff;text-decoration:none;padding:11px 18px;border-radius:6px;font-size:12px;font-weight:bold"
+            >
+                VIEW SUPPORT REQUEST
+            </a>
+        </div>
+
+    </div>
+
+    <div style="border-top:1px solid #eee;padding:15px 0;color:#999;font-size:11px">
+        TUNU Publishers · Elimu ni Tunu
+    </div>
+
+</div>

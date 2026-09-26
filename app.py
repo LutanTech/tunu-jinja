@@ -840,12 +840,12 @@ def admin_dashboard():
     logs = Log.query.order_by(Log.timestamp.desc()).limit(5000).all()
 
     ip_counts = Counter(log.ip or "Unknown" for log in logs)
-
     unusual_logs = []
 
     for log in logs:
         if log.endpoint == "/.well-known/appspecific/com.chrome.devtools.json":
             continue
+
         ip = log.ip or "Unknown"
         ua = (log.user_agent or "").lower()
 
@@ -858,9 +858,6 @@ def admin_dashboard():
             or "crawler" in ua
             or "spider" in ua
         )
-        
-        
-
 
         if unusual:
             unusual_logs.append(log)
@@ -872,15 +869,24 @@ def admin_dashboard():
         total_staff=Staff.query.filter_by(is_super_admin=False).count(),
         total_orders=Order.query.count(),
         total_reports=Submission.query.count(),
-        recent_books=Book.query.filter_by(is_deleted=False).order_by(Book.added_at.desc()).limit(5).all(),
+        total_support=Support.query.filter_by(status="Pending").count(),
+        recent_books=Book.query.filter_by(
+            is_deleted=False
+        ).order_by(Book.added_at.desc()).limit(5).all(),
+        recent_support=Support.query.order_by(
+            Support.created_at.desc()
+        ).limit(5).all(),
         unusual_logs=unusual_logs[:8],
-        recent_orders=Order.query.filter(Order.status != "DELETED").order_by(Order.created_at.desc()).limit(8).all(),
-        recent_staff=Staff.query.filter_by(is_super_admin=False).order_by(Staff.added_at.desc()).limit(8).all(),
+        recent_orders=Order.query.filter(
+            Order.status != "DELETED"
+        ).order_by(Order.created_at.desc()).limit(8).all(),
+        recent_staff=Staff.query.filter_by(
+            is_super_admin=False
+        ).order_by(Staff.added_at.desc()).limit(8).all(),
         monthly_reports=Submission.query.filter(
             Submission.submitted_at >= datetime.utcnow() - timedelta(days=30)
         ).count()
     )
-
 
 @app.route("/sitemap.xml", methods=["GET"])
 def sitemap():
@@ -1384,6 +1390,18 @@ def contact_us():
 
         db.session.add(support)
         db.session.commit()
+
+        send_mail(
+            f"New Support Request: {support.subject or 'No Subject'}",
+            ["ict@tunupublishers.com"],
+            render_template("emails/support.html", support=support)
+        )
+
+        send_mail(
+            "We Received Your Message | TUNU Publishers",
+            [support.email],
+            render_template("emails/support_received.html", support=support)
+        )
 
         return redirect(url_for("contact_us"))
 

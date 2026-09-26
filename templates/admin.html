@@ -193,6 +193,77 @@
                         {% endfor %}
                     </div>
                 </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-magenta pl-2">
+                                New Support Requests
+                            </h4>
+                            {% if total_support %}
+                            <p class="text-[9px] text-magenta font-bold mt-1 ml-2">
+                                {{ total_support }} pending
+                            </p>
+                            {% endif %}
+                        </div>
+                
+                        <button
+                            onclick="location.href='/cp/support'"
+                            class="text-[10px] font-bold text-magenta hover:underline uppercase tracking-wider"
+                        >
+                            View All
+                        </button>
+                    </div>
+                
+                    <div class="flex flex-col">
+                
+                        {% for support in recent_support %}
+                
+                        <div class="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0">
+                
+                            <div class="w-8 h-8 rounded-full bg-magenta/10 text-magenta flex items-center justify-center shrink-0">
+                                <i class="fas fa-headset text-[11px]"></i>
+                            </div>
+                
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2">
+                                    <p class="text-[11px] font-bold text-gray-800 truncate">
+                                        {{ support.name }}
+                                    </p>
+                
+                                    {% if support.status == "Pending" %}
+                                    <span class="px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600 text-[7px] font-bold uppercase">
+                                        New
+                                    </span>
+                                    {% endif %}
+                                </div>
+                
+                                <p class="text-[9px] text-gray-400 truncate">
+                                    {{ support.subject or "No Subject" }}
+                                    ·
+                                    {{ support.message }}
+                                </p>
+                            </div>
+                
+                            <span class="text-[8px] text-gray-400 shrink-0">
+                                {{ support.created_at.strftime('%d %b') if support.created_at else '' }}
+                            </span>
+                
+                        </div>
+                
+                        {% else %}
+                
+                        <div class="py-8 text-center">
+                            <i class="fas fa-headset text-xl text-gray-200 mb-2"></i>
+                            <p class="text-[10px] text-gray-400">
+                                No support requests
+                            </p>
+                        </div>
+                
+                        {% endfor %}
+                
+                    </div>
+                </div>
             </div>
 
             <div class="flex flex-col gap-6">
