@@ -710,7 +710,7 @@
 					<tr class="log-row hover:bg-gray-50/60" data-search="{{ log.ip or '' }} {{ log.staff_id or '' }} {{ log.method or '' }} {{ log.endpoint or '' }} {{ log.action or '' }} {{ log.user_agent or '' }} {{ log.status_code or '' }}">
 						
 						<td class="py-3 px-5 whitespace-nowrap text-gray-500">
-							{{ log.timestamp }}
+							{{ log.timestamp | datetime }}
 						</td>
 						
 						<td class="py-3 px-5 whitespace-nowrap font-bold text-gray-700">
