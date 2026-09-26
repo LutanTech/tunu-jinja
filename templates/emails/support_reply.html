@@ -1,0 +1,20 @@
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#333">
+    <h2 style="color:#b0007a">TUNU Publishers</h2>
+
+    <p>Hello {{ support.name }},</p>
+
+    <p>{{ reply }}</p>
+
+    <hr style="border:0;border-top:1px solid #eee;margin:25px 0">
+
+    <p style="font-size:12px;color:#888">
+        This is a response to your support request:
+        <strong>{{ support.subject or "Support Request" }}</strong>
+    </p>
+
+    <p style="font-size:12px;color:#888">
+        Regards,<br>
+        {{ staff.name if staff else "TUNU Publishers Support" }}<br>
+        TUNU Publishers
+    </p>
+</div>

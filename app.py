@@ -273,6 +273,36 @@ class Book(db.Model):
             "views": self.views
         }
 
+
+class Support(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+    phone = db.Column(db.String(30))
+    subject = db.Column(db.String(255))
+    message = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(30), default="Pending")
+    replied_at = db.Column(db.DateTime)
+    replied_by = db.Column(db.String(20), db.ForeignKey("staff.id"))
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.utcnow() + timedelta(hours=3)
+    )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "phone": self.phone,
+            "subject": self.subject,
+            "message": self.message,
+            "status": self.status,
+            "replied_at": self.replied_at,
+            "replied_by": self.replied_by,
+            "created_at": self.created_at
+        }
+
 class Submission(db.Model):
     id = db.Column(db.String(20), primary_key=True, default=lambda: generate_id("SUB", 4))
     staff_id = db.Column(db.String(20), db.ForeignKey("staff.id"))
@@ -1341,9 +1371,30 @@ def upload_image():
 def about():
     return render_template('company/about.html')
 
-@app.route("/contact-us", methods=["GET"])
+@app.route("/contact-us", methods=["GET", "POST"])
 def contact_us():
-    return render_template('company/contact.html')
+    if request.method == "POST":
+        support = Support(
+            name=request.form.get("name", "").strip(),
+            email=request.form.get("email", "").strip(),
+            phone=request.form.get("phone", "").strip() or None,
+            subject=request.form.get("subject", "").strip() or None,
+            message=request.form.get("message", "").strip()
+        )
+
+        db.session.add(support)
+        db.session.commit()
+
+        return redirect(url_for("contact_us"))
+
+    return render_template("company/contact.html")
+
+@app.route("/cp/support")
+@login_required
+@admin_required
+def support_page():
+    supports = Support.query.order_by(Support.created_at.desc()).all()
+    return render_template("system/support.html", supports=supports)
 
 @app.post("/api/create-order")
 def create_order():
@@ -2010,6 +2061,37 @@ def batch_delete_gallery():
         "message": f"Successfully deleted {deleted_count} photo(s).",
         "count": deleted_count
     }), 200
+
+@app.route("/cp/support/<int:id>/reply", methods=["POST"])
+@login_required
+@admin_required
+def reply_support(id):
+    staff = db.session.get(Staff, session["staff_id"])
+    support = Support.query.get_or_404(id)
+
+    reply = request.form.get("reply", "").strip()
+
+    if not reply:
+        return redirect(url_for("support_page"))
+
+    send_mail(
+        support.subject or "Support Request",
+        [support.email],
+        render_template(
+            "emails/support_reply.html",
+            support=support,
+            reply=reply,
+            staff=staff
+        )
+    )
+
+    support.status = "Resolved"
+    support.replied_at = datetime.utcnow() + timedelta(hours=3)
+    support.replied_by = staff.id
+
+    db.session.commit()
+
+    return redirect(url_for("support_page"))
 
 @app.route("/api/admin/batch_toggle_gallery", methods=["POST"])
 @login_required
