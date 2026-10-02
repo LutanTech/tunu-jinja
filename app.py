@@ -5,13 +5,15 @@ from datetime import datetime, timedelta
 from functools import wraps
 import hashlib
 import hmac
-import json
+import json, uuid
 import os
 import re
 import secrets
 import string
 import traceback
 from urllib.parse import quote
+from slugify import slugify
+
 
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -81,8 +83,135 @@ mail = Mail(app)
 migrate = Migrate(app, db)
 cors = CORS(app)
 
+import json
+
+@app.template_filter("from_json")
+def from_json(value):
+    try:
+        return json.loads(value or "[]")
+    except (TypeError, ValueError):
+        return []
+
 def generate_id(prefix="STF", length=6):
     return f"{prefix}-" + "".join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(length))
+
+@app.route("/api/authors/<string:author_id>/update", methods=["POST"])
+def update_author(author_id):
+    author = Author.query.get_or_404(author_id)
+
+    author.name = request.form.get("name", author.name).strip()
+    author.slug = request.form.get("slug", author.slug).strip()
+    author.description = request.form.get("description", author.description)
+    author.age = request.form.get("age", author.age, type=int)
+    author.email = request.form.get("email", author.email)
+    author.phone = request.form.get("phone", author.phone)
+    author.location = request.form.get("location", author.location)
+    author.website = request.form.get("website", author.website)
+    author.edited_at = datetime.utcnow() + timedelta(hours=3)
+
+    other_books = request.form.get("other_books")
+    if other_books:
+        try:
+            json.loads(other_books)
+            author.other_books = other_books
+        except:
+            return jsonify({
+                "success": False,
+                "message": "Invalid other_books JSON"
+            }), 400
+
+    social_links = request.form.get("social_links")
+    if social_links:
+        try:
+            json.loads(social_links)
+            author.social_links = social_links
+        except:
+            return jsonify({
+                "success": False,
+                "message": "Invalid social_links JSON"
+            }), 400
+
+    if "photo" in request.files:
+        photo = request.files["photo"]
+
+        if photo and photo.filename:
+            ext = os.path.splitext(photo.filename)[1].lower()
+
+            if ext not in [".jpg", ".jpeg", ".png", ".webp"]:
+                return jsonify({
+                    "success": False,
+                    "message": "Invalid image format"
+                }), 400
+
+            filename = f"{uuid.uuid4().hex}{ext}"
+            upload_dir = os.path.join(app.static_folder, "uploads", "authors")
+            os.makedirs(upload_dir, exist_ok=True)
+
+            photo.save(os.path.join(upload_dir, filename))
+            author.photo = f"/static/uploads/authors/{filename}"
+
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "author": author.to_dict()
+    })
+
+@app.route("/admin/authors/<string:author_id>/edit")
+def edit_author(author_id):
+    author = Author.query.get_or_404(author_id)
+
+    try:
+        other_books = json.loads(author.other_books or "[]")
+    except:
+        other_books = []
+
+    try:
+        social_links = json.loads(author.social_links or "{}")
+    except:
+        social_links = {}
+
+    return render_template(
+        "admin/author_edit.html",
+        author=author,
+        other_books=other_books,
+        social_links=social_links
+    )
+
+@app.route("/authors")
+def authors():
+    authors = Author.query.filter_by(is_active=True).order_by(Author.name.asc()).all()
+    return render_template("authors.html", authors=authors)
+
+@app.route("/author/<string:slug>")
+def author_detail(slug):
+    author = Author.query.filter_by(
+        slug=slug,
+        is_active=True
+    ).first_or_404()
+
+    books = Book.query.filter(
+        Book.is_deleted == False,
+        Book.authors.ilike(f"%{author.name}%")
+    ).order_by(Book.title.asc()).all()
+
+    try:
+        other_books = json.loads(author.other_books or "[]")
+    except:
+        other_books = []
+
+    try:
+        social_links = json.loads(author.social_links or "{}")
+    except:
+        social_links = {}
+
+    return render_template(
+        "author.html",
+        author=author,
+        books=books,
+        other_books=other_books,
+        social_links=social_links
+    )
 
 def format_phone(num):
     if not num: return None
@@ -150,6 +279,22 @@ def log_action(action, status_code=200, staff_id=None):
         print(f"Log error: {e}")
         db.session.rollback()
 
+
+def menu_required(item):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args,**kwargs):
+            staff=db.session.get(Staff,session["staff_id"])
+
+            if not staff.is_super_admin and item not in staff.menu_items:
+                return render_template(
+                    "errors/admin_401.html",
+                    error="You are not allowed to access this page. Please contact system admin for more information"
+                )
+
+            return f(*args,**kwargs)
+        return wrapper
+    return decorator
 
 @app.after_request
 def auto_log(response):
@@ -219,9 +364,10 @@ class Staff(db.Model):
     is_super_admin = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
     tkv = db.Column(db.String(12), default=lambda: generate_id("T", 6))
+    menu_items = db.Column(db.String(), default='[]')
 
     def to_dict(self):
-        return {"id": self.id, "name": self.name, "email": self.email, "phone": self.phone, "location": self.location, "joined": self.added_at, "is_admin": self.is_admin, "is_active": self.is_active}
+        return {"id": self.id, "name": self.name, "email": self.email, "phone": self.phone, "location": self.location, "joined": self.added_at, "is_admin": self.is_admin, "is_active": self.is_active, "menu_items": self.menu_items}
 
 class Book(db.Model):
     id = db.Column(db.String(20), primary_key=True, default=lambda: generate_id("BK"))
@@ -273,6 +419,42 @@ class Book(db.Model):
             "views": self.views
         }
 
+class Author(db.Model):
+    id = db.Column(db.String(20), primary_key=True, default=lambda: generate_id("AUT"))
+    name = db.Column(db.String(512), nullable=False, unique=True)
+    slug = db.Column(db.String(512), nullable=False, unique=True, index=True)
+    description = db.Column(db.Text)
+    age = db.Column(db.Integer)
+    other_books = db.Column(db.Text, default='[]')
+    photo = db.Column(db.String(1024))
+    email = db.Column(db.String(128), unique=True)
+    phone = db.Column(db.String(20), unique=True)
+    location = db.Column(db.String(128))
+    website = db.Column(db.String(512))
+    social_links = db.Column(db.Text, default='{}')
+    added_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(hours=3))
+    added_by = db.Column(db.String(20), db.ForeignKey("staff.id"))
+    edited_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(hours=3))
+    edited_by = db.Column(db.String(20), db.ForeignKey("staff.id"))
+    is_active = db.Column(db.Boolean, default=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "slug": self.slug,
+            "description": self.description,
+            "age": self.age,
+            "other_books": self.other_books,
+            "photo": self.photo,
+            "email": self.email,
+            "phone": self.phone,
+            "location": self.location,
+            "website": self.website,
+            "social_links": self.social_links,
+            "added_at": self.added_at,
+            "is_active": self.is_active
+        }
 
 class Support(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -500,6 +682,16 @@ BOOKS_DATA = [
     {"title": "CBC English Grade 6", "newPrice": 700, "oldPrice": 850, "image": "/static/books/english6.jpeg", "audience": "Students", "grade": "Grade 6", "authors": "Tunu Publishers"}
 ]
 
+@app.before_request
+def block_bad_paths():
+    path = request.path.lower()
+
+    if path.startswith("/events/") and (
+        "/day/" in path or
+        path.endswith("/index.html")
+    ):
+        abort(404)
+
 @app.route("/")
 @cache.cached(timeout=600)
 def home():
@@ -642,16 +834,78 @@ def api_books():
         ]
     })
 
+
+def unique_slug(name):
+    base = slugify(name)
+    slug = base
+    count = 2
+
+    while Author.query.filter_by(slug=slug).first():
+        slug = f"{base}-{count}"
+        count += 1
+
+    return slug
+
+@app.route('/api/update/authors')
+def update_authors():
+    authors = set()
+
+    for b in Book.query.all():
+        if b.authors:
+            for name in b.authors.split(','):
+                name = name.strip()
+                if name:
+                    authors.add(name)
+
+    added = []
+
+    for name in authors:
+        if Author.query.filter_by(name=name).first():
+            continue
+
+        author = Author(
+            name=name,
+            slug=unique_slug(name)
+        )
+
+        db.session.add(author)
+        added.append(name)
+
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "added": added,
+        "count": len(added)
+    })
+
 @app.route("/book/<string:book_slug>")
 def book_detail(book_slug):
     slugged = book_slug.split('_')
     book_id = slugged[1]
-    book = Book.query.filter_by(id=book_id, is_deleted=False).first_or_404()
-    book.views += 1
-    
-    db.session.commit()
-    return render_template("book.html", book=book, related=Book.query.filter(Book.id != book.id, Book.is_deleted == False).limit(4).all())
 
+    book = Book.query.filter_by(id=book_id, is_deleted=False).first_or_404()
+
+    book.views += 1
+    db.session.commit()
+
+    authors = []
+
+    if book.authors:
+        names = [name.strip() for name in book.authors.split(',') if name.strip()]
+        authors = Author.query.filter(Author.name.in_(names), Author.is_active == True).all()
+
+    related = Book.query.filter(
+        Book.id != book.id,
+        Book.is_deleted == False
+    ).limit(4).all()
+
+    return render_template(
+        "book.html",
+        book=book,
+        authors=authors,
+        related=related
+    )
 
 @app.route("/cart")
 def cart():
@@ -974,8 +1228,33 @@ def toggle_staff():
 @app.route("/cp/orders")
 @login_required
 @admin_required
+@menu_required('orders')
 def orders_page():
-    return render_template("admin/orders.html", orders=Order.query.filter(Order.status != "DELETED").order_by(Order.created_at.desc()).all())
+    
+    staff = db.session.get(Staff, session["staff_id"])
+    
+    return render_template("admin/orders.html", orders=Order.query.filter(Order.status != "DELETED").order_by(Order.created_at.desc()).all(), admin=staff)
+
+@app.route("/cp/staff")
+@login_required
+@admin_required
+def staff_page():
+    all_staff = Staff.query.all()
+    
+    for s in all_staff:
+        try:
+            if isinstance(s.menu_items, str):
+                s.display_items=json.loads(s.menu_items) if s.menu_items else []
+        except:
+                s.menu_items = '[]'
+    
+    staff = db.session.get(Staff, session["staff_id"])
+    
+    
+    if not "staff"in staff.menu_items and not staff.is_super_admin :
+        return render_template("errors/admin_401.html", error="You are not allowed to access this page. Please contact system admin for more information ")
+    
+    return render_template("system/restrictions.html", staff=all_staff, admin=staff)
 
 @app.route("/api/admin/order/status", methods=["POST"])
 @login_required
@@ -994,9 +1273,13 @@ def update_order_status():
 @app.route("/api/admin/order/delete", methods=["POST"])
 @login_required
 @admin_required
+@menu_required('orders')
 def delete_order():
     adm = db.session.get(Staff, session["staff_id"])
     data = request.get_json()
+    
+    staff = db.session.get(Staff, session["staff_id"])
+    
     order = db.session.get(Order, data.get("order_id"))
     if not order: return jsonify({"error": "Order not found."}), 404
     order.status = 'DELETED'
@@ -1005,14 +1288,47 @@ def delete_order():
     return jsonify({"msg": "Order updated."})
 
 
+@app.route("/api/items/update", methods=["POST"])
+@login_required
+@admin_required
+@menu_required('staff')
+
+def update_items():
+    adm = db.session.get(Staff, session["staff_id"])
+    data = request.get_json()
+    user = db.session.get(Staff, data.get("id"))
+    
+    if not "staff" in adm.menu_items:
+        return jsonify({"msg":"You are not allowed to make any changes here", 'success':False})
+    
+    if user.is_super_admin:
+        return jsonify({"msg":"You are doomed", 'success':False})
+    
+    menu_items = data.get('items')
+    
+    if not user: 
+        return jsonify({"error": "User not found."}), 404
+    
+    if not menu_items: 
+        return jsonify({"error": "Menu items empty."}), 404
+    
+    user.menu_items = json.dumps(menu_items)
+    db.session.commit()
+    log_action(f"Updated items to {user.menu_items}", 200, adm.id)
+    return jsonify({"msg": "Updated.", 'success':True, 'items':user.menu_items})
 
 
 
 @app.route("/cp/coupons")
 @login_required
 @admin_required
+@menu_required('coupons')
+
 def coupons_page():
-    return render_template("admin/coupons.html")
+    
+    staff = db.session.get(Staff, session["staff_id"])
+
+    return render_template("admin/coupons.html", admin=staff)
 
 @app.route("/api/admin/coupons")
 @login_required
@@ -1045,6 +1361,8 @@ def admin_api_coupons():
 @app.route("/api/admin/coupon/create", methods=["POST"])
 @login_required
 @admin_required
+@menu_required('coupons')
+
 def create_coupon():
     staff = db.session.get(Staff, session["staff_id"])
     data = request.get_json() or {}
@@ -1053,6 +1371,7 @@ def create_coupon():
     dval = float(data.get("discount_value") or 0)
     max_u = int(data.get("max_uses") or 1)
     expiry_str = data.get("expires_at", "")
+    
     
     if not code or dval <= 0 or not expiry_str:
         return jsonify({"error": "Missing or invalid fields."}), 400
@@ -1100,8 +1419,12 @@ def toggle_coupon():
 @app.route("/api/admin/coupon/delete", methods=["POST"])
 @login_required
 @admin_required
+@menu_required('coupons')
+
 def delete_coupon():
+    
     staff = db.session.get(Staff, session["staff_id"])
+    
     data = request.get_json() or {}
     c = db.session.get(Coupon, data.get("coupon_id"))
     if not c:
@@ -1131,6 +1454,8 @@ def books_admin():
 @app.route("/cp/books/new", methods=["GET", "POST"])
 @login_required
 @admin_required
+@menu_required('coupons')
+
 def add_book():
     staff = db.session.get(Staff, session["staff_id"])
 
@@ -1211,6 +1536,7 @@ def edit_book(id):
     log_action(f"Edited book {bk.title}", 200, staff.id)
 
     return redirect(url_for("books_admin"))
+
 @app.route("/api/admin/books")
 @login_required
 @admin_required
@@ -1230,9 +1556,12 @@ def admin_api_books():
 @app.route("/api/admin/orders")
 @login_required
 @admin_required
+@menu_required('coupons')
+
 def admin_api_orders():
     q = Order.query.filter(Order.status != "DELETED")
     search = request.args.get("q", "").strip()
+
 
     if search:
         like = f"%{search}%"
@@ -1248,6 +1577,8 @@ def admin_api_orders():
         per_page=10,
         error_out=False
     )
+    
+    staff = db.session.get(Staff, session["staff_id"])
 
     return jsonify({
         "items": [
@@ -1271,7 +1602,11 @@ def admin_api_orders():
 @app.route("/api/admin/logs/delete", methods=['GET'])
 @login_required
 @admin_required
+@menu_required('coupons')
+
 def admin_api_delete_logs():
+    staff = db.session.get(Staff, session["staff_id"])
+    
     try:
         Log.query.delete()
         db.session.commit()
@@ -1299,7 +1634,11 @@ def admin_api_staff_list():
 @app.route("/api/admin/reports")
 @login_required
 @admin_required
+@menu_required('submissions')
+
 def admin_api_reports():
+    staff = db.session.get(Staff, session["staff_id"])
+
     q = Submission.query
     search = request.args.get("q", "").strip()
     if search:
@@ -1806,8 +2145,8 @@ def stores():
 @app.route("/store/<string:store_name>")
 def store_detail(store_name):
     sanitized = store_name.replace('-', ' ')
-    store = Store.query.filter(db.func.lower(Store.name) == sanitized.lower(), Store.is_active == True).first_or_404()
-    other_stores = Store.query.filter(Store.id != store.id, Store.is_active == True).order_by(Store.name.asc()).limit(4).all()
+    store = Store.query.filter(db.func.lower(Store.city) == sanitized.lower(), Store.is_active == True).first_or_404()
+    other_stores = Store.query.filter(Store.id != store.id, Store.is_active == True).order_by(Store.city.asc()).limit(4).all()
     return render_template("stores/store.html", store=store, other_stores=other_stores)
 
 
@@ -1876,6 +2215,58 @@ def edit_store(id):
     db.session.commit()
     log_action(f"Edited store {store.name}", 200, staff.id)
     return redirect(url_for("stores_admin"))
+
+@app.route("/cp/authors")
+@login_required
+@admin_required
+@menu_required("authors")
+def authors_page():
+    staff=db.session.get(Staff,session["staff_id"])
+
+    authors=Author.query.order_by(Author.name.asc()).all()
+
+    books=Book.query.filter(Book.is_deleted == False).all()
+
+    for author in authors:
+        author.book_count=sum(
+            1 for book in books
+            if book.authors and author.name in [
+                x.strip() for x in book.authors.split(",")
+            ]
+        )
+
+    return render_template(
+        "admin/authors.html",
+        authors=authors,
+        admin=staff
+    )
+
+
+@app.route("/cp/authors/<string:author_id>/edit")
+@login_required
+@admin_required
+@menu_required("authors")
+def edit_author_page(author_id):
+    staff=db.session.get(Staff,session["staff_id"])
+    author=Author.query.get_or_404(author_id)
+
+    try:
+        other_books=json.loads(author.other_books or "[]")
+    except:
+        other_books=[]
+
+    try:
+        social_links=json.loads(author.social_links or "{}")
+    except:
+        social_links={}
+
+    return render_template(
+        "admin/author_edit.html",
+        author=author,
+        other_books=other_books,
+        social_links=social_links,
+        admin=staff
+    )
 
 @app.route("/api/admin/toggle_store/<string:id>", methods=["POST"])
 @login_required

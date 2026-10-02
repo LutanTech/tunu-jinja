@@ -1,0 +1,315 @@
+{% extends "admin_base.html" %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto px-4 md:px-6 py-8">
+	
+	<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+		
+		<div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+			
+			<div>
+				<h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider flex items-center">
+					<i class="fas fa-user-pen text-pink-600 mr-2"></i>
+					Authors
+				</h3>
+				
+				<p class="text-[11px] text-gray-400 mt-1">
+					{{ authors|length }} authors total
+				</p>
+			</div>
+			
+			<div class="relative w-full sm:w-72">
+				<input id="author-search" type="text" placeholder="Search authors by name, ID, email..." class="w-full pl-9 pr-4 py-2.5 text-xs border border-gray-200 rounded-lg outline-none focus:border-pink-600 transition-colors">
+				
+				<i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+			</div>
+			
+		</div>
+		
+		<div class="overflow-x-auto">
+			
+			<table class="w-full text-left text-xs">
+				
+				<thead>
+					<tr class="bg-gray-50/75 border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+						
+						<th class="py-3 px-4">Author</th>
+						<th class="py-3 px-4">Contact</th>
+						<th class="py-3 px-4">Location</th>
+						<th class="py-3 px-4">Books</th>
+						<th class="py-3 px-4">Status</th>
+						<th class="py-3 px-4 text-right">Actions</th>
+						
+					</tr>
+				</thead>
+				
+				<tbody id="authors-table" class="divide-y divide-gray-100">
+					
+					{% for author in authors %}
+					
+					<tr class="author-row hover:bg-gray-50/60 transition-colors" data-search="{{ author.id or '' }} {{ author.name or '' }} {{ author.email or '' }} {{ author.phone or '' }} {{ author.location or '' }}" data-id="{{ author.id }}" data-name="{{ author.name }}" data-age="{{ author.age or 'N/A' }}" data-email="{{ author.email or 'N/A' }}" data-phone="{{ author.phone or 'N/A' }}" data-location="{{ author.location or 'N/A' }}" data-website="{{ author.website or 'N/A' }}" data-description="{{ author.description or 'No biography available.' }}" data-books="{{ author.book_count }}" data-status="{{ 'Active' if author.is_active else 'Inactive' }}">
+						
+						<td class="py-3.5 px-4">
+							
+							<div class="flex items-center gap-3">
+								
+								<div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden flex items-center justify-center shrink-0">
+									
+									{% if author.photo %}
+									
+									<img src="{{ author.photo }}" alt="{{ author.name }}" class="w-full h-full object-cover">
+									
+									{% else %}
+									
+									<i class="fas fa-user text-pink-300"></i>
+									
+									{% endif %}
+									
+								</div>
+								
+								<div class="min-w-0">
+									
+									<div class="font-semibold text-gray-800 truncate max-w-[220px]">
+										{{ author.name }}
+									</div>
+									
+									<div class="text-[10px] text-gray-400">
+										#{{ author.id }}
+									</div>
+									
+								</div>
+								
+							</div>
+							
+						</td>
+						
+						<td class="py-3.5 px-4 max-w-[180px]">
+							
+							{% if author.email %}
+							
+							<span class="font-medium text-pink-600 truncate block">
+								{{ author.email }}
+							</span>
+							
+							{% elif author.phone %}
+							
+							<span class="text-gray-600">
+								{{ author.phone }}
+							</span>
+							
+							{% else %}
+							
+							<span class="text-gray-400">
+								N/A
+							</span>
+							
+							{% endif %}
+							
+						</td>
+						
+						<td class="py-3.5 px-4 text-gray-600 whitespace-nowrap">
+							{{ author.location or "N/A" }}
+						</td>
+						
+						<td class="py-3.5 px-4">
+							
+							<span class="px-2 py-0.5 rounded-full bg-pink-50 text-pink-700 text-[9px] font-bold">
+								{{ author.book_count }}
+							</span>
+							
+						</td>
+						
+						<td class="py-3.5 px-4">
+							
+							{% if author.is_active %}
+							
+							<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-bold">
+								Active
+							</span>
+							
+							{% else %}
+							
+							<span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-bold">
+								Inactive
+							</span>
+							
+							{% endif %}
+							
+						</td>
+						
+						<td class="py-3.5 px-4">
+							
+							<div class="flex justify-end gap-1.5">
+								
+								<button type="button" onclick="showAuthorDetails(this.closest('tr'))" class="w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-600 hover:text-pink-600 hover:border-pink-200 flex items-center justify-center transition-all" title="View Details">
+									<i class="fas fa-eye text-xs"></i>
+								</button>
+								
+								<a href="/cp/authors/{{ author.id }}/edit" class="w-8 h-8 rounded-lg bg-pink-600 text-white hover:bg-pink-700 flex items-center justify-center transition-all" title="Edit Author">
+									<i class="fas fa-pen text-xs"></i>
+								</a>
+								
+							</div>
+							
+						</td>
+						
+					</tr>
+					
+					{% endfor %}
+					
+				</tbody>
+				
+			</table>
+			
+		</div>
+		
+		<div id="no-results" class="hidden p-10 text-center text-gray-400 text-xs">
+			No matching authors found
+		</div>
+		
+	</div>
+	
+</div>
+
+
+<div class="author-overlay hidden fixed inset-0 z-50 items-center justify-center bg-black/50 p-4">
+	
+	<div class="author-modal relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+		
+		<button type="button" onclick="closeAuthorDetails()" class="absolute right-4 top-4 w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 flex items-center justify-center">
+			<i class="fas fa-xmark"></i>
+		</button>
+		
+		<div class="flex items-center gap-4 pb-4 border-b border-gray-100">
+			
+			<div id="author-photo" class="w-14 h-14 rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
+				<i class="fas fa-user text-pink-300"></i>
+			</div>
+			
+			<div>
+				<h3 id="author-name" class="text-base font-bold text-gray-800"></h3>
+				<p id="author-id" class="text-[10px] text-gray-400"></p>
+			</div>
+			
+		</div>
+		
+		<div id="author-details" class="mt-4"></div>
+		
+		<div class="flex justify-end mt-5 pt-4 border-t border-gray-100">
+			
+			<a id="author-edit" href="#" class="px-5 py-2.5 rounded-lg bg-pink-600 text-white text-xs font-semibold hover:bg-pink-700">
+				<i class="fas fa-pen mr-1"></i>
+				Edit Author
+			</a>
+			
+		</div>
+		
+	</div>
+	
+</div>
+
+
+<script>
+function showAuthorDetails(row) {
+	
+	const overlay = document.querySelector('.author-overlay')
+	const photo = document.getElementById('author-photo')
+	
+	document.getElementById('author-name')
+		.textContent = row.dataset.name
+	document.getElementById('author-id')
+		.textContent = '#' + row.dataset.id
+	
+	document.getElementById('author-details')
+		.innerHTML = `
+        <div class="flex justify-between py-2.5 border-b border-gray-50 text-xs">
+            <span class="text-gray-400">Age</span>
+            <span class="text-gray-700 font-semibold">${row.dataset.age}</span>
+        </div>
+
+        <div class="flex justify-between py-2.5 border-b border-gray-50 text-xs">
+            <span class="text-gray-400">Email</span>
+            <span class="text-gray-700 font-semibold">${row.dataset.email}</span>
+        </div>
+
+        <div class="flex justify-between py-2.5 border-b border-gray-50 text-xs">
+            <span class="text-gray-400">Phone</span>
+            <span class="text-gray-700 font-semibold">${row.dataset.phone}</span>
+        </div>
+
+        <div class="flex justify-between py-2.5 border-b border-gray-50 text-xs">
+            <span class="text-gray-400">Location</span>
+            <span class="text-gray-700 font-semibold">${row.dataset.location}</span>
+        </div>
+
+        <div class="flex justify-between py-2.5 border-b border-gray-50 text-xs">
+            <span class="text-gray-400">Books</span>
+            <span class="text-gray-700 font-semibold">${row.dataset.books}</span>
+        </div>
+
+        <div class="flex justify-between py-2.5 text-xs">
+            <span class="text-gray-400">Status</span>
+            <span class="text-gray-700 font-semibold">${row.dataset.status}</span>
+        </div>
+
+        <div class="mt-4">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">
+                Biography
+            </p>
+
+            <p class="text-xs text-gray-600 leading-6 whitespace-pre-line">
+                ${row.dataset.description}
+            </p>
+        </div>
+    `
+	
+	document.getElementById('author-edit')
+		.href = '/cp/authors/' + row.dataset.id + '/edit'
+	
+	overlay.classList.remove('hidden')
+	overlay.classList.add('flex')
+}
+
+function closeAuthorDetails() {
+	
+	const overlay = document.querySelector('.author-overlay')
+	
+	overlay.classList.add('hidden')
+	overlay.classList.remove('flex')
+}
+
+document.getElementById('author-search')
+	.addEventListener('input', function() {
+		
+		const q = this.value.toLowerCase()
+			.trim()
+		let visible = 0
+		
+		document.querySelectorAll('.author-row')
+			.forEach(row => {
+				
+				const match = row.dataset.search.toLowerCase()
+					.includes(q)
+				
+				row.style.display = match ? '' : 'none'
+				
+				if (match) visible++
+				
+			})
+		
+		document.getElementById('no-results')
+			.classList.toggle('hidden', visible !== 0)
+		
+	})
+
+document.querySelector('.author-overlay')
+	.addEventListener('click', function(e) {
+		
+		if (e.target === this) closeAuthorDetails()
+		
+	})
+
+</script>
+
+{% endblock %}

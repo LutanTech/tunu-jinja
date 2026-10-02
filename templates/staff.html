@@ -5,61 +5,33 @@
 <div class="max-w-7xl mx-auto px-4 md:px-6 py-8">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-            <span class="inline-block bg-magenta/10 text-magenta text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-2">Management Center</span> 
-            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800">Staff Dashboard</h1>
+            <span class="inline-block bg-magenta/10 text-magenta text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-2">Management Center</span>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800">Admin Control Panel</h1>
             <p class="text-xs text-gray-500 mt-1">Logged in as: <span class="font-bold text-gray-700">{{ admin.name }}</span> ({{ admin.id }})</p>
         </div>
 
     </div>
 
     <div class="flex border-b border-gray-200 overflow-x-auto gap-2 mb-8" style="scrollbar-width: none;">
-        {% if "overview" in admin.menu_items %} 
-
         <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn active shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-magenta border-magenta">
             <i class="fas fa-chart-line mr-1.5"></i> Overview
         </button>
-        {% endif %}
-
-        {% if "new_books" in admin.menu_items and not admin.is_super_admin %} 
         <button onclick="switchTab('books')" id="tab-btn-books" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
             <i class="fas fa-book mr-1.5"></i> Books Library
         </button>
-        {% endif %}
-
-        {% if "orders" in admin.menu_items and not admin.is_super_admin %} 
-
         <button onclick="switchTab('orders')" id="tab-btn-orders" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
             <i class="fas fa-shopping-cart mr-1.5"></i> M-Pesa Orders
         </button>
-        {% endif %}
-        
-        {% if "staff" in admin.menu_items and not admin.is_super_admin %} 
-
         <button onclick="switchTab('staff')" id="tab-btn-staff" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
             <i class="fas fa-users mr-1.5"></i> Field Staff
         </button>
-
-        {% endif %}
-        
-        {% if "submissions" in admin.menu_items and not admin.is_super_admin %} 
-        
         <button onclick="switchTab('reports')" id="tab-btn-reports" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
             <i class="fas fa-file-invoice mr-1.5"></i> Submissions
         </button>
-        {% endif %}
-        
-       {% if "gallery" in admin.menu_items and not admin.is_super_admin %} 
-       <button onclick="switchTab('gallery')" id="tab-btn-reports" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
-        <i class="fas fa-images mr-1.5"></i> Gallery
-    </button>
-       {% endif %}
     </div>
-    
 
     <div id="tab-content-overview" class="tab-pane block">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-
-            {% if "new_books" in admin.menu_items %}
             <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-magenta/10 flex items-center justify-center text-magenta">
                     <i class="fas fa-book text-xl"></i>
@@ -69,8 +41,6 @@
                     <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_books | number }}</h3>
                 </div>
             </div>
-            {% endif %}
-            {% if "orders" in admin.menu_items %}
             <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-orangered/10 flex items-center justify-center text-orangered">
                     <i class="fas fa-shopping-bag text-xl"></i>
@@ -80,8 +50,6 @@
                     <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_orders | number }}</h3>
                 </div>
             </div>
-            {% endif %}
-            {% if "staff" in admin.menu_items %}
             <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
                     <i class="fas fa-users text-xl"></i>
@@ -91,8 +59,6 @@
                     <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_staff | number }}</h3>
                 </div>
             </div>
-            {% endif %}
-            {% if "submissions" in admin.menu_items %}
             <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
                     <i class="fas fa-chart-pie text-xl"></i>
@@ -102,13 +68,10 @@
                     <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_reports | number }}</h3>
                 </div>
             </div>
-            {% endif %}
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 flex flex-col gap-6">
-
-                {% if "orders" in admin.menu_items %}
                 <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-orangered pl-2">Recent Orders</h4>
@@ -147,8 +110,6 @@
                         </table>
                     </div>
                 </div>
-
-                {% endif %}
 <!--
                 <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
@@ -172,9 +133,6 @@
                         {% endfor %}
                     </div>
                 </div> -->
-
-     
-                {% if "audit_logs" in admin.menu_items %}
 
                 <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
@@ -235,9 +193,6 @@
                         {% endfor %}
                     </div>
                 </div>
-
-                {% endif %}
-                {% if "support" in admin.menu_items %}
 
                 <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
@@ -309,13 +264,9 @@
                 
                     </div>
                 </div>
-                {% endif %}
             </div>
 
-
-           
             <div class="flex flex-col gap-6">
-               {% if "staff" in admin.menu_items %}
                 <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
                     <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider mb-4 border-l-2 border-orangered pl-2">Active Field Agents</h4>
                     <div class="flex flex-col gap-4">
@@ -336,8 +287,6 @@
                     </a>
                 </div>
 
-                {% endif %}
-                {% if "new_books" in admin.menu_items %}
                 <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
                     <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider mb-4 border-l-2 border-orangered pl-2">Recent Additions</h4>
                     <div class="flex flex-col gap-3">
@@ -358,13 +307,10 @@
                         Add New Book
                     </a>
                 </div>
-
-                {% endif %}
             </div>
         </div>
     </div>
 
-    {% if "new_books" in admin.menu_items %}
     <div id="tab-content-books" class="tab-pane hidden">
         <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
             <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -398,8 +344,6 @@
             </div>
         </div>
     </div>
-    {% endif %}
-    {% if "orders" in admin.menu_items %}
 
     <div id="tab-content-orders" class="tab-pane hidden">
         <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
@@ -432,8 +376,7 @@
             </div>
         </div>
     </div>
-    {% endif %}
-    {% if "staff" in admin.menu_items %}
+
     <div id="tab-content-staff" class="tab-pane hidden">
         <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
             <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -468,8 +411,7 @@
             </div>
         </div>
     </div>
-    {% endif %}
-    {% if "submissions" in admin.menu_items %}
+
     <div id="tab-content-reports" class="tab-pane hidden">
         <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
             <div class="p-5 border-b border-gray-100">
@@ -501,7 +443,6 @@
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
 
 <div id="order-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">

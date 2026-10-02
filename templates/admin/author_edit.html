@@ -1,0 +1,401 @@
+{% extends "admin_base.html" %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto px-4 md:px-6 py-8">
+	
+	<div class="flex items-center justify-between gap-4 mb-6">
+		
+		<div>
+			<h1 class="text-xl font-bold text-gray-800">
+				Edit Author
+			</h1>
+			
+			<p class="text-xs text-gray-400 mt-1">
+				Update {{ author.name }}'s profile
+			</p>
+		</div>
+		
+		<a href="/cp/authors" class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-600">
+			<i class="fas fa-arrow-left mr-1"></i>
+			Back
+		</a>
+		
+	</div>
+	
+	
+	<form id="author-form" enctype="multipart/form-data">
+		
+		<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+			
+			<div class="space-y-5">
+				
+				<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+					
+					<h2 class="text-sm font-bold text-gray-800 mb-4">
+						Author Photo
+					</h2>
+					
+					<div class="aspect-square rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden flex items-center justify-center mb-4">
+						
+						{% if author.photo %}
+						
+						<img id="photo-preview" src="{{ author.photo }}" class="w-full h-full object-cover" alt="{{ author.name }}">
+						
+						{% else %}
+						
+						<div id="photo-placeholder" class="text-center">
+							<i class="fas fa-user text-5xl text-gray-200"></i>
+							<p class="text-xs text-gray-400 mt-2">
+								No photo
+							</p>
+						</div>
+						
+						<img id="photo-preview" class="hidden w-full h-full object-cover" alt="{{ author.name }}">
+						
+						{% endif %}
+						
+					</div>
+					
+					<label class="block cursor-pointer">
+					
+						<span class="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-600">
+							<i class="fas fa-camera"></i>
+							Change Photo
+						</span>
+						
+						<input type="file" name="photo" id="photo" accept="image/png,image/jpeg,image/webp" class="hidden">
+						
+					</label>
+					
+				</div>
+				
+				
+				<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+					
+					<h2 class="text-sm font-bold text-gray-800 mb-4">
+						Status
+					</h2>
+					
+					<label class="flex items-center justify-between cursor-pointer">
+					
+						<span>
+							<span class="block text-xs font-semibold text-gray-700">
+								Active Author
+							</span>
+							
+							<span class="block text-[10px] text-gray-400 mt-1">
+								Show this author publicly
+							</span>
+						</span>
+						
+						<input type="checkbox" name="is_active" value="1" {% if author.is_active %}checked{% endif %} class="w-4 h-4 accent-pink-600">
+						
+					</label>
+					
+				</div>
+				
+			</div>
+			
+			
+			<div class="lg:col-span-2 space-y-5">
+				
+				<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+					
+					<h2 class="text-sm font-bold text-gray-800 mb-4">
+						Basic Information
+					</h2>
+					
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						
+						<div>
+							
+							<label class="block text-[11px] font-bold text-gray-500 mb-1">
+								Name
+							</label>
+							
+							<input type="text" name="name" value="{{ author.name }}" required class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-pink-600 text-sm">
+							
+						</div>
+						
+						<div>
+							
+							<label class="block text-[11px] font-bold text-gray-500 mb-1">
+								Slug
+							</label>
+							
+							<input type="text" name="slug" value="{{ author.slug }}" required class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-pink-600 text-sm">
+							
+						</div>
+						
+						<div>
+							
+							<label class="block text-[11px] font-bold text-gray-500 mb-1">
+								Age
+							</label>
+							
+							<input type="number" name="age" value="{{ author.age or '' }}" min="0" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-pink-600 text-sm">
+							
+						</div>
+						
+						<div>
+							
+							<label class="block text-[11px] font-bold text-gray-500 mb-1">
+								Location
+							</label>
+							
+							<input type="text" name="location" value="{{ author.location or '' }}" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-pink-600 text-sm">
+							
+						</div>
+						
+						<div>
+							
+							<label class="block text-[11px] font-bold text-gray-500 mb-1">
+								Email
+							</label>
+							
+							<input type="email" name="email" value="{{ author.email or '' }}" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-pink-600 text-sm">
+							
+						</div>
+						
+						<div>
+							
+							<label class="block text-[11px] font-bold text-gray-500 mb-1">
+								Phone
+							</label>
+							
+							<input type="text" name="phone" value="{{ author.phone or '' }}" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-pink-600 text-sm">
+							
+						</div>
+						
+					</div>
+					
+					<div class="mt-4">
+						
+						<label class="block text-[11px] font-bold text-gray-500 mb-1">
+							Website
+						</label>
+						
+						<input type="url" name="website" value="{{ author.website or '' }}" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-pink-600 text-sm">
+						
+					</div>
+					
+				</div>
+				
+				
+				<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+					
+					<h2 class="text-sm font-bold text-gray-800 mb-4">
+						Biography
+					</h2>
+					
+					<textarea name="description" rows="8" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-pink-600 text-sm resize-y">{{ author.description or '' }}</textarea>
+					
+				</div>
+				
+				
+				<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+					
+					<div class="flex items-center justify-between mb-4">
+						
+						<div>
+							<h2 class="text-sm font-bold text-gray-800">
+								Other Books
+							</h2>
+							
+							<p class="text-[10px] text-gray-400">
+								Books written by this author
+							</p>
+						</div>
+						
+						<button type="button" onclick="addBook()" class="px-3 py-2 rounded-lg bg-pink-600 text-white text-[10px] font-bold hover:bg-pink-700">
+							<i class="fas fa-plus mr-1"></i>
+							Add Book
+						</button>
+						
+					</div>
+					
+					<div id="books-list" class="space-y-2">
+						
+						{% for book in other_books %}
+						
+						<div class="flex gap-2 book-row">
+							
+							<input type="text" value="{{ book }}" class="other-book flex-1 px-4 py-2.5 rounded-lg border border-gray-200 outline-none focus:border-pink-600 text-xs">
+							
+							<button type="button" onclick="this.parentElement.remove()" class="w-10 rounded-lg bg-red-50 text-red-500 hover:bg-red-100">
+								<i class="fas fa-trash text-xs"></i>
+							</button>
+							
+						</div>
+						
+						{% endfor %}
+						
+					</div>
+					
+				</div>
+				
+				
+				<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+					
+					<h2 class="text-sm font-bold text-gray-800 mb-4">
+						Social Links
+					</h2>
+					
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						
+						<input type="url" id="facebook" placeholder="Facebook URL" value="{{ social_links.get('facebook','') }}" class="px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-pink-600 text-sm">
+						
+						<input type="url" id="twitter" placeholder="X / Twitter URL" value="{{ social_links.get('twitter','') }}" class="px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-pink-600 text-sm">
+						
+						<input type="url" id="instagram" placeholder="Instagram URL" value="{{ social_links.get('instagram','') }}" class="px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-pink-600 text-sm">
+						
+						<input type="url" id="linkedin" placeholder="LinkedIn URL" value="{{ social_links.get('linkedin','') }}" class="px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-pink-600 text-sm">
+						
+					</div>
+					
+				</div>
+				
+				
+				<div class="flex justify-end gap-3">
+					
+					<a href="/cp/authors" class="px-5 py-3 rounded-xl bg-gray-100 text-gray-600 text-xs font-bold">
+						Cancel
+					</a>
+					
+					<button type="submit" id="save-btn" class="px-6 py-3 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold shadow-md">
+						<i class="fas fa-save mr-1"></i>
+						Save Changes
+					</button>
+					
+				</div>
+				
+			</div>
+			
+		</div>
+		
+	</form>
+	
+</div>
+
+
+<script>
+const form = document.getElementById('author-form')
+const photo = document.getElementById('photo')
+const preview = document.getElementById('photo-preview')
+const placeholder = document.getElementById('photo-placeholder')
+
+photo.addEventListener('change', function() {
+	
+	const file = this.files[0]
+	
+	if (!file) return
+	
+	preview.src = URL.createObjectURL(file)
+	preview.classList.remove('hidden')
+	
+	if (placeholder) placeholder.style.display = 'none'
+	
+})
+
+
+function addBook() {
+	
+	const list = document.getElementById('books-list')
+	
+	const row = document.createElement('div')
+	
+	row.className = 'flex gap-2 book-row'
+	
+	row.innerHTML = `
+        <input
+            type="text"
+            class="other-book flex-1 px-4 py-2.5 rounded-lg border border-gray-200 outline-none focus:border-pink-600 text-xs"
+            placeholder="Book title"
+        >
+
+        <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            class="w-10 rounded-lg bg-red-50 text-red-500"
+        >
+            <i class="fas fa-trash text-xs"></i>
+        </button>
+    `
+	
+	list.appendChild(row)
+	
+}
+
+
+form.addEventListener('submit', async function(e) {
+	
+	e.preventDefault()
+	
+	const btn = document.getElementById('save-btn')
+	
+	btn.disabled = true
+	btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving...'
+	
+	const data = new FormData(form)
+	
+	const books = [...document.querySelectorAll('.other-book')]
+		.map(input => input.value.trim())
+		.filter(Boolean)
+	
+	const social_links = {
+		facebook: document.getElementById('facebook')
+			.value.trim(),
+		twitter: document.getElementById('twitter')
+			.value.trim(),
+		instagram: document.getElementById('instagram')
+			.value.trim(),
+		linkedin: document.getElementById('linkedin')
+			.value.trim()
+	}
+	
+	data.append('other_books', JSON.stringify(books))
+	data.append('social_links', JSON.stringify(social_links))
+	
+	if (!form.querySelector('[name="is_active"]')
+		.checked) {
+		data.append('is_active', '0')
+	}
+	
+	try {
+		
+		const response = await fetch(
+			'/api/authors/{{ author.id }}/update', {
+				method: 'POST',
+				body: data
+			}
+		)
+		
+		const result = await response.json()
+		
+		if (!response.ok || !result.success) {
+			throw new Error(result.message || 'Unable to update author')
+		}
+		
+		showAlert('success', 'Author updated successfully.')
+		
+		setTimeout(() => {
+			window.location.href = '/cp/authors'
+		}, 700)
+		
+	} catch (error) {
+		
+		showAlert('error', error.message)
+		
+	} finally {
+		
+		btn.disabled = false
+		btn.innerHTML = '<i class="fas fa-save mr-1"></i> Save Changes'
+		
+	}
+	
+})
+
+</script>
+
+{% endblock %}

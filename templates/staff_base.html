@@ -56,69 +56,42 @@
     
     <nav class="flex-grow py-6 flex flex-col  px-3 overflow-y-auto dtp-nav " >
         <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Management</span>
-
-        {% if  admin %}
         
         <a href="/cp" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl  text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-chart-line text-sm w-5"></i> Control Panel
         </a>
-        {% endif %}
-        {% if "coupons" in admin.menu_items %}
-
         <a href="/cp/coupons" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl  text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-tags text-sm w-5"></i> Coupon Codes
         </a>
-        {% endif %}
-        {% if "audit_logs" in admin.menu_items %}
         <a href="/cp/logs" class="admin-nav-link flex items-center gap-3 p-2 rounded-xl  text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-history text-sm w-5"></i> System Audit Logs
         </a>
 
-
-
         <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-6 mb-2 block">Quick Shortcuts</span>
         
-        {% endif %}
-        {% if "new_books" in admin.menu_items %}
-
         <a href="/cp/books/new" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-plus text-sm w-5"></i> Add New Book
         </a>
 
-        {% endif %}
-        {% if "new_books" in admin.menu_items %}
-
         <a href="/cp/books" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-book text-sm w-5"></i> Books Inventory
         </a>
-        {% endif %}
-        {% if "staff" in admin.menu_items %}
-        <a href="/cp/staff" class="flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
-            <i class="fas fa-user-pen text-sm w-5"></i> Edit Staff
+
+        <a href="/staff/register" class="flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+            <i class="fas fa-user-plus text-sm w-5"></i> Register Staff
         </a>
-        
-        {% endif %}
-        {% if "gallery" in admin.menu_items %}
 
         <a href="/cp/gallery" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-images text-sm w-5"></i>  Gallery
         </a>
 
-        {% endif %}
-        {% if "orders" in admin.menu_items %}
-
         <a href="/cp/orders" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-dollar text-sm w-5"></i>  Orders
         </a>
 
-        {% endif %}
-        {% if "stores" in admin.menu_items %}
-
         <a href="/cp/stores" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-store text-sm w-5"></i>  Stores
         </a>
-
-        {% endif %}
 
 
         <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-5 mb-2 block">Public Site</span>
@@ -157,66 +130,38 @@
             
             <nav class="flex-grow py-6 flex flex-col gap-1 px-3 overflow-y-auto">
                 <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Management</span>
-
-                {% if admin %}
+                
                 <a href="/cp" class="admin-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
                     <i class="fas fa-chart-line text-sm w-5"></i> Control Panel
                 </a>
-                {% endif %}
-                {% if "coupons" in admin.menu_items %}
                 <a href="/cp/coupons" class="admin-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
                     <i class="fas fa-tags text-sm w-5"></i> Coupon Codes
                 </a>
-
-                {% endif %}
-
-                {% if "audit_logs" in admin.menu_items %}
-
                 <a href="/cp/logs" class="admin-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
                     <i class="fas fa-history text-sm w-5"></i> System Audit Logs
                 </a>
-
-
         
                 <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-6 mb-2 block">Quick Shortcuts</span>
-
-                {% endif %}
-                {% if "new_books" in admin.menu_items %}
                 
                 <a href="/cp/books/new" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
                     <i class="fas fa-plus text-sm w-5"></i> Add New Book
                 </a>
-
-                {% endif %}
-                {% if "staff" in admin.menu_items %}
-
-                <a href="/cp/staff" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
-                    <i class="fas fa-user-pen text-sm w-5"></i> Edit Staff
+                <a href="/staff/register" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
+                    <i class="fas fa-user-plus text-sm w-5"></i> Register Staff
                 </a>
-
-                {% endif %}
-                {% if "gallery" in admin.menu_items %}
         
                 <a href="/cp/gallery" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
                     <i class="fas fa-camera text-sm w-5"></i>  Gallery
                 </a>
-
-                {% endif %}
-                {% if "orders" in admin.menu_items %}
         
         
                 <a href="/cp/orders" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
                     <i class="fas fa-briefcase text-sm w-5"></i>  All Orders
                 </a>
 
-                {% endif %}
-                {% if "stores" in admin.menu_items %}
-
                 <a href="/cp/stores" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
                     <i class="fas fa-building text-sm w-5"></i>  Stores
                 </a>
-
-                {% endif %}
         
                 <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-auto mb-2 block">Public Site</span>
                 

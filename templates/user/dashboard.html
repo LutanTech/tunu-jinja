@@ -1,325 +1,1033 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Dashboard | TUNU Publishers</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --magenta: #8B008B;
-            --dark-magenta: #5c005c;
-            --orangered: #FF4500;
-            --bg-soft: #f8f9fa;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-soft);
-            color: #333;
-        }
-        .sidebar {
-            transition: all 0.3s;
-        }
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            color: rgba(255, 255, 255, 0.7);
-            border-radius: 12px;
-            transition: all 0.2s;
-            margin-bottom: 4px;
-        }
-        .nav-link:hover, .nav-link.active {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-        .stat-card {
-            background: white;
-            padding: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            border: 1px solid #edf2f7;
-        }
-        .report-form {
-            background: white;
-            padding: 30px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-        }
-        .activity-item {
-            position: relative;
-            padding-left: 30px;
-            padding-bottom: 24px;
-            border-left: 2px solid #e2e8f0;
-        }
-        .activity-item::before {
-            content: '';
-            position: absolute;
-            left: -7px;
-            top: 0;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--orangered);
-            border: 2px solid white;
-        }
-        .input-style {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #e2e8f0;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .input-style:focus {
-            border-color: var(--magenta);
-            box-shadow: 0 0 0 3px rgba(139, 0, 139, 0.1);
-        }
-        @media (max-width: 1024px) {
-            .sidebar { display: none; }
-        }
-    </style>
-</head>
-<body class="bg-gray-50">
+{% extends "admin_base.html" %}
 
-    <nav class="lg:hidden bg-white border-b px-4 py-3 flex justify-between items-center sticky top-0 z-50">
-        <img src="https://i.ibb.co/CKRYPD4p/image.png" alt="Logo" class="h-8">
-        <button class="text-magenta-800 text-2xl"><i class="fas fa-bars"></i></button>
-    </nav>
+{% block content %}
 
-    
-    <div class="flex">
-        <aside class="sidebar bg-magenta-900 bg-[#5c005c] w-72 h-screen sticky top-0 hidden lg:flex flex-col p-6 text-white">
-            <div class="mb-10 px-4">
-                <img src="https://i.ibb.co/CKRYPD4p/image.png" alt="TUNU" class="h-10 bg-white p-1 rounded">
-                <p class="text-xs mt-2 font-bold tracking-widest opacity-60 uppercase">Staff Portal</p>
-            </div>
-            
-            <nav class="flex-1">
-                <a href="#" class="nav-link active"><i class="fas fa-th-large"></i> Dashboard</a>
-                <a href="#" class="nav-link"><i class="fas fa-file-invoice"></i> My Reports</a>
-                <a href="#" class="nav-link"><i class="fas fa-book"></i> Digital Catalogue</a>
-                <a href="#" class="nav-link"><i class="fas fa-users"></i> Contacts</a>
-            </nav>
+<div class="max-w-7xl mx-auto px-4 md:px-6 py-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+            <span class="inline-block bg-magenta/10 text-magenta text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-2">Management Center</span>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800">Admin Control Panel</h1>
+            <p class="text-xs text-gray-500 mt-1">Logged in as: <span class="font-bold text-gray-700">{{ staff.name }}</span> ({{ staff.id }})</p>
+        </div>
 
-            <div class="mt-auto pt-6 border-t border-white/10">
-                <div class="flex items-center gap-3 px-4 mb-6">
-                    <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center font-bold">{{ staff.name[:1].upper() if staff.name else '' }}</div>
-                    <div>
-                        <p class="text-sm font-bold">{{ staff.name }}</p>
-                        <p class="text-[10px] opacity-60">Editor</p>
-                    </div>
-                </div>
-                <a href="/staff/logout" class="nav-link text-red-300"><i class="fas fa-sign-out-alt"></i> Logout</a>
-            </div>
-        </aside>
-
-        <main class="flex-1 p-4 md:p-5 max-w-6xl mx-auto">
-            <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-3xl font-black text-gray-800 tracking-tight">Field Activity Dashboard</h1>
-                    <p class="text-gray-500 font-medium">Welcome back, {{staff.name}}. Tracking your impact.</p>
-                </div>
-                <div class="bg-white px-4 py-2  shadow-sm border border-gray-100 flex items-center gap-3">
-                    <span class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
-                    <span class="text-sm font-bold text-gray-600">System Live: Syncing Data</span>
-                    
-                </div>
-            </header>
-            <div class="notification mt-12 mb-2 p-3 bg-magenta-900 bg-[#5c005c] text-white">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-xl">
-                            <i class="fas fa-lightbulb text-yellow-300"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-black text-lg">System Reminder</h4>
-                            <p class="text-sm opacity-80">Mandatory meeting tommorow. This includes the marketing team too [Thur, 21st May, 2026].</p>
-                        </div>
-                    </div>
-                    <div class="text-center md:text-right">
-                        <p class="text-xs uppercase font-bold tracking-widest opacity-50 mb-1">Office Hotline</p>
-                        <p class="text-xl font-black">+254 722 68 21 29</p>
-                    </div>
-                </div>
-            </div>
-<!-- 
-            <a href="/cp">
-            <div class="notification mt-2 mb-6 p-6 bg-magenta-900 bg-[#5c005c] text-white">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div class="flex items-center gap-4">
-
-                            Admin Control Panel
-
-                    </div>
-                </div>
-            </div>
-            </a> -->
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div class="stat-card">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 bg-purple-100  flex items-center justify-center text-purple-600">
-                            <i class="fas fa-school text-xl"></i>
-                        </div>
-                        <span class="text-green-500 text-xs font-bold bg-green-50 px-2 py-1 rounded-lg">+12%</span>
-                    </div>
-                    <h3 class="text-3xl font-black text-gray-800">{{ visits_this_month }}</h3>
-                    <p class="text-gray-500 text-sm font-semibold">Total Visits This Month</p>
-                </div>
-
-                {% if staff.is_admin %}
-                <a href="/cp">
-                <div class="stat-card bg-[#bdd4ff]" >
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 bg-orange-100  flex items-center justify-center text-green-600">
-                            <i class="fas fa-shield text-xl"></i>
-                        </div>
-                        <span class="text-orange-500 text-xs font-bold bg-orange-50 px-2 py-1 rounded-lg"> <i class="fas fa-check-circle"></i></span>
-                    </div>
-                    <h3 class="text-3xl font-black text-gray-800"> CONTROL PANEL</h3>
-                    <p class="text-gray-500 text-sm font-semibold">You are an Administrator</p>
-                </div>
-            </a>
-                {% else %}
-                <div class="stat-card">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 bg-orange-100  flex items-center justify-center text-orange-600">
-                            <i class="fas fa-paper-plane text-xl"></i>
-                        </div>
-                        <span class="text-orange-500 text-xs font-bold bg-orange-50 px-2 py-1 rounded-lg"> <i class="fas fa-check"></i></span>
-                    </div>
-                    <h3 class="text-3xl font-black text-gray-800">
-                        {{ 'YES' if reports_today > 0 else 'NO' }}
-                    </h3>
-                    <p class="text-gray-500 text-sm font-semibold">Submitted Today</p>
-                </div>
-                {% endif %}
-
-                <div class="stat-card">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 bg-blue-100  flex items-center justify-center text-blue-600">
-                            <i class="fas fa-clock text-xl"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-3xl font-black text-gray-800">09:00</h3>
-                    <p class="text-gray-500 text-sm font-semibold">Start Time Today</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <section>
-                    <div class="report-form">
-                        <h2 class="text-xl font-extrabold mb-6 flex items-center gap-2">
-                            <i class="fas fa-edit text-orangered"></i> Log New Field Report
-                        </h2>
-                        <form action="/submit-report" method="POST" class="space-y-4">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="col-span-2 md:col-span-1">
-                                    <label class="text-xs font-bold text-gray-400 uppercase mb-1 block ml-1">Institution Name <i>*</i></label>
-                                    <input type="text" name="institution_name" class="input-style" placeholder="e.g. Asasi Academy" required>
-                                </div>
-                                <div class="col-span-2 md:col-span-1">
-                                    <label class="text-xs font-bold text-gray-400 uppercase mb-1 block ml-1">Contact Person <i>*</i></label>
-                                    <input type="text" name="contact_person" class="input-style" placeholder="Name" required>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="col-span-2 md:col-span-1">
-                                    <label class="text-xs font-bold text-gray-400 uppercase mb-1 block ml-1">Phone Number</label>
-                                    <input type="tel" name="phone" class="input-style" placeholder="07...">
-                                </div>
-                                <div class="col-span-2 md:col-span-1">
-                                    <label class="text-xs font-bold text-gray-400 uppercase mb-1 block ml-1">Category</label>
-                                    <select name="category" class="input-style" required>
-                                        <option>Private School</option>
-                                        <option>Public School</option>
-                                        <option>Bookshop</option>
-                                        <option>Other Institutions</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="text-xs font-bold text-gray-400 uppercase mb-1 block ml-1">Conversation Notes</label>
-                                <textarea name="conversation_notes" rows="4" class="input-style" placeholder="Summary of discussion, books requested, flyer left?"></textarea>
-                            </div>
-
-                            <div class="p-4 bg-orange-50  border border-orange-100">
-                                <label class="text-xs font-bold text-orange-600 uppercase mb-1 block ml-1">Challenges Faced</label>
-                                <textarea name="challenges" rows="2" class="input-style bg-white border-orange-200" placeholder="Any issues (e.g. Lack of data, busy headteacher)"></textarea>
-                            </div>
-
-                            <button type="submit" class="w-full bg-blue-400 hover:bg-orange-600 text-white font-black py-4  transition-all shadow-lg shadow-orange-200 flex items-center justify-center gap-3">
-                                <span>SUBMIT FIELD REPORT</span>
-                                <i class="fas fa-check-circle"></i>
-                            </button>
-                        </form>
-                    </div>
-                </section>
-
-                <section>
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-extrabold flex items-center gap-2">
-                            <i class="fas fa-history text-magenta-800"></i> Recent Submissions
-                        </h2>
-                        <a href="#" class="text-xs font-bold text-magenta-800 hover:underline">VIEW ALL</a>
-                    </div>
-
-                    <div class="space-y-1">
-                        {% for s in recent_submissions %}
-
-                        <div class="activity-item">
-                            <div class="bg-white p-4 shadow-sm border border-gray-100">
-                        
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="font-black text-gray-800 uppercase text-sm truncate" >
-                                        {{ s.institution_name }}
-                                    </h4>
-                        
-                                    <span class="text-[10px] text-gray-400 font-bold">
-                                        {{ s.submitted_at.strftime('%H:%M') }}
-                                    </span>
-                                </div>
-                        
-                                <p class="text-xs font-bold text-purple-800 mb-2">
-                                    {{ s.contact_person }} ({{ s.phone or 'No Phone' }})
-                                </p>
-                        
-                                {% if s.conversation_notes %}
-                                <p class="text-xs text-gray-600 mb-2">
-                                    {{ s.conversation_notes }}
-                                </p>
-                                {% endif %}
-                        
-                                {% if s.challenges %}
-                                <span class="bg-red-50 text-red-600 text-[10px] font-black px-2 py-1 rounded">
-                                    {{ s.challenges }}
-                                </span>
-                                {% endif %}
-                        
-                            </div>
-                        </div>
-                        
-                        {% endfor %}
-                    </div>
-                </section>
-            </div>
-
-            <footer class="mt-12 p-6 bg-magenta-900 bg-[#5c005c] rounded-xl text-white">
-
-            </footer>
-        </main>
     </div>
 
-    <script>
-        // Form visual feedback
-        document.querySelector('form').onsubmit = function() {
-            const btn = this.querySelector('button');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SYNCING REPORT...';
-            btn.style.opacity = '0.7';
+    <div class="flex border-b border-gray-200 overflow-x-auto gap-2 mb-8" style="scrollbar-width: none;">
+        <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn active shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-magenta border-magenta">
+            <i class="fas fa-chart-line mr-1.5"></i> Overview
+        </button>
+        <button onclick="switchTab('books')" id="tab-btn-books" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
+            <i class="fas fa-book mr-1.5"></i> Books Library
+        </button>
+        <button onclick="switchTab('orders')" id="tab-btn-orders" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
+            <i class="fas fa-shopping-cart mr-1.5"></i> M-Pesa Orders
+        </button>
+        <button onclick="switchTab('staff')" id="tab-btn-staff" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
+            <i class="fas fa-users mr-1.5"></i> Field Staff
+        </button>
+        <button onclick="switchTab('reports')" id="tab-btn-reports" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
+            <i class="fas fa-file-invoice mr-1.5"></i> Submissions
+        </button>
+    </div>
+
+    <div id="tab-content-overview" class="tab-pane block">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-magenta/10 flex items-center justify-center text-magenta">
+                    <i class="fas fa-book text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Books</p>
+                    <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_books | number }}</h3>
+                </div>
+            </div>
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-orangered/10 flex items-center justify-center text-orangered">
+                    <i class="fas fa-shopping-bag text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Orders</p>
+                    <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_orders | number }}</h3>
+                </div>
+            </div>
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                    <i class="fas fa-users text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Field Staff</p>
+                    <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_staff | number }}</h3>
+                </div>
+            </div>
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
+                    <i class="fas fa-chart-pie text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Submissions</p>
+                    <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_reports | number }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-orangered pl-2">Recent Orders</h4>
+                        <button onclick="switchTab('orders')" class="text-[10px] font-bold text-magenta hover:underline uppercase tracking-wider">View All</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-lightWarm/60 text-[9px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-50">
+                                    <th class="py-3 px-4">Order ID</th>
+                                    <th class="py-3 px-4">Customer</th>
+                                    <th class="py-3 px-4">Amount</th>
+                                    <th class="py-3 px-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                {% for o in recent_orders %}
+                                <tr class="hover:bg-gray-50/40 transition-colors">
+                                    <td class="py-3 px-4 font-bold text-gray-700 tracking-wider">{{ o.id }}</td>
+                                    <td class="py-3 px-4 text-gray-600">
+                                        <p class="font-semibold">{{ o.name }}</p>
+                                        <p class="text-[10px] text-gray-400">{{ o.city }}</p>
+                                    </td>
+                                    <td class="py-3 px-4 font-bold text-magenta">{{ o.grand_total | currency }}</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-block px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider 
+                                            {% if o.status == 'PAID' %}bg-green-100 text-green-700
+                                            {% elif o.status == 'FAILED' %}bg-red-100 text-red-600
+                                            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                                            {{ o.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+<!--
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-orangered pl-2">Recent Submissions</h4>
+                        <button onclick="switchTab('reports')" class="text-[10px] font-bold text-magenta hover:underline uppercase tracking-wider">View All</button>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        {% for r in recent_reports %}
+                        <div class="flex items-start gap-4 p-3 hover:bg-lightWarm/40 rounded-xl border border-transparent hover:border-gray-100 transition-all">
+                            <div class="w-8 h-8 rounded-full bg-magenta/10 flex items-center justify-center text-magenta text-xs font-bold shrink-0">
+                                {{ r.staffName[:2].upper() }}
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <div class="flex items-center justify-between gap-2">
+                                    <h5 class="text-xs font-bold text-gray-800 truncate">{{ r.institution_name }}</h5>
+                                    <span class="text-[9px] font-bold text-gray-400 uppercase shrink-0">{{ r.submitted_at  }}</span>
+                                </div>
+                                <p class="text-[10px] text-gray-500 mt-0.5 truncate">{{ r.conversation_notes }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div> -->
+
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-red-500 pl-2">
+                            Unusual Activity
+                        </h4>
+                        <button onclick="location.href='/cp/logs'" class="text-[10px] font-bold text-magenta hover:underline uppercase tracking-wider">
+                            View All
+                        </button>
+                    </div>
+                
+                    <div class="flex flex-col gap-3">
+                        {% for log in unusual_logs %}
+                        <div class="flex items-start gap-4 p-3 hover:bg-lightWarm/40 rounded-xl border border-transparent hover:border-gray-100 transition-all">
+                            <div class="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 text-xs font-bold shrink-0">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                
+                            <div class="flex-grow min-w-0">
+                                <div class="flex items-center justify-between gap-2">
+                                    <h5 class="text-xs font-bold text-gray-800 truncate">
+                                        {{ log.action or log.endpoint }}
+                                    </h5>
+                
+                                    <span class="text-[9px] font-bold text-gray-400 uppercase shrink-0">
+                                        {{ log.timestamp }}
+                                    </span>
+                                </div>
+                
+                                <p class="text-[10px] text-gray-500 mt-0.5 truncate">
+                                    {{ log.ip or "Unknown" }} · {{ log.method }} {{ log.endpoint }}
+                                </p>
+                
+                                {% if log.status_code and log.status_code >= 400 %}
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[8px] font-bold">
+                                    HTTP {{ log.status_code }}
+                                </span>
+                                {% elif log.timestamp.hour >= 23 or log.timestamp.hour <= 4 %}
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 text-[8px] font-bold">
+                                    NIGHT ACTIVITY
+                                </span>
+                                {% elif "bot" in (log.user_agent or "").lower() or "crawler" in (log.user_agent or "").lower() or "spider" in (log.user_agent or "").lower() %}
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 text-[8px] font-bold">
+                                    AUTOMATED TRAFFIC
+                                </span>
+                                {% else %}
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[8px] font-bold">
+                                    HIGH ACTIVITY
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="py-8 text-center text-gray-400 text-xs">
+                            <i class="fas fa-shield-alt text-xl mb-2 block text-green-400"></i>
+                            No unusual activity detected
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-magenta pl-2">
+                                New Support Requests
+                            </h4>
+                            {% if total_support %}
+                            <p class="text-[9px] text-magenta font-bold mt-1 ml-2">
+                                {{ total_support }} pending
+                            </p>
+                            {% endif %}
+                        </div>
+                
+                        <button
+                            onclick="location.href='/cp/support'"
+                            class="text-[10px] font-bold text-magenta hover:underline uppercase tracking-wider"
+                        >
+                            View All
+                        </button>
+                    </div>
+                
+                    <div class="flex flex-col">
+                
+                        {% for support in recent_support %}
+                
+                        <div class="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0">
+                
+                            <div class="w-8 h-8 rounded-full bg-magenta/10 text-magenta flex items-center justify-center shrink-0">
+                                <i class="fas fa-headset text-[11px]"></i>
+                            </div>
+                
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2">
+                                    <p class="text-[11px] font-bold text-gray-800 truncate">
+                                        {{ support.name }}
+                                    </p>
+                
+                                    {% if support.status == "Pending" %}
+                                    <span class="px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600 text-[7px] font-bold uppercase">
+                                        New
+                                    </span>
+                                    {% endif %}
+                                </div>
+                
+                                <p class="text-[9px] text-gray-400 truncate">
+                                    {{ support.subject or "No Subject" }}
+                                    ·
+                                    {{ support.message }}
+                                </p>
+                            </div>
+                
+                            <span class="text-[8px] text-gray-400 shrink-0">
+                                {{ support.created_at.strftime('%d %b') if support.created_at else '' }}
+                            </span>
+                
+                        </div>
+                
+                        {% else %}
+                
+                        <div class="py-8 text-center">
+                            <i class="fas fa-headset text-xl text-gray-200 mb-2"></i>
+                            <p class="text-[10px] text-gray-400">
+                                No support requests
+                            </p>
+                        </div>
+                
+                        {% endfor %}
+                
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-6">
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider mb-4 border-l-2 border-orangered pl-2">Active Field Agents</h4>
+                    <div class="flex flex-col gap-4">
+                        {% for s in recent_staff %}
+                        <div class="flex items-center justify-between border-b border-gray-50 pb-3 last:border-0 last:pb-0">
+                            <div>
+                                <p class="text-xs font-bold text-gray-700 leading-tight">{{ s.name }}</p>
+                                <p class="text-[10px] text-gray-400 mt-0.5"><i class="fas fa-map-marker-alt text-orangered"></i> {{ s.location }}</p>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider {% if s.is_active %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+                                {% if s.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <a href="/staff/register" class="w-full inline-block text-center border border-gray-200 hover:border-magenta hover:text-magenta transition-all text-xs font-bold uppercase tracking-wider py-2.5 rounded-xl mt-5">
+                        Add New Staff
+                    </a>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <h4 class="font-bold text-xs text-gray-800 uppercase tracking-wider mb-4 border-l-2 border-orangered pl-2">Recent Additions</h4>
+                    <div class="flex flex-col gap-3">
+                        {% for b in recent_books %}
+                        <div class="flex items-center gap-3">
+                            <img src="{{ b.image_url }}" alt="" class="w-10 h-12 object-contain bg-lightWarm rounded p-1 shrink-0 border border-gray-100">
+                            <div class="min-w-0">
+                                <h5 class="text-xs font-bold text-gray-800 leading-snug truncate">{{ b.title }}</h5>
+                                <p class="text-[10px] text-gray-400 mt-0.5">{{ b.newPrice | currency }} </p>
+
+                                <p class="text-[10px] text-gray-400 mt-0.5"><b>{{ (b.added_at | datetime) }}</b> </p>
+                                
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <a href="/cp/books/new" class="w-full inline-block text-center border border-gray-200 hover:border-magenta hover:text-magenta transition-all text-xs font-bold uppercase tracking-wider py-2.5 rounded-xl mt-5">
+                        Add New Book
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-content-books" class="tab-pane hidden">
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="relative max-w-md w-full">
+                    <input type="text" id="search-books" oninput="queryBooks()" placeholder="Search library by title or authors..." class="w-full pl-10 pr-4 py-2.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-magenta transition-colors">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-search text-xs"></i>
+                    </div>
+                </div>
+                <a href="/cp/books/new" class="bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm transition-colors text-center shrink-0">
+                    Add Book
+                </a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="py-4 px-6">Image</th>
+                            <th class="py-4 px-6">Book Details</th>
+                            <th class="py-4 px-6">Grade / Target</th>
+                            <th class="py-4 px-6">Selling Price</th>
+                            <th class="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="books-table-body" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+            <div class="p-5 border-t border-gray-100 flex items-center justify-between flex-wrap gap-4">
+                <p id="books-info" class="text-xs text-gray-500 font-semibold"></p>
+                <div id="books-pagination" class="flex items-center gap-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-content-orders" class="tab-pane hidden">
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-100">
+                <div class="relative max-w-md w-full">
+                    <input type="text" id="search-orders" oninput="queryOrders()" placeholder="Search by customer name, phone or ID..." class="w-full pl-10 pr-4 py-2.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-magenta transition-colors">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-search text-xs"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="py-4 px-6">Order ID</th>
+                            <th class="py-4 px-6">Customer Details</th>
+                            <th class="py-4 px-6">City / Town</th>
+                            <th class="py-4 px-6">Total Paid</th>
+                            <th class="py-4 px-6">Payment Status</th>
+                            <th class="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+            <div class="p-5 border-t border-gray-100 flex items-center justify-between flex-wrap gap-4">
+                <p id="orders-info" class="text-xs text-gray-500 font-semibold"></p>
+                <div id="orders-pagination" class="flex items-center gap-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-content-staff" class="tab-pane hidden">
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="relative max-w-md w-full">
+                    <input type="text" id="search-staff" oninput="queryStaff()" placeholder="Search staff names, locations or email..." class="w-full pl-10 pr-4 py-2.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-magenta transition-colors">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-search text-xs"></i>
+                    </div>
+                </div>
+                <a href="/staff/register" class="bg-magenta hover:bg-dark-magenta text-white font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-full shadow-sm transition-colors text-center shrink-0">
+                    Register Staff
+                </a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="py-4 px-6">Staff Member</th>
+                            <th class="py-4 px-6">Email / Location</th>
+                            <th class="py-4 px-6">Phone Number</th>
+                            <th class="py-4 px-6">Authority Level</th>
+                            <th class="py-4 px-6">Active Status</th>
+                            <th class="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staff-table-body" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+            <div class="p-5 border-t border-gray-100 flex items-center justify-between flex-wrap gap-4">
+                <p id="staff-info" class="text-xs text-gray-500 font-semibold"></p>
+                <div id="staff-pagination" class="flex items-center gap-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-content-reports" class="tab-pane hidden">
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-100">
+                <div class="relative max-w-md w-full">
+                    <input type="text" id="search-reports" oninput="queryReports()" placeholder="Search field reports by institution..." class="w-full pl-10 pr-4 py-2.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-magenta transition-colors">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-search text-xs"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-lightWarm border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            <th class="py-4 px-6">Institution</th>
+                            <th class="py-4 px-6">Field Agent</th>
+                            <th class="py-4 px-6">Contact Person</th>
+                            <th class="py-4 px-6">Transaction Outcome</th>
+                            <th class="py-4 px-6">Submission Date</th>
+                            <th class="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reports-table-body" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+            <div class="p-5 border-t border-gray-100 flex items-center justify-between flex-wrap gap-4">
+                <p id="reports-info" class="text-xs text-gray-500 font-semibold"></p>
+                <div id="reports-pagination" class="flex items-center gap-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="order-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300" id="order-modal-container">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-orangered pl-2">Modify Order Status</h3>
+            <button onclick="closeOrderModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+        <div class="p-6 flex flex-col gap-4">
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Target Order</p>
+                <p id="modal-order-id" class="text-xs font-black text-gray-800 tracking-wider"></p>
+            </div>
+            <div>
+                <label for="modal-order-status" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Process Stage</label>
+                <select id="modal-order-status" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors bg-white appearance-none text-gray-700">
+                    <option value="PENDING">PENDING</option>
+                    <option value="PAID">PAID</option>
+                    <option value="FAILED">FAILED</option>
+                    <option value="DISPATCHED">DISPATCHED</option>
+                    <option value="DELIVERED">DELIVERED</option>
+                </select>
+ 
+            </div>
+            <div class="border-t border-gray-100 pt-4 mt-2 flex justify-end gap-3">
+                <div>
+                    <button onclick="deleteOrder()" class=" border border-1 rounded text-red-500 py-2 px-6"> <i class="fas fa-trash"></i> </button>
+                </div>
+                <button onclick="closeOrderModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg text-xs font-bold transition-colors">Cancel</button>
+                <button onclick="saveOrderStatus()" class="bg-magenta hover:bg-dark-magenta text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Update Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="report-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300" id="report-modal-container">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-orangered pl-2">Field Agent Submission Details</h3>
+            <button onclick="closeReportModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+        <div class="p-6 flex flex-col gap-4 text-xs">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Institution Name</p>
+                    <p id="rep-inst" class="font-bold text-gray-800 mt-0.5"></p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Representative Agent</p>
+                    <p id="rep-agent" class="font-bold text-gray-800 mt-0.5"></p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Point of Contact</p>
+                    <p id="rep-contact" class="font-bold text-gray-800 mt-0.5"></p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Contact Phone</p>
+                    <p id="rep-phone" class="font-semibold text-gray-800 mt-0.5"></p>
+                </div>
+            </div>
+            <div class="border-t border-gray-100 pt-4">
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Conversation Transcript & Observations</p>
+                <div class="bg-lightWarm p-3 rounded-lg text-gray-700 leading-relaxed max-h-32 overflow-y-auto" id="rep-notes"></div>
+            </div>
+            <div class="border-t border-gray-100 pt-4 mt-2 flex justify-end">
+                <button onclick="closeReportModal()" class="bg-magenta hover:bg-dark-magenta text-white px-6 py-2.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Dismiss</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="staff-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300" id="staff-modal-container">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider border-l-2 border-orangered pl-2">Modify User Account</h3>
+            <button onclick="closeStaffModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+        <form id="edit-staff-form" onsubmit="saveStaffChanges(event)" class="p-6 flex flex-col gap-4">
+            <input type="hidden" id="staff-edit-id">
+            <div>
+                <label for="staff-edit-name" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Full Name</label>
+                <input type="text" id="staff-edit-name" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="staff-edit-email" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email Address</label>
+                    <input type="email" id="staff-edit-email" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                </div>
+                <div>
+                    <label for="staff-edit-phone" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Phone Number</label>
+                    <input type="tel" id="staff-edit-phone" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="staff-edit-location" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Base Location</label>
+                    <input type="text" id="staff-edit-location" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                </div>
+                <div>
+                    <label for="staff-edit-admin" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Access Authorization</label>
+                    <select id="staff-edit-admin" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors bg-white appearance-none text-gray-700">
+                        <option value="false">Staff Member</option>
+                        <option value="true">Administrator</option>
+                    </select>
+                </div>
+            </div>
+            <div class="border-t border-gray-100 pt-4 mt-2 flex justify-end gap-3">
+                <button type="button" onclick="closeStaffModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg text-xs font-bold transition-colors">Cancel</button>
+                <button type="submit" class="bg-magenta hover:bg-dark-magenta text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-colors shadow-sm">Apply Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let activeTab = 'overview';
+    let booksPage = 1, ordersPage = 1, staffPage = 1, reportsPage = 1;
+    let selectedOrderId = null;
+
+    function switchTab(tabId) {
+        activeTab = tabId;
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active', 'text-magenta', 'border-magenta');
+            btn.classList.add('text-gray-400', 'border-transparent');
+        });
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.classList.add('hidden');
+            pane.classList.remove('block');
+        });
+
+        const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+        activeBtn.classList.add('active', 'text-magenta', 'border-magenta');
+        activeBtn.classList.remove('text-gray-400', 'border-transparent');
+
+        const activePane = document.getElementById(`tab-content-${tabId}`);
+        activePane.classList.remove('hidden');
+        activePane.classList.add('block');
+
+        if (tabId === 'books') queryBooks(1);
+        else if (tabId === 'orders') queryOrders(1);
+        else if (tabId === 'staff') queryStaff(1);
+        else if (tabId === 'reports') queryReports(1);
+    }
+
+    async function queryBooks(page = 1) {
+        booksPage = page;
+        const query = document.getElementById('search-books').value.trim();
+        const tbody = document.getElementById('books-table-body');
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400 font-semibold">Loading books catalog...</td></tr>`;
+
+        try {
+            const res = await fetch(`/api/admin/books?page=${page}&q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            tbody.innerHTML = '';
+
+            if (data.items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400 font-semibold">No books matching search parameters.</td></tr>`;
+                document.getElementById('books-info').textContent = 'Showing 0 results';
+                document.getElementById('books-pagination').innerHTML = '';
+                return;
+            }
+
+            data.items.forEach(b => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-4 px-6 shrink-0">
+                        <img src="${b.image_url}" alt="" class="w-8 h-10 object-contain bg-lightWarm rounded p-1 border border-gray-100">
+                    </td>
+                    <td class="py-4 px-6">
+                        <p class="font-bold text-gray-800 leading-tight">${b.title}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">Authors: ${b.authors || 'Tunu Publishers'}</p>
+                    </td>
+                    <td class="py-4 px-6 font-semibold text-gray-500">${b.grade || 'General'}</td>
+                    <td class="py-4 px-6 font-extrabold text-magenta">KSh ${b.newPrice.toLocaleString()}</td>
+                    <td class="py-4 px-6 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="/cp/books/edit/${b.id}" class="text-gray-400 hover:text-magenta p-2 transition-colors" title="Edit book">
+                                <i class="fas fa-edit text-xs"></i>
+                            </a>
+                            <button onclick="deleteBookItem('${b.id}')" class="text-gray-400 hover:text-red-500 p-2 transition-colors" title="Delete book">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('books-info').textContent = `Page ${data.page} of ${data.pages} (Total: ${data.total})`;
+            renderPager(data, 'books', queryBooks);
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-red-500 font-bold">Error loading books. Please reload.</td></tr>`;
+        }
+    }
+
+    async function queryOrders(page = 1) {
+        ordersPage = page;
+        const query = document.getElementById('search-orders').value.trim();
+        const tbody = document.getElementById('orders-table-body');
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-semibold">Retrieving secure orders...</td></tr>`;
+
+        try {
+            const res = await fetch(`/api/admin/orders?page=${page}&q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            tbody.innerHTML = '';
+
+            if (data.items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-semibold">No orders matching search parameters.</td></tr>`;
+                document.getElementById('orders-info').textContent = 'Showing 0 results';
+                document.getElementById('orders-pagination').innerHTML = '';
+                return;
+            }
+
+            data.items.forEach(o => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors';
+                const statusBadge = o.status === 'PAID' ? 'bg-green-100 text-green-700' : (o.status === 'FAILED' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700');
+                tr.innerHTML = `
+                    <td class="py-4 px-6 font-bold text-gray-800 tracking-wider">${o.id}</td>
+                    <td class="py-4 px-6">
+                        <p class="font-bold text-gray-700 leading-tight">${o.name}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">${o.phone}</p>
+                    </td>
+                    <td class="py-4 px-6 font-semibold text-gray-500">${o.city}</td>
+                    <td class="py-4 px-6 font-extrabold text-magenta">KSh ${o.grand_total.toLocaleString()}</td>
+                    <td class="py-4 px-6">
+                        <span class="inline-block px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${statusBadge}">
+                            ${o.status}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick="openOrderModal('${o.id}', '${o.status}')" class="text-gray-400 hover:text-magenta p-2 transition-colors" title="Change status">
+                                <i class="fas fa-cog text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('orders-info').textContent = `Page ${data.page} of ${data.pages} (Total: ${data.total})`;
+            renderPager(data, 'orders', queryOrders);
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">Error loading orders.</td></tr>`;
+        }
+    }
+
+    async function queryStaff(page = 1) {
+        staffPage = page;
+        const query = document.getElementById('search-staff').value.trim();
+        const tbody = document.getElementById('staff-table-body');
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-semibold">Synchronizing roster...</td></tr>`;
+
+        try {
+            const res = await fetch(`/api/admin/staff-list?page=${page}&q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            tbody.innerHTML = '';
+
+            if (data.items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-semibold">No active matches.</td></tr>`;
+                document.getElementById('staff-info').textContent = 'Showing 0 results';
+                document.getElementById('staff-pagination').innerHTML = '';
+                return;
+            }
+
+            data.items.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors';
+                const statusBadge = s.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400';
+                tr.innerHTML = `
+                    <td class="py-4 px-6">
+                        <p class="font-bold text-gray-800 leading-tight">${s.name}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">ID: ${s.id}</p>
+                    </td>
+                    <td class="py-4 px-6">
+                        <p class="font-semibold text-gray-600">${s.email || 'No email'}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5"><i class="fas fa-map-marker-alt text-orangered"></i> ${s.location}</p>
+                    </td>
+                    <td class="py-4 px-6 font-semibold text-gray-700">${s.phone}</td>
+                    <td class="py-4 px-6">
+                        <span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-magenta/10 text-magenta">
+                            ${s.is_admin ? 'Admin' : 'Field'}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <button onclick="toggleStaffActive('${s.id}')" class="inline-block px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider transition-all ${statusBadge}">
+                            ${s.is_active ? 'Active' : 'Disabled'}
+                        </button>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <button onclick="openStaffModal('${s.id}', '${s.name}', '${s.email}', '${s.phone}', '${s.location}', ${s.is_admin})" class="text-gray-400 hover:text-magenta p-2 transition-colors" title="Edit staff details">
+                            <i class="fas fa-edit text-xs"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('staff-info').textContent = `Page ${data.page} of ${data.pages} (Total: ${data.total})`;
+            renderPager(data, 'staff', queryStaff);
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">Error loading staff list.</td></tr>`;
+        }
+    }
+
+    async function queryReports(page = 1) {
+        reportsPage = page;
+        const query = document.getElementById('search-reports').value.trim();
+        const tbody = document.getElementById('reports-table-body');
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-semibold">Gathering daily submissions...</td></tr>`;
+
+        try {
+            const res = await fetch(`/api/admin/reports?page=${page}&q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            tbody.innerHTML = '';
+
+            if (data.items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400 font-semibold">No submissions on record matching search.</td></tr>`;
+                document.getElementById('reports-info').textContent = 'Showing 0 results';
+                document.getElementById('reports-pagination').innerHTML = '';
+                return;
+            }
+
+            data.items.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50/50 transition-colors';
+                const dealBadge = r.isSold ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-600';
+                tr.innerHTML = `
+                    <td class="py-4 px-6 font-bold text-gray-800">${r.institution_name}</td>
+                    <td class="py-4 px-6 font-semibold text-gray-600">${r.staffName}</td>
+                    <td class="py-4 px-6">
+                        <p class="font-semibold text-gray-700 leading-tight">${r.contact_person}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">${r.phone}</p>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-block px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${dealBadge}">
+                            ${r.isSold ? 'Closed Deal' : 'Warm Lead'}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-gray-400 font-semibold">${r.submitted_at}</td>
+                    <td class="py-4 px-6 text-right">
+                        <button onclick="openReportModal('${r.institution_name}', '${r.staffName}', '${r.contact_person}', '${r.phone}', \`${r.conversation_notes.replace(/`/g, '\\`').replace(/\n/g, '<br>')}\`)" class="text-gray-400 hover:text-magenta p-2 transition-colors" title="View details">
+                            <i class="fas fa-eye text-xs"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('reports-info').textContent = `Page ${data.page} of ${data.pages} (Total: ${data.total})`;
+            renderPager(data, 'reports', queryReports);
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">Error loading report records.</td></tr>`;
+        }
+    }
+
+    function renderPager(data, scope, clickHandler) {
+        const wrap = document.getElementById(`${scope}-pagination`);
+        wrap.innerHTML = '';
+
+        if (data.pages <= 1) return;
+
+        const prevBtn = document.createElement('button');
+        prevBtn.className = `p-2 rounded-lg border text-xs font-bold transition-all ${data.has_prev ? 'bg-white hover:text-magenta border-gray-300 text-gray-600' : 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed'}`;
+        prevBtn.innerHTML = `<i class="fas fa-chevron-left text-[10px]"></i>`;
+        if (data.has_prev) prevBtn.onclick = () => clickHandler(data.page - 1);
+        wrap.appendChild(prevBtn);
+
+        for (let i = 1; i <= data.pages; i++) {
+            const pageBtn = document.createElement('button');
+            const isActive = i === data.page;
+            pageBtn.className = `w-8 h-8 rounded-lg border text-xs font-bold transition-all ${isActive ? 'bg-magenta text-white border-magenta' : 'bg-white text-gray-600 hover:text-magenta border-gray-300'}`;
+            pageBtn.textContent = i;
+            pageBtn.onclick = () => clickHandler(i);
+            wrap.appendChild(pageBtn);
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = `p-2 rounded-lg border text-xs font-bold transition-all ${data.has_next ? 'bg-white hover:text-magenta border-gray-300 text-gray-600' : 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed'}`;
+        nextBtn.innerHTML = `<i class="fas fa-chevron-right text-[10px]"></i>`;
+        if (data.has_next) nextBtn.onclick = () => clickHandler(data.page + 1);
+        wrap.appendChild(nextBtn);
+    }
+
+    async function toggleStaffActive(staffId) {
+        try {
+            const res = await fetch('/api/admin/toggle_staff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ staff_id: staffId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showAlert('success', data.msg);
+                queryStaff(staffPage);
+            } else {
+                showAlert('error', data.error);
+            }
+        } catch (e) {
+            showAlert('error', 'Communication failure.');
+        }
+    }
+
+    async function deleteBookItem(bookId) {
+        if (!confirm('Are you absolutely sure you want to remove this book from the active catalog?')) return;
+        try {
+            const res = await fetch('/api/admin/delete_book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ book_id: bookId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showAlert('success', data.msg);
+                queryBooks(booksPage);
+            } else {
+                showAlert('error', data.error);
+            }
+        } catch (e) {
+            showAlert('error', 'Communication failure.');
+        }
+    }
+
+    function openOrderModal(oid, currentStatus) {
+        selectedOrderId = oid;
+        document.getElementById('modal-order-id').textContent = oid;
+        document.getElementById('modal-order-status').value = currentStatus;
+
+        const modal = document.getElementById('order-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('order-modal-container').classList.remove('scale-95');
+            document.getElementById('order-modal-container').classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeOrderModal() {
+        const modal = document.getElementById('order-modal');
+        document.getElementById('order-modal-container').classList.remove('scale-100');
+        document.getElementById('order-modal-container').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            selectedOrderId = null;
+        }, 200);
+    }
+
+    async function saveOrderStatus() {
+        const select = document.getElementById('modal-order-status');
+        try {
+            const res = await fetch('/api/admin/order/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: selectedOrderId, status: select.value })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showAlert('success', data.msg);
+                closeOrderModal();
+                queryOrders(ordersPage);
+            } else {
+                showAlert('error', data.error);
+            }
+        } catch (e) {
+            showAlert('error', 'Status modification failed.');
+        }
+    }
+
+
+    async function deleteOrder() {
+        try {
+            const res = await fetch('/api/admin/order/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: selectedOrderId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showAlert('success', data.msg);
+                closeOrderModal();
+                queryOrders(ordersPage);
+            } else {
+                showAlert('error', data.error);
+            }
+        } catch (e) {
+            showAlert('error', 'Order deletion failed.');
+        }
+    }
+
+
+    function openReportModal(inst, agent, contact, phone, notes) {
+        document.getElementById('rep-inst').textContent = inst;
+        document.getElementById('rep-agent').textContent = agent;
+        document.getElementById('rep-contact').textContent = contact;
+        document.getElementById('rep-phone').textContent = phone;
+        document.getElementById('rep-notes').innerHTML = notes;
+
+        const modal = document.getElementById('report-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('report-modal-container').classList.remove('scale-95');
+            document.getElementById('report-modal-container').classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeReportModal() {
+        const modal = document.getElementById('report-modal');
+        document.getElementById('report-modal-container').classList.remove('scale-100');
+        document.getElementById('report-modal-container').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 200);
+    }
+
+    function openStaffModal(id, name, email, phone, location, isAdmin) {
+        document.getElementById('staff-edit-id').value = id;
+        document.getElementById('staff-edit-name').value = name;
+        document.getElementById('staff-edit-email').value = email;
+        document.getElementById('staff-edit-phone').value = phone;
+        document.getElementById('staff-edit-location').value = location;
+        document.getElementById('staff-edit-admin').value = isAdmin ? "true" : "false";
+
+        const modal = document.getElementById('staff-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('staff-modal-container').classList.remove('scale-95');
+            document.getElementById('staff-modal-container').classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeStaffModal() {
+        const modal = document.getElementById('staff-modal');
+        document.getElementById('staff-modal-container').classList.remove('scale-100');
+        document.getElementById('staff-modal-container').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.getElementById('edit-staff-form').reset();
+        }, 200);
+    }
+
+    async function saveStaffChanges(e) {
+        e.preventDefault();
+        const id = document.getElementById('staff-edit-id').value;
+        const payload = {
+            id: id,
+            name: document.getElementById('staff-edit-name').value.trim(),
+            email: document.getElementById('staff-edit-email').value.trim(),
+            phone: document.getElementById('staff-edit-phone').value.trim(),
+            location: document.getElementById('staff-edit-location').value.trim(),
+            is_admin: document.getElementById('staff-edit-admin').value === "true"
         };
-    </script>
-</body>
-</html>
+
+        try {
+            const res = await fetch('/api/admin/edit_staff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showAlert('success', data.msg);
+                closeStaffModal();
+                queryStaff(staffPage);
+            } else {
+                showAlert('error', data.error);
+            }
+        } catch (err) {
+            showAlert('error', 'Failed to modify account.');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        switchTab('overview');
+    });
+</script>
+{% endblock %}

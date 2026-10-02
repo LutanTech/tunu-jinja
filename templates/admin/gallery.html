@@ -1,27 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TUNU Publishers | Gallery Manager</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        magenta: '#8B008B',
-                        'dark-magenta': '#4B004B',
-                        orangered: '#FF4500',
-                        lightWarm: '#fdfbf9'
-                    },
-                    fontFamily: { sans: ['Poppins', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
+{% extends "admin_base.html" %}
+
+{% block content %}
     <style>
         :root {
             --magenta: #8B008B; --dark-magenta: #4B004B; --orangered: #FF4500;
@@ -60,44 +39,11 @@
             background-color: #f1f5f9;
         }
     </style>
-</head>
-<body class="font-sans">
 
-    <div class="min-h-screen flex overflow-hidden">
 
         <!-- SIDEBAR -->
-        <aside class="sidebar bg-[#111111] text-white flex flex-col shrink-0 z-[1001] fixed md:relative h-full max-w-[80vw] -translate-x-full md:translate-x-0 overflow-auto" id="sidebar">
-            <div class="p-5 flex items-center gap-3 border-b border-white/5">
-                <img src="{{ url_for('static', filename='icons/tunu_logo.png') }}" onerror="this.src='https://placehold.co/100x100/8B008B/ffffff?text=TUNU'" alt="Logo" class="w-9 h-9 object-contain rounded-lg">
-                <div>
-                    <div class="font-extrabold text-sm tracking-wide">TUNU PUBLISHERS</div>
-                    <div class="text-[10px] text-gray-400 uppercase tracking-widest">Admin Panel</div>
-                </div>
-            </div>
 
-            <nav class="flex-1 py-3 overflow-auto space-y-0.5">
-                <div class="px-5 py-2 text-[10px] uppercase tracking-wider text-gray-500 font-bold">Main Dashboard</div>
-                <a href="{{ url_for('admin_dashboard') }}" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-chart-pie w-4 text-center"></i> Insights Workspace</a>
-                <a href="{{ url_for('admin_dashboard') }}?tab=orders" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-shopping-bag w-4 text-center"></i> Orders & Logistics</a>
-
-                <div class="px-5 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-bold">Content & Team</div>
-                <a href="{{ url_for('books_admin') }}" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-book w-4 text-center"></i> Book Stock Inventory</a>
-                <a href="{{ url_for('admin_dashboard') }}" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-users w-4 text-center"></i> Staff Accounts</a>
-                <a href="{{ url_for('stores_admin') }}" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-store w-4 text-center"></i> Store Directory</a>
-                <a href="{{ url_for('gallery_admin') }}" class="nav-item active flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-images w-4 text-center"></i> Gallery Manager</a>
-
-                <div class="px-5 py-3 text-[10px] uppercase tracking-wider text-gray-500 font-bold">Performance Logs</div>
-                <a href="{{ url_for('admin_dashboard') }}?tab=sales" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-gray-400 cursor-pointer"><i class="fas fa-file-invoice-dollar w-4 text-center"></i> Daily Sales Performance</a>
-                <a href="/clear-cache" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-red-400 cursor-pointer"><i class="fas fa-broom w-4 text-center"></i> Clear Cache</a>
-
-                <div class="pt-6 pb-4 border-t border-white/5 mt-auto">
-                    <a href="/staff/logout" class="nav-item flex items-center gap-3 px-5 py-2.5 text-xs font-bold text-red-400 hover:text-red-300 cursor-pointer"><i class="fas fa-sign-out-alt w-4 text-center"></i> Logout Session</a>
-                </div>
-            </nav>
-        </aside>
-
-        <main class="flex-1 flex flex-col h-screen overflow-hidden">
-            <header class="bg-white h-16 md:h-20 shadow-sm flex items-center justify-between px-4 md:px-10 z-[100] shrink-0 border-b border-gray-100 gap-3">
+            <header class="bg-white h-16 md:h-20 shadow-sm flex hidden md:flex items-center justify-between px-4 md:px-10 z-[100] shrink-0 border-b border-gray-100 gap-3">
                 <div class="flex items-center gap-3 min-w-0">
                     <button class="md:hidden text-dark-magenta text-lg p-2 rounded-lg bg-gray-100 shrink-0" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                     <div class="font-extrabold text-xs md:text-lg text-dark-magenta uppercase tracking-wider truncate">Gallery Manager</div>
@@ -233,8 +179,6 @@
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
 
     <div id="galleryModalOverlay" class="fixed inset-0 bg-black/60 hidden backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-6 md:p-7 max-h-[90vh] flex flex-col overflow-hidden">
@@ -333,7 +277,6 @@
                 </form>
             </div>
         </div>
-    </div>
 
     <div id="confirmDeleteModal" class="fixed inset-0 bg-black/60 hidden backdrop-blur-sm z-[2050] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center space-y-4">
@@ -751,5 +694,4 @@
             });
         }
     </script>
-</body>
-</html>
+{% endblock %}

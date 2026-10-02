@@ -367,8 +367,6 @@
         </div>
     </footer>
 
-    <!-- COOKIE BANNER COMPONENT -->
-<!-- COOKIE BANNER OVERLAY & MODAL (Hidden by default) -->
 <div id="cookie-banner-overlay" class="hidden fixed inset-0 bg-black/20 backdrop-blur-xs z-50 flex items-center justify-center p-4 transition-opacity duration-300 opacity-0">
     <div class="bg-white border border-gray-100 shadow-2xl rounded-2xl max-w-md w-full p-6 text-center space-y-4">
         <div class="w-14 h-14 rounded-full bg-magenta/10 flex items-center justify-center mx-auto">
@@ -432,7 +430,6 @@
         hideBanner();
     }
 
-    // Only shows banner if choice is missing in current session
     document.addEventListener('DOMContentLoaded', () => {
         const consent = localStorage.getItem('cookieConsent');
         if (!consent) {

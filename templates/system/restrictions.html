@@ -1,0 +1,271 @@
+{% extends "admin_base.html" %}
+{% block content %}
+
+<div class="max-w-7xl mx-auto px-4 md:px-6 py-8">
+    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        
+        <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+                <h3 class="font-bold text-xs text-gray-800 uppercase tracking-wider flex items-center">
+                    <i class="fas fa-users text-pink-600 mr-2"></i>Staff Accounts
+                </h3>
+                <p class="text-[11px] text-gray-400 mt-1">{{ staff|length }} staff accounts total</p>
+            </div>
+            <div class="relative w-full sm:w-72">
+                <input id="log-search" type="text" placeholder="Search staff by ID, name, email..." class="w-full pl-9 pr-4 py-2.5 text-xs border border-gray-200 rounded-lg outline-none focus:border-pink-600 transition-colors">
+                <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+            </div>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="bg-gray-50/75 border-b border-gray-100 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                        <th class="py-3 px-4">Added</th>
+                        <th class="py-3 px-4">Name</th>
+                        <th class="py-3 px-4">Email</th>
+                        <th class="py-3 px-4">Phone</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4">Menu Access</th>
+                        <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                
+                <tbody id="logs-table" class="divide-y divide-gray-100">
+                    {% for s in staff %}
+                    <tr class="log-row hover:bg-gray-50/60 transition-colors" data-search="{{ s.id or '' }} {{ s.name or '' }} {{ s.email or '' }} {{ s.phone or '' }} {{ s.location or '' }} {{ s.added_by or '' }}" data-location="{{ s.location or 'N/A' }}" data-addedby="{{ s.added_by or 'N/A' }}">
+                        
+                        <td class="py-3.5 px-4 whitespace-nowrap text-gray-500 text-[11px]">{{ s.added_at.strftime('%b %d, %Y') if s.added_at else '---' }}</td>
+                        
+                        <td class="py-3.5 px-4">
+                            <div class="font-semibold text-gray-800">{{ s.name or "---" }}</div>
+                            <div class="text-[10px]  menu-item text-gray-400">#{{ s.id or "Unknown" }}</div>
+                        </td>
+                        
+                        <td class="py-3.5 px-4 max-w-[130px]">
+                            <span class="font-medium text-pink-600 truncate block" title="{{ s.email }}">{{ s.email or "---" }}</span>
+                        </td>
+                        
+                        <td class="py-3.5 px-4 text-gray-600 whitespace-nowrap">{{ s.phone or "N/A" }}</td>
+                        
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center gap-1 flex-wrap">
+                                {% if s.is_active %}
+                                <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-bold">Active</span>
+                                {% else %}
+                                <span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-bold">Inactive</span>
+                                {% endif %}
+                                {% if s.is_admin %}
+                                <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[9px] font-bold">Admin</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        
+                        <td data-uid="{{ s.id }}" data-name="{{ s.name }}" data-items='{{ s.display_items | tojson | safe }}' class="py-3.5 px-4">
+                            <div class="flex flex-wrap gap-1 max-w-[220px]">
+                                {% set menu_items=[('coupons','Coupons'),('audit_logs','Logs'),('new_books','Books'),('edit_staff','Staff'),('stores','Stores'),('orders','Orders'),('gallery','Gallery'),
+                                ('overview','Overview'),
+                                ('submissions','Submissions'),
+                                ('support','Support')
+                                ] %}
+                                {% for value,label in menu_items %}
+                                {% if value in s.display_items %}
+                                <span class="px-1.5 py-0.5 rounded bg-pink-50 text-pink-700 menu-item text-[9px] font-medium border border-pink-100">{{ label }}</span>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </td>
+                        
+                        <td class="py-3.5 px-4">
+                            <div class="flex justify-end gap-1.5">
+                                <button type="button" onclick="showStaffDetails(this.closest('tr'))" class="w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-600 hover:text-pink-600 hover:border-pink-200 flex items-center justify-center transition-all shadow-xs cursor-pointer" title="View Details">
+                                    <i class="fas fa-eye text-xs pointer-events-none"></i>
+                                </button>
+                                <button type="button" onclick="editMenuItems(this.closest('tr').querySelector('[data-uid]'))" class="w-8 h-8 rounded-lg bg-pink-600 text-white hover:bg-pink-700 flex items-center justify-center transition-all shadow-xs cursor-pointer" title="Edit Menu Access">
+                                    <i class="fas fa-pen text-xs pointer-events-none"></i>
+                                </button>
+                            </div>
+                        </td>
+                        
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="no-results" class="hidden p-10 text-center text-gray-400 text-xs">No matching staff accounts found</div>
+    </div>
+</div>
+
+<div class="details-overlay hidden fixed inset-0 z-50 items-center justify-center bg-black/50 p-4">
+    <div class="details-div relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <button type="button" onclick="closeDetails()" class="absolute right-4 top-4 w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 flex items-center justify-center transition-colors cursor-pointer">
+            <i class="fas fa-xmark"></i>
+        </button>
+        <h3 class="text-base font-bold pb-3 border-b border-gray-100 mb-4 text-gray-800">Staff Account Details</h3>
+        <div id="staff-details" class="space-y-1"></div>
+    </div>
+</div>
+
+<div class="items-overlay hidden fixed inset-0 z-50 items-center justify-center bg-black/50 p-4">
+    <div class="items-div relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+        <button type="button" onclick="closeItems()" class="absolute right-4 top-4 w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 flex items-center justify-center transition-colors cursor-pointer">
+            <i class="fas fa-xmark"></i>
+        </button>
+
+        <h3 class="text-base font-bold border-b border-gray-100 pb-3 mb-4 text-gray-800">
+            Edit Menu Access for <span id="edit-username" class="text-pink-600"></span>
+        </h3>
+
+        <input id="edit-id" type="hidden">
+
+        <div class="buttons grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            <button type="button" data-item="coupons" onclick="addItem('coupons',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Coupon Codes</button>
+            <button type="button" data-item="audit_logs" onclick="addItem('audit_logs',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">System Logs</button>
+            <button type="button" data-item="new_books" onclick="addItem('new_books',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">New Books</button>
+            <button type="button" data-item="edit_staff" onclick="addItem('edit_staff',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Edit Staff</button>
+            <button type="button" data-item="stores" onclick="addItem('stores',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Stores</button>
+            <button type="button" data-item="orders" onclick="addItem('orders',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Orders</button>
+            <button type="button" data-item="gallery" onclick="addItem('gallery',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Gallery</button>
+            <button type="button" data-item="overview" onclick="addItem('overview',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Overview</button>
+            <button type="button" data-item="submissions" onclick="addItem('submissions',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Submissions</button>
+            <button type="button" data-item="support" onclick="addItem('support',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Support</button>
+
+        </div>
+
+        <div class="flex justify-end gap-2.5 mt-6 pt-4 border-t border-gray-100">
+            <button type="button" onclick="closeItems()" class="px-4 py-2 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
+                Cancel
+            </button>
+            <button type="button" onclick="updateItems()" class="px-5 py-2 rounded-lg bg-pink-600 text-white text-xs font-semibold hover:bg-pink-700 transition-colors shadow-xs cursor-pointer">
+                Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.item-btn-active {
+    background: #fdf2f8 !important;
+    border-color: #db2777 !important;
+    color: #db2777 !important;
+    font-weight: 600 !important;
+}
+
+.item-btn-active::after {
+    content: '✔';
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #db2777;
+    color: #fff;
+    font-size: 8px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.buttons button {
+    position: relative;
+    cursor: pointer;
+}
+</style>
+
+<script>
+    let items = [], selectedId = ''
+    
+    function addItem(item, btn) {
+        if (items.includes(item)) {
+            items = items.filter(i => i !== item)
+            btn.classList.remove('item-btn-active')
+        } else {
+            items.push(item)
+            btn.classList.add('item-btn-active')
+        }
+    }
+    
+    function editMenuItems(td) {
+        const overlay = document.querySelector('.items-overlay')
+        selectedId = td.dataset.uid
+        try {
+            items = JSON.parse(td.dataset.items || '[]')
+        } catch (e) {
+            items = []
+        }
+        document.getElementById('edit-username').innerText = td.dataset.name || 'Staff'
+        document.getElementById('edit-id').value = selectedId
+    
+        document.querySelectorAll('.items-div .buttons button[data-item]').forEach(btn => {
+            btn.classList.toggle('item-btn-active', items.includes(btn.dataset.item))
+        })
+    
+        overlay.classList.remove('hidden')
+        overlay.classList.add('flex')
+    }
+    
+    function closeItems() {
+        const overlay = document.querySelector('.items-overlay')
+        overlay.classList.add('hidden')
+        overlay.classList.remove('flex')
+    }
+    
+    function updateItems() {
+        if (!confirm('Are you sure you want to update the menu access for this account?')) return
+    
+        fetch('/api/items/update', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ id: selectedId, items })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert('Updated successfully')
+                closeItems()
+                location.reload()
+            } else {
+                alert(data.message || 'Update failed')
+            }
+        })
+        .catch(e => alert(e.message))
+    }
+    
+    function showStaffDetails(row) {
+        const c = row.children
+        document.getElementById('staff-details').innerHTML = `
+            <div class="flex justify-between py-2 border-b border-gray-50 text-xs"><span class="text-gray-400">Staff ID</span><span class="text-gray-700 font-semibold">${c[1].querySelector('.menu-item')?.innerText || 'N/A'}</span></div>
+            <div class="flex justify-between py-2 border-b border-gray-50 text-xs"><span class="text-gray-400">Name</span><span class="text-gray-700 font-semibold">${c[1].querySelector('.font-semibold')?.innerText || 'N/A'}</span></div>
+            <div class="flex justify-between py-2 border-b border-gray-50 text-xs"><span class="text-gray-400">Email</span><span class="text-gray-700 font-semibold">${c[2].innerText.trim()}</span></div>
+            <div class="flex justify-between py-2 border-b border-gray-50 text-xs"><span class="text-gray-400">Phone</span><span class="text-gray-700 font-semibold">${c[3].innerText.trim()}</span></div>
+            <div class="flex justify-between py-2 border-b border-gray-50 text-xs"><span class="text-gray-400">Location</span><span class="text-gray-700 font-semibold">${row.dataset.location}</span></div>
+            <div class="flex justify-between py-2 border-b border-gray-50 text-xs"><span class="text-gray-400">Added By</span><span class="text-gray-700 font-semibold">${row.dataset.addedby}</span></div>
+            <div class="flex justify-between py-2 border-b border-gray-50 text-xs"><span class="text-gray-400">Added On</span><span class="text-gray-700 font-semibold">${c[0].innerText.trim()}</span></div>
+            <div class="flex justify-between py-2 text-xs"><span class="text-gray-400">Status</span><span class="text-gray-700 font-semibold">${c[4].innerText.trim()}</span></div>`
+        const overlay = document.querySelector('.details-overlay')
+        overlay.classList.remove('hidden')
+        overlay.classList.add('flex')
+    }
+    
+    function closeDetails() {
+        const overlay = document.querySelector('.details-overlay')
+        overlay.classList.add('hidden')
+        overlay.classList.remove('flex')
+    }
+    
+    document.getElementById('log-search').addEventListener('input', function() {
+        const q = this.value.toLowerCase().trim()
+        let visible = 0
+        document.querySelectorAll('.log-row').forEach(row => {
+            const match = row.dataset.search.toLowerCase().includes(q)
+            row.style.display = match ? '' : 'none'
+            if (match) visible++
+        })
+        document.getElementById('no-results').classList.toggle('hidden', visible !== 0)
+    })
+</script>
+
+{% endblock %}
