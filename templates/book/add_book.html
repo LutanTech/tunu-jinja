@@ -21,11 +21,91 @@
                     <label for="title" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Book Title</label>
                     <input type="text" id="title" name="title" required placeholder="e.g. Fundo la Moyoni" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
                 </div>
-
                 <div>
-                    <label for="authors" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Author(s)</label>
-                    <input type="text" id="authors" name="authors" placeholder="e.g. Tunu Publishers" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-xs outline-none focus:border-magenta transition-colors">
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Author(s)</label>
+                
+                    <div id="author-box" class="w-full min-h-[42px] border border-gray-300 rounded-lg px-2 py-2 flex flex-wrap gap-1.5 items-center focus-within:border-magenta transition-colors">
+                        <div id="author-tags" class="contents"></div>
+                
+                        <input
+                            type="text"
+                            id="author-input"
+                            list="author-list"
+                            placeholder="Select or type an author"
+                            autocomplete="off"
+                            class="flex-1 min-w-[180px] border-0 outline-none text-xs px-2 py-1"
+                        >
+                    </div>
+                
+                    <datalist id="author-list">
+                        {% for a in authors %}
+                        <option value="{{ a }}"></option>
+                        {% endfor %}
+                    </datalist>
+                
+                    <input type="hidden" id="authors" name="authors">
+                
+                    <p class="text-[9px] text-gray-400 mt-1">
+                        Select an author or type a new name. Press comma or Enter to add another.
+                    </p>
                 </div>
+                
+                <script>
+                const authorInput=document.getElementById("author-input");
+                const authorTags=document.getElementById("author-tags");
+                const authorsHidden=document.getElementById("authors");
+                let selectedAuthors=[];
+                
+                function updateAuthors(){
+                    authorsHidden.value=selectedAuthors.join(", ");
+                }
+                
+                function addAuthor(value){
+                    value=value.trim().replace(/,$/,"").trim();
+                
+                    if(!value||selectedAuthors.includes(value))return;
+                
+                    selectedAuthors.push(value);
+                
+                    const tag=document.createElement("span");
+                    tag.className="inline-flex items-center gap-1 bg-magenta/10 text-magenta px-2 py-1 rounded-md text-[10px] font-semibold";
+                    tag.innerHTML=`
+                        <span>${value.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</span>
+                        <button type="button" class="text-magenta hover:text-red-500 font-bold" onclick="removeAuthor('${value.replace(/'/g,"\\'")}')">&times;</button>
+                    `;
+                
+                    authorTags.appendChild(tag);
+                    authorInput.value="";
+                    updateAuthors();
+                    authorInput.focus();
+                }
+                
+                function removeAuthor(value){
+                    selectedAuthors=selectedAuthors.filter(author=>author!==value);
+                
+                    [...authorTags.children].forEach(tag=>{
+                        if(tag.querySelector("span")?.textContent===value)tag.remove();
+                    });
+                
+                    updateAuthors();
+                    authorInput.focus();
+                }
+                
+                authorInput.addEventListener("keydown",function(e){
+                    if(e.key==="Enter"||e.key===","){
+                        e.preventDefault();
+                        addAuthor(this.value);
+                    }
+                
+                    if(e.key==="Backspace"&&!this.value&&selectedAuthors.length){
+                        removeAuthor(selectedAuthors[selectedAuthors.length-1]);
+                    }
+                });
+                
+                authorInput.addEventListener("change",function(){
+                    if(this.value.trim())addAuthor(this.value);
+                });
+                </script>
                 
                 <div>
                     <label for="isbn" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">ISBN</label>

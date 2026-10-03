@@ -258,10 +258,15 @@
 				
 				
 				<div class="flex justify-end gap-3">
+
+					<a class="px-5 py-3 rounded-xl bg-red-100 cursor-pointer text-gray-600 text-xs font-bold" onclick="deleteAuthor('{{ author.id }}')">
+					 <i class="fas fa-trash"></i>	Delete
+					</a>
 					
 					<a href="/cp/authors" class="px-5 py-3 rounded-xl bg-gray-100 text-gray-600 text-xs font-bold">
 						Cancel
 					</a>
+
 					
 					<button type="submit" id="save-btn" class="px-6 py-3 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold shadow-md">
 						<i class="fas fa-save mr-1"></i>
@@ -284,6 +289,30 @@ const form = document.getElementById('author-form')
 const photo = document.getElementById('photo')
 const preview = document.getElementById('photo-preview')
 const placeholder = document.getElementById('photo-placeholder')
+
+
+function deleteAuthor(id){
+	const c = confirm("Are you sure you want to remove this author from the Database?")
+
+	if(c){
+		fetch(`/cp/authors/${id}/delete`, {
+			method: 'POST',
+			'Content-Type':'application/json'
+		})
+		.then(r=>r.json())
+		.then(data=>{
+			if(data.success){
+				showAlert('success',data.msg)
+				window.location.href = '/cp/authors'
+			} else{
+				showAlert("error", data.error | 'An error occured')
+			}
+		})
+		.catch(err=>{
+			showAlert('error', err.message)
+		})
+	}
+}
 
 photo.addEventListener('change', function() {
 	

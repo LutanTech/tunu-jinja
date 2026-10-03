@@ -1553,7 +1553,16 @@ def add_book():
     staff = db.session.get(Staff, session["staff_id"])
 
     if request.method == "GET":
-        return render_template("book/add_book.html", admin=staff)
+        authors = set()
+
+        for b in Book.query.all():
+            if b.authors:
+                for name in b.authors.split(','):
+                    name = name.strip()
+                    if name:
+                        authors.add(name)
+                        
+        return render_template("book/add_book.html", admin=staff, authors=authors)
 
     img, fn = request.files.get("image"), "default.png"
 
@@ -2383,6 +2392,24 @@ def edit_author_page(author_id):
         social_links=social_links,
         admin=staff
     )
+
+
+@app.route("/cp/authors/<string:author_id>/delete", methods=['POST'])
+@login_required
+@admin_required
+@menu_required("authors")
+def delete_author(author_id):
+    author=Author.query.get_or_404(author_id)
+    
+    try: 
+        db.session.delete(author)
+    except Exception as e:
+        db.session.rollback()
+                
+        return jsonify({"error":f'Database error occured. {str(e)}', 'success':False}), 500
+
+    return jsonify({"msg":'Deleted Author', 'success':True})
+
 
 @app.route("/api/admin/toggle_store/<string:id>", methods=["POST"])
 @login_required
