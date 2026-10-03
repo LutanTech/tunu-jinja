@@ -1599,7 +1599,7 @@ def edit_book(id):
     bk = Book.query.get_or_404(id)
 
     if request.method == "GET":
-        return render_template("book/edit_book.html", book=bk)
+        return render_template("book/edit_book.html", book=bk, admin=staff)
 
     for fld in ["title", "authors", "grade", "audience", "category", "blurb"]:
         setattr(bk, fld, request.form.get(fld))

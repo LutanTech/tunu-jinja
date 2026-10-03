@@ -20,20 +20,20 @@
         </button>
         {% endif %}
 
-        {% if "new_books" in admin.menu_items and not admin.is_super_admin %} 
+        {% if "new_books" in admin.menu_items %} 
         <button onclick="switchTab('books')" id="tab-btn-books" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
             <i class="fas fa-book mr-1.5"></i> Books Library
         </button>
         {% endif %}
 
-        {% if "orders" in admin.menu_items and not admin.is_super_admin %} 
+        {% if "orders" in admin.menu_items %} 
 
         <button onclick="switchTab('orders')" id="tab-btn-orders" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
             <i class="fas fa-shopping-cart mr-1.5"></i> M-Pesa Orders
         </button>
         {% endif %}
         
-        {% if "staff" in admin.menu_items and not admin.is_super_admin %} 
+        {% if "staff" in admin.menu_items %} 
 
         <button onclick="switchTab('staff')" id="tab-btn-staff" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
             <i class="fas fa-users mr-1.5"></i> Field Staff
@@ -41,14 +41,14 @@
 
         {% endif %}
         
-        {% if "submissions" in admin.menu_items and not admin.is_super_admin %} 
+        {% if "submissions" in admin.menu_items %} 
         
         <button onclick="switchTab('reports')" id="tab-btn-reports" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
             <i class="fas fa-file-invoice mr-1.5"></i> Submissions
         </button>
         {% endif %}
         
-       {% if "gallery" in admin.menu_items and not admin.is_super_admin %} 
+       {% if "gallery" in admin.menu_items %} 
        <button onclick="switchTab('gallery')" id="tab-btn-reports" class="tab-btn shrink-0 px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all text-gray-400 border-transparent hover:text-gray-600">
         <i class="fas fa-images mr-1.5"></i> Gallery
     </button>
