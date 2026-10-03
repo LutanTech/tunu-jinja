@@ -1810,9 +1810,32 @@ def upload_image():
 def about():
     return render_template('company/about.html')
 
+import requests
+
+RECAPTCHA_SECRET_KEY ="6LcT39wtAAAAAMPX0aC8-PJV9hCpyZbdxSe-alj7"
+
 @app.route("/contact-us", methods=["GET", "POST"])
 def contact_us():
     if request.method == "POST":
+        if request.form.get("website_url"):
+            return redirect(url_for("contact_us"))
+
+        recaptcha_response = request.form.get("g-recaptcha-response")
+        client_ip = request.remote_addr
+
+        verify_response = requests.post(
+            "https://www.google.com/recaptcha/api/siteverify",
+            data={
+                "secret": RECAPTCHA_SECRET_KEY,
+                "response": recaptcha_response,
+                "remoteip": client_ip
+            }
+        ).json()
+
+        if not verify_response.get("success"):
+            flash("Please complete the reCAPTCHA security verification.", "error")
+            return redirect(url_for("contact_us"))
+
         support = Support(
             name=request.form.get("name", "").strip(),
             email=request.form.get("email", "").strip(),
@@ -1839,7 +1862,6 @@ def contact_us():
         return redirect(url_for("contact_us"))
 
     return render_template("company/contact.html")
-
 @app.route("/privacy-policy", methods=["GET"])
 def privacy_policy():
     return render_template("company/privacy_policy.html")

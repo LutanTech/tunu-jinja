@@ -10,6 +10,8 @@
     </title>
     {% block head%}
     <meta name="title" content="TUNU Publishers | Elimu ni Tunu">
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LcT39wtAAAAACrt407_KItmXkvEN8IjhD07SA1O" async defer></script>
+      
     <meta name="description" content="TUNU Publishers is Kenya's trusted publisher for CBC books, story books, novels, poetry, revision materials, educational resources and children's learning content.">
     <meta name="keywords" content="TUNU Publishers, CBC books Kenya, novels, educational books, Grade books, revision books, story books, poetry books, publishers in Kenya, children's books, elimu ni tunu">
     <meta name="author" content="TUNU Publishers">
@@ -260,7 +262,7 @@
                     <a href="/stores" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-map-marker-alt w-4 opacity-75"></i> Stores Hub</a>
                     <a href="/about" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-info-circle w-4 opacity-75"></i> About Us</a>
                     <a href="/gallery" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-info-circle w-4 opacity-75"></i> Our Gallery</a>
-                    <a href="/contact_us" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-phone w-4 opacity-75"> </i> Contact</a>
+                    <a href="{{ url_for('contact_us') }}" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-phone w-4 opacity-75"> </i> Contact</a>
                     <a href="{{ url_for('authors') }}" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-magenta/5 hover:text-magenta rounded transition-all"> <i class="fas fa-user-pen w-4 opacity-75"> </i> Our Authors</a>
                 </div>
             </div>
