@@ -1,4 +1,4 @@
-{% extends "admin_base.html" %}
+{% extends "staff_base.html" %}
 
 {% block content %}
 
@@ -37,36 +37,45 @@
                     <i class="fas fa-book text-xl"></i>
                 </div>
                 <div>
+                    {% if total_books %}
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Books</p>
-                    <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_books | number }}</h3>
+                    <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_books  }}</h3>
+                    {% endif %}
                 </div>
             </div>
             <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-orangered/10 flex items-center justify-center text-orangered">
                     <i class="fas fa-shopping-bag text-xl"></i>
                 </div>
+                {% if total_books %}
+
                 <div>
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Orders</p>
                     <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_orders | number }}</h3>
                 </div>
+                {% endif %}
             </div>
             <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
                     <i class="fas fa-users text-xl"></i>
                 </div>
+                {% if total_staff %}
                 <div>
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Field Staff</p>
                     <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_staff | number }}</h3>
                 </div>
+                {% endif %}
             </div>
             <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
                     <i class="fas fa-chart-pie text-xl"></i>
                 </div>
+                {% if total_reports%}
                 <div>
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Submissions</p>
                     <h3 class="text-2xl font-black text-gray-800 mt-0.5">{{ total_reports | number }}</h3>
                 </div>
+                {% endif %}
             </div>
         </div>
 

@@ -12,7 +12,6 @@ import secrets
 import string
 import traceback
 from urllib.parse import quote
-from slugify import slugify
 
 
 from bs4 import BeautifulSoup
@@ -91,72 +90,124 @@ def from_json(value):
         return json.loads(value or "[]")
     except (TypeError, ValueError):
         return []
+        
+        
+import unicodedata
+
+def slugify(value):
+    value=unicodedata.normalize("NFKD",value).encode("ascii","ignore").decode("ascii")
+    value=re.sub(r"[^a-zA-Z0-9]+","-",value).strip("-").lower()
+    return value
 
 def generate_id(prefix="STF", length=6):
     return f"{prefix}-" + "".join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(length))
 
-@app.route("/api/authors/<string:author_id>/update", methods=["POST"])
+@app.route("/api/authors/<string:author_id>/update",methods=["POST"])
 def update_author(author_id):
-    author = Author.query.get_or_404(author_id)
+    author=Author.query.get_or_404(author_id)
 
-    author.name = request.form.get("name", author.name).strip()
-    author.slug = request.form.get("slug", author.slug).strip()
-    author.description = request.form.get("description", author.description)
-    author.age = request.form.get("age", author.age, type=int)
-    author.email = request.form.get("email", author.email)
-    author.phone = request.form.get("phone", author.phone)
-    author.location = request.form.get("location", author.location)
-    author.website = request.form.get("website", author.website)
-    author.edited_at = datetime.utcnow() + timedelta(hours=3)
+    author.name=request.form.get("name",author.name).strip()
+    author.slug=request.form.get("slug",author.slug).strip()
+    author.description=request.form.get("description",author.description)
 
-    other_books = request.form.get("other_books")
+    age=request.form.get("age","").strip()
+    author.age=int(age) if age.isdigit() else None
+
+    email=request.form.get("email","").strip()
+    phone=request.form.get("phone","").strip()
+    location=request.form.get("location","").strip()
+    website=request.form.get("website","").strip()
+
+    author.email=email or None
+    author.phone=phone or None
+    author.location=location or None
+    author.website=website or None
+    author.edited_at=datetime.utcnow()+timedelta(hours=3)
+
+    other_books=request.form.get("other_books","").strip()
     if other_books:
         try:
             json.loads(other_books)
-            author.other_books = other_books
+            author.other_books=other_books
         except:
             return jsonify({
-                "success": False,
-                "message": "Invalid other_books JSON"
-            }), 400
+                "success":False,
+                "message":"Invalid other_books JSON"
+            }),400
 
-    social_links = request.form.get("social_links")
+    social_links=request.form.get("social_links","").strip()
     if social_links:
         try:
             json.loads(social_links)
-            author.social_links = social_links
+            author.social_links=social_links
         except:
             return jsonify({
-                "success": False,
-                "message": "Invalid social_links JSON"
-            }), 400
+                "success":False,
+                "message":"Invalid social_links JSON"
+            }),400
 
     if "photo" in request.files:
-        photo = request.files["photo"]
+        photo=request.files["photo"]
 
         if photo and photo.filename:
-            ext = os.path.splitext(photo.filename)[1].lower()
+            ext=os.path.splitext(photo.filename)[1].lower()
 
-            if ext not in [".jpg", ".jpeg", ".png", ".webp"]:
+            if ext not in [".jpg",".jpeg",".png",".webp"]:
                 return jsonify({
-                    "success": False,
-                    "message": "Invalid image format"
-                }), 400
+                    "success":False,
+                    "message":"Invalid image format"
+                }),400
 
-            filename = f"{uuid.uuid4().hex}{ext}"
-            upload_dir = os.path.join(app.static_folder, "uploads", "authors")
-            os.makedirs(upload_dir, exist_ok=True)
+            filename=f"{uuid.uuid4().hex}{ext}"
+            upload_dir=os.path.join(
+                app.static_folder,
+                "uploads",
+                "authors"
+            )
 
-            photo.save(os.path.join(upload_dir, filename))
-            author.photo = f"/static/uploads/authors/{filename}"
+            os.makedirs(upload_dir,exist_ok=True)
+            photo.save(os.path.join(upload_dir,filename))
+            author.photo=f"/static/uploads/authors/{filename}"
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+
+        if "UNIQUE constraint failed: author.email" in str(e):
+            return jsonify({
+                "success":False,
+                "message":"That email address is already assigned to another author."
+            }),400
+
+        if "UNIQUE constraint failed: author.phone" in str(e):
+            return jsonify({
+                "success":False,
+                "message":"That phone number is already assigned to another author."
+            }),400
+
+        if "UNIQUE constraint failed: author.name" in str(e):
+            return jsonify({
+                "success":False,
+                "message":"That author name already exists."
+            }),400
+
+        if "UNIQUE constraint failed: author.slug" in str(e):
+            return jsonify({
+                "success":False,
+                "message":"That slug already exists."
+            }),400
+
+        return jsonify({
+            "success":False,
+            "message":"Unable to update author."
+        }),500
 
     return jsonify({
-        "success": True,
-        "author": author.to_dict()
+        "success":True,
+        "author":author.to_dict()
     })
-
+    
 @app.route("/admin/authors/<string:author_id>/edit")
 def edit_author(author_id):
     author = Author.query.get_or_404(author_id)
@@ -177,12 +228,50 @@ def edit_author(author_id):
         other_books=other_books,
         social_links=social_links
     )
-
 @app.route("/authors")
 def authors():
-    authors = Author.query.filter_by(is_active=True).order_by(Author.name.asc()).all()
-    return render_template("authors.html", authors=authors)
+    search_query=request.args.get("q","").strip()
+    sort=request.args.get("sort","name_asc")
 
+    query=Author.query.filter_by(is_active=True)
+
+    if search_query:
+        search_filter=f"%{search_query}%"
+        query=query.filter(
+            db.or_(
+                Author.name.ilike(search_filter),
+                Author.location.ilike(search_filter),
+                Author.description.ilike(search_filter)
+            )
+        )
+
+    authors=query.all()
+
+    books=Book.query.filter(Book.is_deleted==False).all()
+
+    for author in authors:
+        author.book_count=sum(
+            1 for book in books
+            if book.authors and author.name in [
+                name.strip() for name in book.authors.split(",")
+            ]
+        )
+
+    if sort=="name_desc":
+        authors.sort(key=lambda x:x.name.lower(),reverse=True)
+    elif sort=="books_desc":
+        authors.sort(key=lambda x:x.book_count,reverse=True)
+    elif sort=="books_asc":
+        authors.sort(key=lambda x:x.book_count)
+    else:
+        authors.sort(key=lambda x:x.name.lower())
+
+
+
+    return render_template(
+        "authors.html",
+        authors=authors
+    )
 @app.route("/author/<string:slug>")
 def author_detail(slug):
     author = Author.query.filter_by(
@@ -389,6 +478,7 @@ class Book(db.Model):
     oldPrice, newPrice = db.Column(db.Float, default=0), db.Column(db.Float, default=0)
     stars, sold, views = db.Column(db.Integer, default=0), db.Column(db.Integer, default=0), db.Column(db.Integer, default=0)
     is_deleted = db.Column(db.Boolean, default=False)
+    isbn=db.Column(db.String(32))
     
     def set_slug(self):
         title_slug = re.sub(r"[^a-z0-9]+", "-", self.title.lower()).strip("-")
@@ -416,7 +506,8 @@ class Book(db.Model):
             "discounted": self.discounted,
             "stars": self.stars,
             "sold": self.sold,
-            "views": self.views
+            "views": self.views,
+            "isbn":self.isbn
         }
 
 class Author(db.Model):
@@ -1042,9 +1133,11 @@ def change_password():
 @app.route("/staff/register", methods=["GET", "POST"])
 @login_required
 @admin_required
+@menu_required('edit_staff')
+
 def register_staff():
     admin = db.session.get(Staff, session["staff_id"])
-    if request.method == "GET": return render_template("user/register.html")
+    if request.method == "GET": return render_template("user/register.html", admin=admin)
     phone, email = request.form.get("phone"), request.form.get("email")
     if Staff.query.filter_by(phone=phone).first(): return render_template("user/register.html", error="Phone number already exists.")
     if email and Staff.query.filter_by(email=email).first(): return render_template("user/register.html", error="Email already exists.")
@@ -1238,6 +1331,8 @@ def orders_page():
 @app.route("/cp/staff")
 @login_required
 @admin_required
+@menu_required('staff')
+
 def staff_page():
     all_staff = Staff.query.all()
     
@@ -1251,8 +1346,6 @@ def staff_page():
     staff = db.session.get(Staff, session["staff_id"])
     
     
-    if not "staff"in staff.menu_items and not staff.is_super_admin :
-        return render_template("errors/admin_401.html", error="You are not allowed to access this page. Please contact system admin for more information ")
     
     return render_template("system/restrictions.html", staff=all_staff, admin=staff)
 
@@ -1288,10 +1381,10 @@ def delete_order():
     return jsonify({"msg": "Order updated."})
 
 
-@app.route("/api/items/update", methods=["POST"])
+@app.route("/cp/items/update", methods=["POST"])
 @login_required
 @admin_required
-@menu_required('staff')
+@menu_required('edit_staff')
 
 def update_items():
     adm = db.session.get(Staff, session["staff_id"])
@@ -1460,7 +1553,7 @@ def add_book():
     staff = db.session.get(Staff, session["staff_id"])
 
     if request.method == "GET":
-        return render_template("book/add_book.html")
+        return render_template("book/add_book.html", admin=staff)
 
     img, fn = request.files.get("image"), "default.png"
 
@@ -1478,6 +1571,7 @@ def add_book():
         id=bid,
         title=request.form.get("title"),
         authors=request.form.get("authors"),
+        isbn=request.form.get("isbn", ''),
         audience=request.form.get("audience"),
         grade=request.form.get("grade"),
         category=request.form.get("category", "General"),
@@ -2629,78 +2723,90 @@ def strip_tags(text):
         return ""
     return BeautifulSoup(text, "html.parser").get_text(separator=" ", strip=True)
 
-
-
 @app.route("/cp/logs")
 @login_required
 @admin_required
 def logs_page():
+    staff=db.session.get(Staff,session["staff_id"])
+
     from collections import Counter
-    from datetime import datetime, timedelta
-    adm = db.session.get(Staff, session["staff_id"])
-    log_action("Viewed logs", 200, adm.id)
-    logs = Log.query.order_by(Log.timestamp.desc()).limit(5000).all()
+    from datetime import datetime,timedelta
 
-    ip_counter = Counter()
-    endpoint_counter = Counter()
-    hour_counter = Counter()
-    staff_counter = Counter()
-    status_counter = Counter()
+    adm=db.session.get(Staff,session["staff_id"])
 
-    visitors = set()
-    suspicious_ips = []
-    error_ips = []
-    night_activity = []
-    bot_visits = []
-    slow_attack = []
+    log_action("Viewed logs",200,adm.id)
+
+    logs=Log.query.order_by(Log.timestamp.desc()).limit(5000).all()
+
+    ip_counter=Counter()
+    endpoint_counter=Counter()
+    hour_counter=Counter()
+    staff_counter=Counter()
+    status_counter=Counter()
+    daily_counter=Counter()
+
+    visitors=set()
+    suspicious_ips=[]
+    error_ips=[]
+    night_activity=[]
+    bot_visits=[]
+    slow_attack=[]
 
     for log in logs:
-        ip = log.ip or "Unknown"
+        ip=log.ip or "Unknown"
 
-        ip_counter[ip] += 1
-        endpoint_counter[log.endpoint or "Unknown"] += 1
-        hour_counter[log.timestamp.strftime("%H:00")] += 1
-        staff_counter[log.staff_id or "Guest"] += 1
-        status_counter[log.status_code or 0] += 1
+        ip_counter[ip]+=1
+        endpoint_counter[log.endpoint or "Unknown"]+=1
+        hour_counter[log.timestamp.strftime("%H:00")]+=1
+        staff_counter[log.staff_id or "Guest"]+=1
+        status_counter[log.status_code or 0]+=1
+        daily_counter[log.timestamp.strftime("%Y-%m-%d")]+=1
+
         visitors.add(ip)
 
-        ua = (log.user_agent or "").lower()
+        ua=(log.user_agent or "").lower()
 
         if "bot" in ua or "crawler" in ua or "spider" in ua:
             bot_visits.append(log)
 
-        if log.timestamp.hour >= 23 or log.timestamp.hour <= 4:
+        if log.timestamp.hour>=23 or log.timestamp.hour<=4:
             night_activity.append(log)
 
-    for ip, count in ip_counter.items():
-        if count > 100:
+    daily_logs=sorted(
+        daily_counter.items(),
+        key=lambda x:x[0],
+        reverse=True
+    )[:5]
+
+    for ip,count in ip_counter.items():
+
+        if count>100:
             suspicious_ips.append({
-                "ip": ip,
-                "requests": count
+                "ip":ip,
+                "requests":count
             })
 
-        errors = sum(
+        errors=sum(
             1 for log in logs
-            if log.ip == ip and (log.status_code or 0) >= 400
+            if log.ip==ip and (log.status_code or 0)>=400
         )
 
-        if errors > 20:
+        if errors>20:
             error_ips.append({
-                "ip": ip,
-                "errors": errors
+                "ip":ip,
+                "errors":errors
             })
 
-        recent = [
+        recent=[
             log for log in logs
-            if log.ip == ip
-            and datetime.utcnow() + timedelta(hours=3) - log.timestamp
-            < timedelta(minutes=5)
+            if log.ip==ip
+            and datetime.utcnow()+timedelta(hours=3)-log.timestamp<timedelta(minutes=5)
         ]
 
-        if len(recent) > 30:
+        if len(recent)>30:
             slow_attack.append({
-                "ip": ip,
-                "count": len(recent)
+                "ip":ip,
+                "count":len(recent)
             })
 
     return render_template(
@@ -2720,7 +2826,9 @@ def logs_page():
         bot_visits=bot_visits[:50],
         slow_attack=slow_attack,
         top_staff=staff_counter.most_common(20),
-        statuses=dict(status_counter)
+        statuses=dict(status_counter),
+        daily_logs=daily_logs,
+        admin=adm
     )
 
 if __name__ == "__main__":

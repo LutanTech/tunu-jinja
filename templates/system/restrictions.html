@@ -33,6 +33,7 @@
                 
                 <tbody id="logs-table" class="divide-y divide-gray-100">
                     {% for s in staff %}
+                    {% if not s.is_super_admin %}
                     <tr class="log-row hover:bg-gray-50/60 transition-colors" data-search="{{ s.id or '' }} {{ s.name or '' }} {{ s.email or '' }} {{ s.phone or '' }} {{ s.location or '' }} {{ s.added_by or '' }}" data-location="{{ s.location or 'N/A' }}" data-addedby="{{ s.added_by or 'N/A' }}">
                         
                         <td class="py-3.5 px-4 whitespace-nowrap text-gray-500 text-[11px]">{{ s.added_at.strftime('%b %d, %Y') if s.added_at else '---' }}</td>
@@ -63,14 +64,16 @@
                         
                         <td data-uid="{{ s.id }}" data-name="{{ s.name }}" data-items='{{ s.display_items | tojson | safe }}' class="py-3.5 px-4">
                             <div class="flex flex-wrap gap-1 max-w-[220px]">
-                                {% set menu_items=[('coupons','Coupons'),('audit_logs','Logs'),('new_books','Books'),('edit_staff','Staff'),('stores','Stores'),('orders','Orders'),('gallery','Gallery'),
+                                {% set menu_items=[('coupons','Coupons'),('audit_logs','Logs'),('new_books','Books'),('staff','Staff'),
+                                ('stores','Stores'),('orders','Orders'),('gallery','Gallery'),
                                 ('overview','Overview'),
                                 ('submissions','Submissions'),
-                                ('support','Support')
+                                ('support','Support'),
+                                ('edit_staff','Edit Staff')
                                 ] %}
                                 {% for value,label in menu_items %}
                                 {% if value in s.display_items %}
-                                <span class="px-1.5 py-0.5 rounded bg-pink-50 text-pink-700 menu-item text-[9px] font-medium border border-pink-100">{{ label }}</span>
+                                <span class="px-1.5 py-0.5 rounded bg-pink-50 text-pink-700 menu-item text-[9px] font-medium border border-pink-100" style="flex-grow:1">{{ label }}</span>
                                 {% endif %}
                                 {% endfor %}
                             </div>
@@ -81,13 +84,19 @@
                                 <button type="button" onclick="showStaffDetails(this.closest('tr'))" class="w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-600 hover:text-pink-600 hover:border-pink-200 flex items-center justify-center transition-all shadow-xs cursor-pointer" title="View Details">
                                     <i class="fas fa-eye text-xs pointer-events-none"></i>
                                 </button>
+
+                                {% if "edit_staff" in admin.menu_items %}
+
                                 <button type="button" onclick="editMenuItems(this.closest('tr').querySelector('[data-uid]'))" class="w-8 h-8 rounded-lg bg-pink-600 text-white hover:bg-pink-700 flex items-center justify-center transition-all shadow-xs cursor-pointer" title="Edit Menu Access">
                                     <i class="fas fa-pen text-xs pointer-events-none"></i>
                                 </button>
+
+                                {% endif %}
                             </div>
                         </td>
                         
                     </tr>
+                    {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
@@ -121,15 +130,26 @@
 
         <div class="buttons grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             <button type="button" data-item="coupons" onclick="addItem('coupons',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Coupon Codes</button>
+
             <button type="button" data-item="audit_logs" onclick="addItem('audit_logs',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">System Logs</button>
+
             <button type="button" data-item="new_books" onclick="addItem('new_books',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">New Books</button>
-            <button type="button" data-item="edit_staff" onclick="addItem('edit_staff',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Edit Staff</button>
+
+            <button type="button" data-item="staff" onclick="addItem('staff',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">View Staff</button>
+
             <button type="button" data-item="stores" onclick="addItem('stores',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Stores</button>
+
             <button type="button" data-item="orders" onclick="addItem('orders',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Orders</button>
+
             <button type="button" data-item="gallery" onclick="addItem('gallery',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Gallery</button>
+
             <button type="button" data-item="overview" onclick="addItem('overview',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Overview</button>
+
             <button type="button" data-item="submissions" onclick="addItem('submissions',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Submissions</button>
+
             <button type="button" data-item="support" onclick="addItem('support',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Support</button>
+
+            <button type="button" data-item="support" onclick="addItem('edit_staff',this)" class="px-3 py-2.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-all text-center">Edit Staff</button>
 
         </div>
 
@@ -216,22 +236,29 @@
     function updateItems() {
         if (!confirm('Are you sure you want to update the menu access for this account?')) return
     
-        fetch('/api/items/update', {
+        fetch('/cp/items/update', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ id: selectedId, items })
         })
         .then(r => r.json())
         .then(data => {
+            if(String(data).startsWith('<!Doctype ')){
+                showAlert('error','You do not have enough permisions to excecute this')
+                return 
+            }
             if (data.success) {
-                alert('Updated successfully')
+                showAlert('success','Updated successfully')
                 closeItems()
+                setTimeout(() => {
                 location.reload()
+                    
+                }, 2000);
             } else {
-                alert(data.message || 'Update failed')
+                showAlert('error',data.message || 'Update failed')
             }
         })
-        .catch(e => alert(e.message))
+        .catch(e => showAlert('error',e.message))
     }
     
     function showStaffDetails(row) {

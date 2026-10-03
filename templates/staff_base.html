@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}TUNU Publishers | Admin CP{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>{% block title %}TUNU Publishers | Staff Dashboard{% endblock %}</title>
+    <script src="/static/assets/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -25,7 +25,7 @@
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        .active-admin-link {
+        .active-staff-link {
             background-color: rgba(139, 0, 139, 0.08) !important;
             color:rgb(184, 2, 184) !important;
             border-left-color: #8B008B !important;
@@ -47,7 +47,7 @@
 </head>
 <body class="h-full flex overflow-hidden">
 
-<div id="admin-sidebar" class="hidden md:flex md:flex-col md:w-64 bg-gray-900 text-gray-400 shrink-0 border-r border-gray-800">
+<div id="staff-sidebar" class="hidden md:flex md:flex-col md:w-64 bg-gray-900 text-gray-400 shrink-0 border-r border-gray-800">
     <div class="h-16 flex items-center gap-2 px-6 border-b border-gray-800">
         <span class="w-8 h-8 rounded-lg bg-magenta flex items-center justify-center text-white font-black text-sm tracking-wider shadow-md">T</span>
         <span class="font-black text-lg tracking-tight text-white">TUNU<span class="text-magenta">.</span></span>
@@ -57,23 +57,23 @@
     <nav class="flex-grow py-6 flex flex-col  px-3 overflow-y-auto dtp-nav " >
         <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Management</span>
         
-        <a href="/cp" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl  text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+        <a href="/cp" class="staff-nav-link flex items-center gap-3 p-2  rounded-xl  text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-chart-line text-sm w-5"></i> Control Panel
         </a>
-        <a href="/cp/coupons" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl  text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+        <a href="/cp/coupons" class="staff-nav-link flex items-center gap-3 p-2  rounded-xl  text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-tags text-sm w-5"></i> Coupon Codes
         </a>
-        <a href="/cp/logs" class="admin-nav-link flex items-center gap-3 p-2 rounded-xl  text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+        <a href="/cp/logs" class="staff-nav-link flex items-center gap-3 p-2 rounded-xl  text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-history text-sm w-5"></i> System Audit Logs
         </a>
 
         <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-6 mb-2 block">Quick Shortcuts</span>
         
-        <a href="/cp/books/new" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+        <a href="/cp/books/new" class="staff-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-plus text-sm w-5"></i> Add New Book
         </a>
 
-        <a href="/cp/books" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+        <a href="/cp/books" class="staff-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px] font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-book text-sm w-5"></i> Books Inventory
         </a>
 
@@ -81,22 +81,22 @@
             <i class="fas fa-user-plus text-sm w-5"></i> Register Staff
         </a>
 
-        <a href="/cp/gallery" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+        <a href="/cp/gallery" class="staff-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-images text-sm w-5"></i>  Gallery
         </a>
 
-        <a href="/cp/orders" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+        <a href="/cp/orders" class="staff-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-dollar text-sm w-5"></i>  Orders
         </a>
 
-        <a href="/cp/stores" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
+        <a href="/cp/stores" class="staff-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent">
             <i class="fas fa-store text-sm w-5"></i>  Stores
         </a>
 
 
         <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-5 mb-2 block">Public Site</span>
         
-        <a href="/" class="admin-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent text-gray-400">
+        <a href="/" class="staff-nav-link flex items-center gap-3 p-2  rounded-xl text-[8px]  font-bold uppercase tracking-wider hover:bg-gray-800 hover:text-white transition-all border-l-4 border-transparent text-gray-400">
             <i class="fas fa-external-link-alt text-sm w-5"></i> View Bookstore
         </a>
     </nav>
@@ -131,13 +131,13 @@
             <nav class="flex-grow py-6 flex flex-col gap-1 px-3 overflow-y-auto">
                 <span class="px-3 text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Management</span>
                 
-                <a href="/cp" class="admin-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
+                <a href="/cp" class="staff-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
                     <i class="fas fa-chart-line text-sm w-5"></i> Control Panel
                 </a>
-                <a href="/cp/coupons" class="admin-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
+                <a href="/cp/coupons" class="staff-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
                     <i class="fas fa-tags text-sm w-5"></i> Coupon Codes
                 </a>
-                <a href="/cp/logs" class="admin-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
+                <a href="/cp/logs" class="staff-nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 text-white transition-all border-l-4 border-transparent">
                     <i class="fas fa-history text-sm w-5"></i> System Audit Logs
                 </a>
         
@@ -273,11 +273,11 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         const currentPath = window.location.pathname;
-        const navLinks = document.querySelectorAll('.admin-nav-link');
+        const navLinks = document.querySelectorAll('.staff-nav-link');
         navLinks.forEach(link => {
             console.log(currentPath, link.getAttribute('href') === currentPath, navLinks)
             if (link.getAttribute('href') === currentPath) {
-                link.classList.add('active-admin-link');
+                link.classList.add('active-staff-link');
             }
         });
 
